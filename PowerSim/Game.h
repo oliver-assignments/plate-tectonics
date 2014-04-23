@@ -1,0 +1,107 @@
+#include <allegro5\allegro.h>
+#include <allegro5\allegro_image.h>
+#include <allegro5\allegro_font.h>
+#include <allegro5\allegro_ttf.h>
+#include <allegro5\allegro_audio.h>
+#include <allegro5\allegro_acodec.h>
+#include <allegro5\allegro_primitives.h>
+
+#include <vector>
+
+#include "Person.h"
+#include "UIState.h"
+#include "ColorContext.h"
+
+#define WHITE makeCol(255,255,255)
+#define BLACK makeCol(0,0,0)
+
+
+class Game
+{
+public:
+	Game();
+	void Initialize();
+	void InitializeGame();
+	void InitializeAllegro();
+
+	void LoadContent();
+	void DefineColors();
+
+	void Update();
+	void TakeInput();
+
+	void Draw();
+	void DrawPeople();
+	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
+	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
+
+	void FreeMemory();
+
+private:
+	//Management//
+	//			//
+	boolean done;
+
+	double FPS;
+	double total_frames;
+	double previous_tick_timestamp;
+	double elapsed_time;
+	double old_time;
+
+	double dt;
+	double accumulator;
+
+	ALLEGRO_KEYBOARD_STATE new_keyboard_state,old_keyboard_state;
+	ALLEGRO_DISPLAY* display;
+	int screen_width;
+	int screen_height;
+
+	//Game//
+	//	  //
+
+	//Life
+	int hours_in_day;
+	int days_in_year;
+
+	int current_hour;
+	int current_day;
+	int current_year;
+
+	//People
+	std::vector<Person*> people;
+
+	//Color Relative poitns
+	int power_highest_historical;
+	int power_highest_current;
+	ColorContext power_context;
+
+	int strength_highest_historical;
+	int strength_highest_current;
+	ColorContext strength_context;
+
+	int intelligence_highest_historical;
+	int intelligence_highest_current;
+	ColorContext intelligence_context;
+
+	int hunger_death_level;
+
+	int foreign_max;
+
+	int generation_youngest;
+
+	//Definiting Colors
+	UIState ui_state;
+
+	ALLEGRO_COLOR color_power;
+	ALLEGRO_COLOR color_hunger;
+	
+	ALLEGRO_COLOR color_intelligence;
+	ALLEGRO_COLOR color_strength;
+	
+	ALLEGRO_COLOR color_foreign_north;
+	ALLEGRO_COLOR color_foreign_east;
+	ALLEGRO_COLOR color_foreign_south;
+	ALLEGRO_COLOR color_foreign_west;
+
+	ALLEGRO_COLOR color_generation;
+};
