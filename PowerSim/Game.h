@@ -9,11 +9,12 @@
 #include <vector>
 #include <thread>
 #include <stdlib.h> 
+#include <ctime>
+#include <mutex>
 
 #include "Person.h"
 #include "UIState.h"
 #include "ColorContext.h"
-
 
 class Game
 {
@@ -21,6 +22,7 @@ public:
 	Game();
 	void Initialize();
 	void InitializeGame();
+	void CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius);
 	void InitializeAllegro();
 
 	void LoadContent();
@@ -38,10 +40,13 @@ public:
 
 	void FreeMemory();
 
+	long int PMrand();
+
 private:
 	//Management//
 	//			//
 	boolean done;
+	std::mutex mtx;
 
 	double FPS;
 	double total_frames;
@@ -108,17 +113,4 @@ private:
 	int color_foreign_west[3];
 	
 	int color_generation[3];
-
-	/*ALLEGRO_COLOR color_power;
-	ALLEGRO_COLOR color_hunger;
-	
-	ALLEGRO_COLOR color_intelligence;
-	ALLEGRO_COLOR color_strength;
-	
-	ALLEGRO_COLOR color_foreign_north;
-	ALLEGRO_COLOR color_foreign_east;
-	ALLEGRO_COLOR color_foreign_south;
-	ALLEGRO_COLOR color_foreign_west;
-
-	ALLEGRO_COLOR color_generation;*/
 };

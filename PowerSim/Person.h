@@ -6,7 +6,7 @@
 class Person
 {
 public:
-	Person(int myStrength,int myIntelligence, int myX,int myY,int myGeneration)
+	Person(int myStrength,int myIntelligence, int myGeneration, int myForeignX,int myForeignY,int myX,int myY)
 	{
 		power = 10;
 		strength = myStrength;
@@ -15,8 +15,8 @@ public:
 		position_x = myX;
 		position_y = myY;
 
-		foreign_x =0;
-		foreign_y=0;
+		foreign_x =myForeignX;
+		foreign_y=myForeignY;
 
 		hunger = 0;
 		generation = myGeneration;

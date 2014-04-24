@@ -1,5 +1,7 @@
 #include "Game.h"
 
+#include <iostream>
+
 Game::Game()
 {
 	Initialize();
@@ -55,7 +57,7 @@ void Game::InitializeAllegro()
 
 void Game::InitializeGame()
 {
-	ui_state = INTELLIGENCE;
+	ui_state = FOREIGN;
 
 	//Setuping up our values
 	hours_in_day =24;
@@ -84,15 +86,32 @@ void Game::InitializeGame()
 	generation_youngest=1;
 
 	//Creating people
-	for(int p = 0 ; p < 100;p++)
-	{
-		Person* person = new Person (10+(1+rand()%50),3+(1+rand()%50),100+(p*5),100,1);
-		people.push_back(person);
-	}
+	CreatePeople(10,25,75);
+
 	generation_youngest=1;
 	power_highest_person = people[0];
 	strength_highest_person = people[0];
 	intelligence_highest_person = people[0];
+};
+
+void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius)
+{
+	srand(time(NULL));
+	for(int c = 0 ; c<myNumberClusters;c++)
+	{
+		int cluster_origin_x = 100+(rand()%(screen_width-200));
+		int cluster_origin_y = 100+(rand()%(screen_height-200));
+
+		int foreign_origin_x = cos(c*(2*3.14)/myNumberClusters) * myForeignRadius;
+		int foreign_origin_y = sin(c*(2*3.14)/myNumberClusters) * myForeignRadius;
+
+		for(int p = 0 ; p < myPeoplePerCluster;p++)
+		{
+			Person* person = new Person (10+(1+rand()%50),3+(1+rand()%50),1,-10+foreign_origin_x+(rand()%20),-10+foreign_origin_y+(rand()%20),cluster_origin_x+(-50+(rand()%100)),cluster_origin_y+(-50+(rand()%100)));
+			people.push_back(person);
+		}
+
+	}
 };
 
 void Game::LoadContent()
@@ -114,23 +133,18 @@ void Game::DefineColors()
 	color_foreign_west[0] = 51; color_foreign_west[1] = 153; color_foreign_west[2] = 0;
 
 	color_generation[0] = 192; color_generation[1] = 192; color_generation[2] = 192;
-
-	/*color_power = al_map_rgb(255,0,0);
-	color_hunger = al_map_rgb(139,69,19);
-
-	color_strength= al_map_rgb(255,165,0);
-	color_intelligence= al_map_rgb(100,149,237);
-
-	color_foreign_north= al_map_rgb(255,255,0);
-	color_foreign_east= al_map_rgb(204,0,0);
-	color_foreign_south= al_map_rgb(51,51,153);
-	color_foreign_west= al_map_rgb(51,153,0);*/
 };
 
 void Game::Update()
 {
-	while(!done)
+	std::thread runThread(&Game::RunTime, this);
+
+	while(true)
 	{
+		{
+			std::lock_guard<std::mutex> lck(mtx);
+			if(done) break;
+		}
 		//Delta time handling
 		double current_timestamp = al_get_time();
 		double seconds_since_last_tick = current_timestamp - previous_tick_timestamp;
@@ -149,8 +163,9 @@ void Game::Update()
 			accumulator -= dt;
 		}
 
-		Draw();
+		
 	}
+	FreeMemory();
 };
 
 void Game::TakeInput()
@@ -208,13 +223,49 @@ void Game::TakeInput()
 		}
 	}
 
+	mtx.lock();
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_P))
+	{
+		ui_state = POWER;
+	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_I))
+	{
+		ui_state = INTELLIGENCE;
+	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_S))
+	{
+		ui_state = STRENGTH;
+	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_H))
+	{
+		ui_state = HUNGER;
+	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_F))
+	{
+		ui_state = FOREIGN;
+	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_G))
+	{
+		ui_state = GENERATION;
+	}
+	
 	old_keyboard_state = new_keyboard_state;
+	
+	mtx.unlock();
+
+
+
+	
 };
 
 void Game::RunTime()
 {
-	while(!done)
+	while(true)
 	{
+		{
+			std::lock_guard<std::mutex> lck(mtx);
+			if(done) break;
+		}
 		//Do all your hourly logic here
 		ProcessPeople();
 
@@ -316,6 +367,7 @@ void Game::DrawPeople()
 			color[1] = 0;
 			color[2] = 0;
 
+			mtx.lock();
 			if(ui_state == POWER)
 			{
 				if(power_context == HISTORY)
@@ -374,14 +426,14 @@ void Game::DrawPeople()
 					color [1] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[1])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[1]);
 					color [2] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[2])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[2]);
 				}
-				else if(people[i]->foreign_x>=0 && people[i]->foreign_y>=0)
+				else if(people[i]->foreign_x<=0 && people[i]->foreign_y>=0)
 				{
 					//second quad
 					color [0] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[0])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[0]);
 					color [1] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[1])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[1]);
 					color [2] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[2])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[2]);
 				}
-				else if(people[i]->foreign_x>=0 && people[i]->foreign_y>=0)
+				else if(people[i]->foreign_x<=0 && people[i]->foreign_y<=0)
 				{
 					//third quad
 					color [0] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[0])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[0]);
@@ -402,6 +454,8 @@ void Game::DrawPeople()
 				color [1] =((double)people[i]->generation/ generation_youngest * color_generation[1]);
 				color [2] =((double)people[i]->generation/ generation_youngest * color_generation[2]);
 			}
+
+			mtx.unlock();
 
 			//if(ui_state == POWER)
 			//{
@@ -527,8 +581,10 @@ void Game::DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char
 	al_draw_pixel(x,y-4,al_map_rgb(r,g,b));
 };
 
-
 void Game::FreeMemory()
 {
-
+	for(std::vector<Person*>::size_type i = 0; i != people.size(); i++) 
+	{
+		delete people[i];
+	}
 };
