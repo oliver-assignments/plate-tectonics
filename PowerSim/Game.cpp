@@ -58,6 +58,7 @@ void Game::InitializeAllegro()
 void Game::InitializeGame()
 {
 	ui_state = FOREIGN;
+	resources_drawn = true;
 
 	//Setuping up our values
 	hours_in_day =24;
@@ -85,15 +86,27 @@ void Game::InitializeGame()
 
 	generation_youngest=1;
 
-	//Creating people
+	CreateWorld();
+
+};
+
+void Game::CreateWorld()
+{
+	CreateResources(30);
 	CreatePeople(10,25,75);
 
 	generation_youngest=1;
 	power_highest_person = people[0];
 	strength_highest_person = people[0];
 	intelligence_highest_person = people[0];
+}
+void Game::CreateResources(int myNumber)
+{
+	for (int i = 0; i < myNumber; i++)
+	{
+		resources.push_back(new Resource(100+(rand()%(screen_width-200)),100+(rand()%(screen_height-200)),10));
+	}
 };
-
 void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius)
 {
 	srand(time(NULL));
@@ -121,6 +134,10 @@ void Game::LoadContent()
 
 void Game::DefineColors()
 {
+	color_base_value = 0.5;
+
+	color_resource[0] = 200;color_resource[1] = 200;color_resource[2] = 200;
+
 	color_power[0] = 255; color_power[1] = 0; color_power[2] = 0;
 	color_hunger[0] = 139; color_hunger[1] = 69; color_hunger[2] = 19;
 
@@ -137,7 +154,7 @@ void Game::DefineColors()
 
 void Game::Update()
 {
-	while(true)
+	while(!done)
 	{
 		//Delta time handling
 		double current_timestamp = al_get_time();
@@ -241,6 +258,16 @@ void Game::TakeInput()
 	{
 		ui_state = GENERATION;
 	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_R))
+	{
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_R))
+		{
+			if(resources_drawn)
+				resources_drawn=false;
+			else
+				resources_drawn = true;
+		}
+	}
 
 	old_keyboard_state = new_keyboard_state;
 };
@@ -249,10 +276,6 @@ void Game::RunTime()
 {
 	while(true)
 	{
-		{
-			std::lock_guard<std::mutex> lck(mtx);
-			if(done) break;
-		}
 		//Do all your hourly logic here
 		ProcessPeople();
 
@@ -280,7 +303,7 @@ void Game::RunTime()
 void Game::ProcessPeople()
 {
 	int starting_index = rand()%people.size();
-	
+
 	for(std::vector<Person*>::size_type i = starting_index; i < people.size(); i++) 
 	{
 		ProcessPersonAI();
@@ -303,6 +326,8 @@ void Game::ProcessPersonAI()
 void Game::Draw()
 {
 	DrawPeople();
+	if(resources_drawn)
+		DrawResources();
 
 	al_flip_display();
 	al_clear_to_color(al_map_rgb(0,0,0));
@@ -416,9 +441,9 @@ void Game::DrawPeople()
 				}
 				else//CURRENT
 				{
-					color [0] =color_intelligence[0]*(double)people[i]->intelligence/intelligence_highest_current;
-					color [1] =color_intelligence[1]*(double)people[i]->intelligence/intelligence_highest_current;
-					color [2] =color_intelligence[2]*(double)people[i]->intelligence/intelligence_highest_current;
+					color [0] = color_intelligence[0]*(double)people[i]->intelligence/intelligence_highest_current;
+					color [1] = color_intelligence[1] *(double)people[i]->intelligence/intelligence_highest_current;
+					color [2] = color_intelligence[2] *(double)people[i]->intelligence/intelligence_highest_current;
 				}
 			}
 			else if(ui_state == FOREIGN)
@@ -569,6 +594,18 @@ void Game::DrawPeople()
 		DrawCluster(100,100,100,100,100);
 	}
 }
+
+void Game::DrawResources()
+{
+	for(std::vector<Resource*>::size_type i = 0; i != resources.size(); i++) 
+	{
+		DrawCluster(resources[i]->position_x,
+			resources[i]->position_y,
+			50+ (resources[i]->necessity_value/10*(double)color_resource[0]),
+			50+ (resources[i]->necessity_value/10*(double)color_resource[1]),
+			50+ (resources[i]->necessity_value/10*(double)color_resource[2]));
+	}
+};
 
 void Game::DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b)
 {

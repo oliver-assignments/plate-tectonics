@@ -13,6 +13,7 @@
 #include <mutex>
 
 #include "Person.h"
+#include "Resource.h"
 #include "UIState.h"
 #include "ColorContext.h"
 
@@ -22,6 +23,8 @@ public:
 	Game();
 	void Initialize();
 	void InitializeGame();
+	void CreateWorld();
+	void CreateResources(int myNumber);
 	void CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius);
 	void InitializeAllegro();
 
@@ -36,6 +39,7 @@ public:
 
 	void Draw();
 	void DrawPeople();
+	void DrawResources();
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 
@@ -77,6 +81,10 @@ private:
 	//People
 	std::vector<Person*> people;
 
+	//Resources
+	std::vector<Resource*> resources;
+	bool resources_drawn;
+
 	//Color Relative poitns
 	int power_highest_historical;
 	int power_highest_current;
@@ -101,6 +109,10 @@ private:
 
 	//Definiting Colors
 	UIState ui_state;
+
+	double color_base_value ;
+
+	int color_resource[3];
 
 	int color_power[3];
 	int color_hunger[3];
