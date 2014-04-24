@@ -137,14 +137,8 @@ void Game::DefineColors()
 
 void Game::Update()
 {
-	std::thread runThread(&Game::RunTime, this);
-
 	while(true)
 	{
-		{
-			std::lock_guard<std::mutex> lck(mtx);
-			if(done) break;
-		}
 		//Delta time handling
 		double current_timestamp = al_get_time();
 		double seconds_since_last_tick = current_timestamp - previous_tick_timestamp;
@@ -163,7 +157,7 @@ void Game::Update()
 			accumulator -= dt;
 		}
 
-		
+		Draw();
 	}
 	FreeMemory();
 };
@@ -223,7 +217,6 @@ void Game::TakeInput()
 		}
 	}
 
-	mtx.lock();
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_P))
 	{
 		ui_state = POWER;
@@ -248,14 +241,8 @@ void Game::TakeInput()
 	{
 		ui_state = GENERATION;
 	}
-	
+
 	old_keyboard_state = new_keyboard_state;
-	
-	mtx.unlock();
-
-
-
-	
 };
 
 void Game::RunTime()
@@ -291,6 +278,24 @@ void Game::RunTime()
 }
 
 void Game::ProcessPeople()
+{
+	int starting_index = rand()%people.size();
+	
+	for(std::vector<Person*>::size_type i = starting_index; i < people.size(); i++) 
+	{
+		ProcessPersonAI();
+
+		if(i==people.size()-1)
+		{
+			for (int o = 0; o < starting_index; o++)
+			{
+				ProcessPersonAI();
+			}
+		}
+	}
+};
+
+void Game::ProcessPersonAI()
 {
 
 };
@@ -561,6 +566,7 @@ void Game::DrawPeople()
 			DrawBlade(people[i]->position_x,people[i]->position_y,color[0],color[1],color[2]);
 
 		}
+		DrawCluster(100,100,100,100,100);
 	}
 }
 

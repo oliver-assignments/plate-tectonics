@@ -1,8 +1,6 @@
 #ifndef Person_H
 #define Person_H
 
-
-
 class Person
 {
 public:

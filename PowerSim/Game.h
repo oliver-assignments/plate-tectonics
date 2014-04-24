@@ -32,6 +32,7 @@ public:
 	void TakeInput();
 	void RunTime();
 	void ProcessPeople();
+	void ProcessPersonAI();
 
 	void Draw();
 	void DrawPeople();

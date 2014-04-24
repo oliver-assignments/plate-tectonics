@@ -69,6 +69,7 @@
     <ClInclude Include="ColorContext.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Person.h" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="UIState.h" />
   </ItemGroup>
   <ItemGroup>
