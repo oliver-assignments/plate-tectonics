@@ -20,6 +20,8 @@ public:
 
 		hunger = 0;
 		generation = myGeneration;
+
+		dead =false;
 	};
 
 	int power;
@@ -36,6 +38,8 @@ public:
 	int hunger;
 
 	int generation;
+
+	bool dead;
 };
 
 #endif

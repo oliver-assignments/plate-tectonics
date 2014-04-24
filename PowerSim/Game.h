@@ -7,13 +7,12 @@
 #include <allegro5\allegro_primitives.h>
 
 #include <vector>
+#include <thread>
+#include <stdlib.h> 
 
 #include "Person.h"
 #include "UIState.h"
 #include "ColorContext.h"
-
-#define WHITE makeCol(255,255,255)
-#define BLACK makeCol(0,0,0)
 
 
 class Game
@@ -29,6 +28,8 @@ public:
 
 	void Update();
 	void TakeInput();
+	void RunTime();
+	void ProcessPeople();
 
 	void Draw();
 	void DrawPeople();
@@ -73,14 +74,17 @@ private:
 	//Color Relative poitns
 	int power_highest_historical;
 	int power_highest_current;
+	Person* power_highest_person;
 	ColorContext power_context;
 
 	int strength_highest_historical;
 	int strength_highest_current;
+	Person* strength_highest_person;
 	ColorContext strength_context;
 
 	int intelligence_highest_historical;
 	int intelligence_highest_current;
+	Person* intelligence_highest_person;
 	ColorContext intelligence_context;
 
 	int hunger_death_level;
@@ -92,7 +96,20 @@ private:
 	//Definiting Colors
 	UIState ui_state;
 
-	ALLEGRO_COLOR color_power;
+	int color_power[3];
+	int color_hunger[3];
+	 
+	int color_intelligence[3];
+	int color_strength[3];
+	 
+	int color_foreign_north[3];
+	int color_foreign_east[3];
+	int color_foreign_south[3];
+	int color_foreign_west[3];
+	
+	int color_generation[3];
+
+	/*ALLEGRO_COLOR color_power;
 	ALLEGRO_COLOR color_hunger;
 	
 	ALLEGRO_COLOR color_intelligence;
@@ -103,5 +120,5 @@ private:
 	ALLEGRO_COLOR color_foreign_south;
 	ALLEGRO_COLOR color_foreign_west;
 
-	ALLEGRO_COLOR color_generation;
+	ALLEGRO_COLOR color_generation;*/
 };
