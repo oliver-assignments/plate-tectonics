@@ -1,3 +1,4 @@
+
 #include "Game.h"
 
 #include <iostream>
@@ -93,7 +94,7 @@ void Game::InitializeGame()
 void Game::CreateWorld()
 {
 	CreateResources(30);
-	CreatePeople(10,25,75);
+	CreatePeople(20,25,75);
 
 	generation_youngest=1;
 	power_highest_person = people[0];
@@ -154,11 +155,15 @@ void Game::DefineColors()
 
 void Game::Update()
 {
+	double delta_time_for_hour = .0001;
+	double current_timer = 0;
+
 	while(!done)
 	{
 		//Delta time handling
 		double current_timestamp = al_get_time();
 		double seconds_since_last_tick = current_timestamp - previous_tick_timestamp;
+		current_timer+= seconds_since_last_tick;
 		if(seconds_since_last_tick > .25)
 		{
 			seconds_since_last_tick = 0.25;
@@ -166,15 +171,19 @@ void Game::Update()
 		previous_tick_timestamp = current_timestamp;
 		accumulator+=seconds_since_last_tick;
 
+		Draw();
+
 		//Do this before drawing
 		while ( accumulator >= dt )
 		{
 			TakeInput();
-
+			if(current_timer>delta_time_for_hour)
+			{
+				current_timer-=delta_time_for_hour;
+				RunTime();
+			}
 			accumulator -= dt;
 		}
-
-		Draw();
 	}
 	FreeMemory();
 };
@@ -237,31 +246,38 @@ void Game::TakeInput()
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_P))
 	{
 		ui_state = POWER;
+		Draw();
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_I))
 	{
 		ui_state = INTELLIGENCE;
+		Draw();
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_S))
 	{
 		ui_state = STRENGTH;
+		Draw();
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_H))
 	{
 		ui_state = HUNGER;
+		Draw();
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_F))
 	{
 		ui_state = FOREIGN;
+		Draw();
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_G))
 	{
 		ui_state = GENERATION;
+		Draw();
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_R))
 	{
 		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_R))
 		{
+			Draw();
 			if(resources_drawn)
 				resources_drawn=false;
 			else
@@ -274,29 +290,26 @@ void Game::TakeInput()
 
 void Game::RunTime()
 {
-	while(true)
+	//Do all your hourly logic here
+	ProcessPeople();
+	
+	current_hour++;
+
+	if(current_hour>hours_in_day)
 	{
-		//Do all your hourly logic here
-		ProcessPeople();
+		current_hour=0;
+		current_day++;
 
-		current_hour++;
+		//Do all your daily logic here
+		Draw();
 
-		if(current_hour>hours_in_day)
+		if(current_day>days_in_year)
 		{
-			current_hour=0;
-			current_day++;
-
-			//Do all your daily logic here
-			Draw();
-
-			if(current_day>days_in_year)
-			{
-				//Do all your yearly logic here
-
-				current_day = 0;
-				current_year++;
-			}
+			//Do all your yearly logic here
+			current_day = 0;
+			current_year++;
 		}
+
 	}
 }
 
@@ -317,7 +330,6 @@ void Game::ProcessPeople()
 		}
 	}
 };
-
 void Game::ProcessPersonAI()
 {
 
@@ -593,8 +605,7 @@ void Game::DrawPeople()
 		}
 		DrawCluster(100,100,100,100,100);
 	}
-}
-
+};
 void Game::DrawResources()
 {
 	for(std::vector<Resource*>::size_type i = 0; i != resources.size(); i++) 
@@ -609,10 +620,10 @@ void Game::DrawResources()
 
 void Game::DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b)
 {
-	al_draw_pixel(x,y,al_map_rgb(r,g,b));
+	//al_draw_pixel(x,y,al_map_rgb(r,g,b));
 	al_draw_pixel(x+1,y,al_map_rgb(r,g,b));
 	al_draw_pixel(x-1,y,al_map_rgb(r,g,b));
-	al_draw_pixel(x,y+1,al_map_rgb(r,g,b));
+	//al_draw_pixel(x,y+1,al_map_rgb(r,g,b));
 	al_draw_pixel(x,y-1,al_map_rgb(r,g,b));
 };
 void Game::DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b)
