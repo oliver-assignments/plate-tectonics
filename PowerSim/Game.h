@@ -88,7 +88,8 @@ private:
 	int provinces_num_columns;
 	int provinces_num_rows;
 	
-	int province_jiggle;
+	int province_jiggle_width;
+	int province_jiggle_height;
 
 	//People
 	std::vector<Person*> people;
@@ -127,6 +128,7 @@ private:
 	double color_base_value ;
 
 	int color_resource[3];
+	int color_province[3];
 
 	int color_power[3];
 	int color_hunger[3];

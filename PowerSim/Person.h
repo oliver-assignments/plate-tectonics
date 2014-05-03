@@ -9,11 +9,18 @@ enum Occupation
 class Person
 {
 public:
-	Person(int myStrength,int myIntelligence, int myGeneration, int myForeignX,int myForeignY,int myX,int myY)
+	Person(int myStrength,int myIntelligence, 
+		   int myGeneration, 
+		   int myForeignX,int myForeignY,
+		   int myProvinceX,int myProvinceY,
+		   int myX,int myY)
 	{
 		power = 10;
 		strength = myStrength;
 		intelligence = myIntelligence;
+
+		province_x = myProvinceX;
+		province_y = myProvinceY;
 
 		position_x = myX;
 		position_y = myY;
@@ -41,6 +48,9 @@ public:
 	
 	int position_x;
 	int position_y;
+
+	int province_x;
+	int province_y;
 
 	int foreign_x;
 	int foreign_y;

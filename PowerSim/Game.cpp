@@ -13,9 +13,10 @@ void Game::Initialize()
 	screen_width = 1350;
 	screen_height = 690;
 
-	province_width = 50;
-	province_height = 50;
-	province_jiggle = 20;
+	province_width = 20;
+	province_height = 20;
+	province_jiggle_width = (int)(province_width*0.8);
+	province_jiggle_height = (int)(province_height*0.8);
 
 	done= false;
 	FPS=0;
@@ -113,9 +114,6 @@ void Game::CreateProvinces()
 	provinces_num_columns = (int)(screen_width/province_width)+2;
 	provinces_num_rows= (int)(screen_height/province_height)+2;
 
-	/*provinces_num_columns = 2;
-	provinces_num_rows= 2;*/
-
 	std::vector<Vector2*> vertices;
 	for (int i = 0; i < ((provinces_num_columns+1)*(provinces_num_rows+1)); i++)
 	{
@@ -189,8 +187,8 @@ void Game::CreateProvinces()
 	//Jiggle
 	for(std::vector<Vector2*>::size_type v = 0; v != vertices.size(); v++) 
 	{
-		vertices[v]->x = vertices[v]->x + 5 - (province_jiggle/2) + (rand()%province_jiggle);
-		vertices[v]->y = vertices[v]->y + 5 - (province_jiggle/2) + (rand()%province_jiggle);
+		vertices[v]->x = vertices[v]->x + 5 - (province_jiggle_width/2) + (rand()%province_jiggle_width);
+		vertices[v]->y = vertices[v]->y + 5 - (province_jiggle_height/2) + (rand()%province_jiggle_height);
 
 	}
 };
@@ -198,7 +196,16 @@ void Game::CreateResources(int myNumber)
 {
 	for (int i = 0; i < myNumber; i++)
 	{
-		resources.push_back(new Resource(100+(rand()%(screen_width-200)),100+(rand()%(screen_height-200)),10));
+		int resource_province_x = rand()%provinces_num_columns;
+		int resource_province_y = rand()%provinces_num_rows;
+
+		//Province location
+		resources.push_back(new Resource(resource_province_x,resource_province_y,
+			provinces[resource_province_y][resource_province_x]->getCenter().x -5 + rand()%10,
+			provinces[resource_province_y][resource_province_x]->getCenter().y -5 + rand()%10,10));
+
+		//Random location
+		//resources.push_back(new Resource(100+(rand()%(screen_width-200)),100+(rand()%(screen_height-200)),10));
 	}
 };
 void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius)
@@ -206,7 +213,8 @@ void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForei
 	srand(time(NULL));
 	for(int c = 0 ; c<myNumberClusters;c++)
 	{
-		int cluster_origin_x = 100+(rand()%(screen_width-200));
+		//Anyway spawn
+		/*int cluster_origin_x = 100+(rand()%(screen_width-200));
 		int cluster_origin_y = 100+(rand()%(screen_height-200));
 
 		int foreign_origin_x = cos(c*(2*3.14)/myNumberClusters) * myForeignRadius;
@@ -214,10 +222,36 @@ void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForei
 
 		for(int p = 0 ; p < myPeoplePerCluster;p++)
 		{
-			Person* person = new Person (10+(1+rand()%50),3+(1+rand()%50),1,-10+foreign_origin_x+(rand()%20),-10+foreign_origin_y+(rand()%20),cluster_origin_x+(-50+(rand()%100)),cluster_origin_y+(-50+(rand()%100)));
+		Person* person = new Person (10+(1+rand()%50),3+(1+rand()%50),1,-10+foreign_origin_x+(rand()%20),-10+foreign_origin_y+(rand()%20),cluster_origin_x+(-50+(rand()%100)),cluster_origin_y+(-50+(rand()%100)));
+		people.push_back(person);
+		}*/
+
+		//Province Spawn
+		int cluster_origin_province_x = rand()%provinces_num_columns;
+		int cluster_origin_province_y = rand()%provinces_num_rows;
+
+		int foreign_origin_x = cos(c*(2*3.14)/myNumberClusters) * myForeignRadius;
+		int foreign_origin_y = sin(c*(2*3.14)/myNumberClusters) * myForeignRadius;
+
+		for(int p = 0 ; p < myPeoplePerCluster;p++)
+		{
+			int province_x = cluster_origin_province_x;
+			int province_y = cluster_origin_province_y;
+
+			//int province_area = provinces[province_y][province_x]->getArea();
+			Vector2 province_center = provinces[province_y][province_x]->getCenter();
+
+			Person* person = new Person(10+(1+rand()%50),
+				3+(1+rand()%50),
+				1,
+				-10+foreign_origin_x+(rand()%20), 
+				-10+foreign_origin_y+(rand()%20),
+				province_x, 
+				province_y,
+				province_center.x -(province_width/2) + rand()%province_width,
+				province_center.y -(province_height/2) + rand()%province_height);
 			people.push_back(person);
 		}
-
 	}
 };
 
@@ -231,6 +265,7 @@ void Game::DefineColors()
 	color_base_value = 0.5;
 
 	color_resource[0] = 200;color_resource[1] = 200;color_resource[2] = 200;
+	color_province[0] = 20;color_province[1] = 20;color_province[2] = 20;
 
 	color_power[0] = 255; color_power[1] = 0; color_power[2] = 0;
 	color_hunger[0] = 139; color_hunger[1] = 69; color_hunger[2] = 19;
@@ -465,13 +500,13 @@ void Game::DrawProvinces()
 		{
 			Province* province = (provinces[y][x]);
 			al_draw_line(province->p0->x,province->p0->y,province->p1->x,province->p1->y,
-				al_map_rgb(255,255,255),1);
+				al_map_rgb(color_province[0],color_province[1],color_province[2]),1);
 			al_draw_line(province->p1->x,province->p1->y,province->p3->x,province->p3->y,
-				al_map_rgb(255,255,255),1);
+				al_map_rgb(color_province[0],color_province[1],color_province[2]),1);
 			al_draw_line(province->p3->x,province->p3->y,province->p2->x,province->p2->y,
-				al_map_rgb(255,255,255),1);
+				al_map_rgb(color_province[0],color_province[1],color_province[2]),1);
 			al_draw_line(province->p2->x,province->p2->y,province->p0->x,province->p0->y,
-				al_map_rgb(255,255,255),1);
+				al_map_rgb(color_province[0],color_province[1],color_province[2]),1);
 
 			/*al_draw_line(provinces[y][x]->vertices[0],provinces[y][x]->vertices[1],provinces[y][x]->vertices[2],provinces[y][x]->vertices[3],
 			al_map_rgb(255,255,255),1);
