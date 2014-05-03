@@ -66,6 +66,8 @@ void Game::InitializeGame()
 {
 	ui_state = FOREIGN;
 	resources_drawn = true;
+	provinces_drawn = true;
+	draw_every_hour = false;
 
 	//Setuping up our values
 	hours_in_day =24;
@@ -111,8 +113,8 @@ void Game::CreateWorld()
 }
 void Game::CreateProvinces()
 {
-	provinces_num_columns = (int)(screen_width/province_width)+2;
-	provinces_num_rows= (int)(screen_height/province_height)+2;
+	provinces_num_columns = (int)(screen_width/province_width);
+	provinces_num_rows= (int)(screen_height/province_height);
 
 	std::vector<Vector2*> vertices;
 	for (int i = 0; i < ((provinces_num_columns+1)*(provinces_num_rows+1)); i++)
@@ -139,7 +141,7 @@ void Game::CreateProvinces()
 			}
 			else
 			{
-				top_left = new Vector2((x*province_width) , (y*province_height));
+				top_left = new Vector2((x*province_width), (y*province_height));
 				vertices[index] = top_left;
 			}
 
@@ -257,12 +259,17 @@ void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForei
 
 void Game::LoadContent()
 {
+	arial24 = al_load_font("arial.ttf",24,0);
+	arial16 = al_load_font("arial.ttf",16,0);
+	arial12 = al_load_font("arial.ttf",12,0);
 	DefineColors();
 };
 
 void Game::DefineColors()
 {
 	color_base_value = 0.5;
+
+	color_text[0] = 255;color_text[1] = 255;color_text[2] = 255;
 
 	color_resource[0] = 200;color_resource[1] = 200;color_resource[2] = 200;
 	color_province[0] = 20;color_province[1] = 20;color_province[2] = 20;
@@ -289,6 +296,7 @@ void Game::Update()
 	double delta_time_for_hour = .0001;
 	double current_timer = 0;
 
+	Draw();
 	while(!done)
 	{
 		//Delta time handling
@@ -302,7 +310,6 @@ void Game::Update()
 		previous_tick_timestamp = current_timestamp;
 		accumulator+=seconds_since_last_tick;
 
-		Draw();
 
 		//Do this before drawing
 		while ( accumulator >= dt )
@@ -409,6 +416,27 @@ void Game::TakeInput()
 		ui_state = OCCUPATION;
 		Draw();
 	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_L))
+	{
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_L))
+		{
+			Draw();
+			if(provinces_drawn)
+				provinces_drawn=false;
+			else
+				provinces_drawn = true;
+		}
+	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_D))
+	{
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_D))
+		{
+			if(draw_every_hour)
+				draw_every_hour=false;
+			else
+				draw_every_hour = true;
+		}
+	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_R))
 	{
 		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_R))
@@ -431,13 +459,17 @@ void Game::RunTime()
 
 	current_hour++;
 
+	if(draw_every_hour || current_hour==12)
+		Draw();
+
+
 	if(current_hour>hours_in_day)
 	{
 		current_hour=0;
 		current_day++;
 
 		//Do all your daily logic here
-		Draw();
+		
 
 		if(current_day>days_in_year)
 		{
@@ -477,23 +509,92 @@ void Game::ProcessPersonAI(Person* person)
 	Philisophical
 	*/
 
+	int direction = rand()%20;
 
-	if(person->hunger<hunger_seek_level)
+	switch (direction)
 	{
-		//Look for food
-	}
-	else
-	{
+	case 0 :
+		//Up
+		person->province_y = person->province_y-1;
+		if(person->province_y>=0)
+		{
+			UpdatePersonPositionToProvince(person);
+		}
+		else
+		{
+			person->province_y = person->province_y+1; 
+		}
+		break;
+	case 1 :
+		person->province_x = person->province_x+1;
+		if(person->province_x<provinces_num_columns)
+		{
+			UpdatePersonPositionToProvince(person);
 
+		}
+		else
+		{
+			person->province_x = person->province_x-1; 
+		}
+
+		break;
+	case 2 :
+		//Down
+		person->province_y = person->province_y+1;
+		if(person->province_y<provinces_num_rows)
+		{
+			UpdatePersonPositionToProvince(person);
+
+		}
+		else
+		{
+			person->province_y = person->province_y-1; 
+		}
+		break;
+	case 3 :
+		//Left
+		person->province_x = person->province_x-1;
+		if(person->province_x>=0)
+		{
+			UpdatePersonPositionToProvince(person);
+		}
+		else
+		{
+			person->province_x = person->province_x+1; 
+		}
+
+		break;
+	default:
+		break;
 	}
+
+	//if(person->hunger<hunger_seek_level)
+	//{
+	//	//Look for food
+	//}
+	//else
+	//{
+
+	//}
 };
+void Game::UpdatePersonPositionToProvince(Person* person)
+{
+	Vector2 province_center = provinces[person->province_y][person->province_x]->getCenter();
+	person->position_x = province_center.x -(province_width/2) + rand()%province_width;
+	person->position_y =province_center.y -(province_height/2) + rand()%province_height;
+}
 
 void Game::Draw()
 {
-	DrawProvinces();
+	if(provinces_drawn)
+		DrawProvinces();
+
 	DrawPeople();
+
 	if(resources_drawn)
 		DrawResources();
+
+	DrawDate();
 
 	al_flip_display();
 	al_clear_to_color(al_map_rgb(0,0,0));
@@ -729,6 +830,12 @@ void Game::DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char
 {
 	al_draw_line(x,y,x,y-3,al_map_rgb(r,g,b),1);
 
+};
+void Game::DrawDate()
+{
+	std::string string_date = "Year: " + std::to_string(current_year) + " Day: " + std::to_string(current_day) + " Hour: " + std::to_string(current_hour);
+	const char * date = string_date.c_str();
+	al_draw_text(arial16,al_map_rgb(color_text[0],color_text[1],color_text[1]), (screen_width/2)-80, 0, 0, date);
 };
 
 void Game::FreeMemory()

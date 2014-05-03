@@ -4,13 +4,14 @@
 #include <allegro5\allegro_ttf.h>
 #include <allegro5\allegro_audio.h>
 #include <allegro5\allegro_acodec.h>
-#include <allegro5/allegro_primitives.h>
+#include <allegro5\allegro_primitives.h>
 
 #include <vector>
 #include <thread>
 #include <stdlib.h> 
 #include <ctime>
 #include <mutex>
+#include <string>
 
 #include "Person.h"
 #include "Resource.h"
@@ -38,6 +39,7 @@ public:
 	void RunTime();
 	void ProcessPeople();
 	void ProcessPersonAI(Person* person);
+	void UpdatePersonPositionToProvince(Person* person);
 
 	void Draw();
 	void DrawProvinces();
@@ -45,6 +47,7 @@ public:
 	void DrawResources();
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
+	void DrawDate();
 
 	void FreeMemory();
 
@@ -70,6 +73,8 @@ private:
 	int screen_width;
 	int screen_height;
 
+	bool draw_every_hour;
+
 	//Game//
 	//	  //
 
@@ -90,6 +95,8 @@ private:
 	
 	int province_jiggle_width;
 	int province_jiggle_height;
+
+	bool provinces_drawn;
 
 	//People
 	std::vector<Person*> people;
@@ -126,6 +133,11 @@ private:
 	UIState ui_state;
 
 	double color_base_value ;
+
+	int color_text[3];
+	ALLEGRO_FONT* arial24;
+	ALLEGRO_FONT* arial16;
+	ALLEGRO_FONT* arial12;
 
 	int color_resource[3];
 	int color_province[3];
