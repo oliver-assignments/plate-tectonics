@@ -202,7 +202,7 @@ void Game::CreateResources(int myNumber)
 		//Province location
 		resources.push_back(new Resource(resource_province_x,resource_province_y,
 			provinces[resource_province_y][resource_province_x]->getCenter().x -5 + rand()%10,
-			provinces[resource_province_y][resource_province_x]->getCenter().y -5 + rand()%10,10));
+			provinces[resource_province_y][resource_province_x]->getCenter().y -5 + rand()%10,10,5));
 
 		//Random location
 		//resources.push_back(new Resource(100+(rand()%(screen_width-200)),100+(rand()%(screen_height-200)),10));
@@ -238,7 +238,7 @@ void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForei
 			int province_x = cluster_origin_province_x;
 			int province_y = cluster_origin_province_y;
 
-			//int province_area = provinces[province_y][province_x]->getArea();
+			//5int province_area = provinces[province_y][province_x]->getArea();
 			Vector2 province_center = provinces[province_y][province_x]->getCenter();
 
 			Person* person = new Person(10+(1+rand()%50),
@@ -266,6 +266,9 @@ void Game::DefineColors()
 
 	color_resource[0] = 200;color_resource[1] = 200;color_resource[2] = 200;
 	color_province[0] = 20;color_province[1] = 20;color_province[2] = 20;
+
+	color_occupation_farmer[0] = 5;color_occupation_farmer[1] = 102;color_occupation_farmer[2] = 100;
+	color_occupation_artisan[0] = 252;color_occupation_artisan[1] = 50;color_occupation_artisan[2] = 4;
 
 	color_power[0] = 255; color_power[1] = 0; color_power[2] = 0;
 	color_hunger[0] = 139; color_hunger[1] = 69; color_hunger[2] = 19;
@@ -401,6 +404,11 @@ void Game::TakeInput()
 		ui_state = GENERATION;
 		Draw();
 	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_O))
+	{
+		ui_state = OCCUPATION;
+		Draw();
+	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_R))
 	{
 		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_R))
@@ -483,7 +491,6 @@ void Game::ProcessPersonAI(Person* person)
 void Game::Draw()
 {
 	DrawProvinces();
-	DrawResources();
 	DrawPeople();
 	if(resources_drawn)
 		DrawResources();
@@ -664,6 +671,21 @@ void Game::DrawPeople()
 					color [0] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[0])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[0]);
 					color [1] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[1])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[1]);
 					color [2] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[2])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[2]);
+				}
+			}
+			else if(ui_state == OCCUPATION)
+			{
+				if(people[i]->occupation == FARMER)
+				{
+					color[0] = color_occupation_farmer[0];
+					color[1] = color_occupation_farmer[1];
+					color[2] = color_occupation_farmer[2];
+				}
+				else
+				{
+					color[0] = color_occupation_artisan[0];
+					color[1] = color_occupation_artisan[1];
+					color[2] = color_occupation_artisan[2];
 				}
 			}
 			else //Generation

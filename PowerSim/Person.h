@@ -3,7 +3,7 @@
 
 enum Occupation
 {
-	Farmer,Craftsman
+	FARMER,ARTISAN
 };
 
 class Person
@@ -30,7 +30,7 @@ public:
 
 		hunger = 0;
 
-		occupation = Farmer;
+		occupation = FARMER;
 
 		generation = myGeneration;
 

@@ -33,9 +33,6 @@
     <ClInclude Include="Province.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Map.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vector2.h">
       <Filter>Header Files</Filter>
     </ClInclude>

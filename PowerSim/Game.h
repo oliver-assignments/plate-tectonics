@@ -130,6 +130,9 @@ private:
 	int color_resource[3];
 	int color_province[3];
 
+	int color_occupation_farmer[3];
+	int color_occupation_artisan[3];
+
 	int color_power[3];
 	int color_hunger[3];
 	 
