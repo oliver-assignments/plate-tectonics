@@ -336,7 +336,7 @@ void Game::TakeInput()
 		done = true;
 	}
 
-	//WASD
+	/*//WASD
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_W))
 	{
 
@@ -357,17 +357,17 @@ void Game::TakeInput()
 	//ARROW KEYS
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_UP))
 	{
-		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_UP))
-		{
+	if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_UP))
+	{
 
-		}
+	}
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_RIGHT))
 	{
-		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_RIGHT))
-		{
+	if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_RIGHT))
+	{
 
-		}
+	}
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_DOWN))
 	{
@@ -375,52 +375,73 @@ void Game::TakeInput()
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_LEFT))
 	{
-		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_LEFT))
-		{
+	if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_LEFT))
+	{
 
-		}
 	}
+	}*/
 
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_P))
 	{
-		ui_state = POWER;
-		Draw();
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_P))
+		{
+			ui_state = POWER;
+			//Draw();
+		}
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_I))
 	{
-		ui_state = INTELLIGENCE;
-		Draw();
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_I))
+		{
+			ui_state = INTELLIGENCE;
+			//Draw();
+		}
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_S))
 	{
-		ui_state = STRENGTH;
-		Draw();
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_S))
+		{
+			ui_state = STRENGTH;
+			//Draw();
+		}
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_H))
 	{
-		ui_state = HUNGER;
-		Draw();
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_H))
+		{
+			ui_state = HUNGER;
+			//Draw();
+		}
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_F))
 	{
-		ui_state = FOREIGN;
-		Draw();
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_F))
+		{
+			ui_state = FOREIGN;
+			//Draw();
+		}
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_G))
 	{
-		ui_state = GENERATION;
-		Draw();
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_G))
+		{
+			ui_state = GENERATION;
+			//Draw();
+		}
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_O))
 	{
-		ui_state = OCCUPATION;
-		Draw();
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_O))
+		{
+			ui_state = OCCUPATION;
+			//Draw();
+		}
 	}
 	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_L))
 	{
 		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_L))
 		{
-			Draw();
+			//Draw();
 			if(provinces_drawn)
 				provinces_drawn=false;
 			else
@@ -441,7 +462,7 @@ void Game::TakeInput()
 	{
 		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_R))
 		{
-			Draw();
+			//Draw();
 			if(resources_drawn)
 				resources_drawn=false;
 			else
@@ -469,7 +490,7 @@ void Game::RunTime()
 		current_day++;
 
 		//Do all your daily logic here
-		
+
 
 		if(current_day>days_in_year)
 		{
@@ -483,19 +504,19 @@ void Game::RunTime()
 
 void Game::ProcessPeople()
 {
-	int starting_index = rand()%people.size();
+	int starting_index = 0;//rand()%people.size();
 
 	for(std::vector<Person*>::size_type i = starting_index; i < people.size(); i++) 
 	{
 		ProcessPersonAI(people[i]);
 
-		if(i==people.size()-1)
+		/*if(i==people.size()-1)
 		{
 			for (int o = 0; o < starting_index; o++)
 			{
 				ProcessPersonAI(people[i]);
 			}
-		}
+		}*/
 	}
 };
 void Game::ProcessPersonAI(Person* person)
@@ -595,6 +616,7 @@ void Game::Draw()
 		DrawResources();
 
 	DrawDate();
+	DrawPopulation();
 
 	al_flip_display();
 	al_clear_to_color(al_map_rgb(0,0,0));
@@ -836,6 +858,12 @@ void Game::DrawDate()
 	std::string string_date = "Year: " + std::to_string(current_year) + " Day: " + std::to_string(current_day) + " Hour: " + std::to_string(current_hour);
 	const char * date = string_date.c_str();
 	al_draw_text(arial16,al_map_rgb(color_text[0],color_text[1],color_text[1]), (screen_width/2)-80, 0, 0, date);
+};
+void Game::DrawPopulation()
+{
+	std::string string_population= "Population: " + std::to_string(people.size());
+	const char * population = string_population.c_str();
+	al_draw_text(arial16,al_map_rgb(color_text[0],color_text[1],color_text[1]), (screen_width/2)-80, 20, 0, population);
 };
 
 void Game::FreeMemory()

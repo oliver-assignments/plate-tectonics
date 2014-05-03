@@ -47,7 +47,9 @@ public:
 	void DrawResources();
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
+	
 	void DrawDate();
+	void DrawPopulation();
 
 	void FreeMemory();
 
