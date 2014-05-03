@@ -1,6 +1,11 @@
 #ifndef Person_H
 #define Person_H
 
+enum Occupation
+{
+	Farmer,Craftsman
+};
+
 class Person
 {
 public:
@@ -17,6 +22,9 @@ public:
 		foreign_y=myForeignY;
 
 		hunger = 0;
+
+		occupation = Farmer;
+
 		generation = myGeneration;
 
 		dead =false;
@@ -27,17 +35,19 @@ public:
 	int strength;
 	int intelligence;
 
+	int hunger;
+
+	bool dead;
+	
 	int position_x;
 	int position_y;
 
 	int foreign_x;
 	int foreign_y;
 
-	int hunger;
+	Occupation occupation;
 
 	int generation;
-
-	bool dead;
 };
 
 #endif

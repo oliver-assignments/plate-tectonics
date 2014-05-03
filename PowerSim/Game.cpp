@@ -13,6 +13,10 @@ void Game::Initialize()
 	screen_width = 1350;
 	screen_height = 690;
 
+	province_width = 50;
+	province_height = 50;
+	province_jiggle = 20;
+
 	done= false;
 	FPS=0;
 	total_frames=0;
@@ -52,6 +56,7 @@ void Game::InitializeAllegro()
 	al_install_keyboard();
 	al_install_audio();
 	al_init_acodec_addon();
+	al_init_primitives_addon();
 
 	al_reserve_samples(10);
 };
@@ -82,6 +87,7 @@ void Game::InitializeGame()
 	intelligence_context = CURRENT;
 
 	hunger_death_level = 100;
+	hunger_seek_level = hunger_death_level/20;
 
 	foreign_max=100;
 
@@ -93,6 +99,7 @@ void Game::InitializeGame()
 
 void Game::CreateWorld()
 {
+	CreateProvinces();
 	CreateResources(30);
 	CreatePeople(20,25,75);
 
@@ -101,6 +108,92 @@ void Game::CreateWorld()
 	strength_highest_person = people[0];
 	intelligence_highest_person = people[0];
 }
+void Game::CreateProvinces()
+{
+	provinces_num_columns = (int)(screen_width/province_width)+2;
+	provinces_num_rows= (int)(screen_height/province_height)+2;
+
+	/*provinces_num_columns = 2;
+	provinces_num_rows= 2;*/
+
+	std::vector<Vector2*> vertices;
+	for (int i = 0; i < ((provinces_num_columns+1)*(provinces_num_rows+1)); i++)
+	{
+		vertices.push_back(NULL);
+	}
+
+	for (int y = 0; y < provinces_num_rows;y++)
+	{
+		std::vector<Province*> row;
+		provinces.push_back(row);
+		for (int x = 0; x < provinces_num_columns; x++)
+		{
+			Vector2* top_left;
+			Vector2* top_right;
+			Vector2* bottom_left;
+			Vector2* bottom_right;
+
+			//TOP LEFT
+			int index = (y*(provinces_num_columns+1))+x;
+			if(vertices[index]!=NULL)
+			{
+				top_left = vertices[index];
+			}
+			else
+			{
+				top_left = new Vector2((x*province_width) , (y*province_height));
+				vertices[index] = top_left;
+			}
+
+			//TOP RIGHT
+			index = (y*(provinces_num_columns+1))+(x+1);
+			if(vertices[index]!=NULL)
+			{
+				top_right = vertices[index];
+			}
+			else
+			{
+				top_right = new Vector2((x*province_width)+province_width, y*province_height);
+				vertices[index] = top_right;
+			}
+
+			//BOTTOM LEFT
+			index = ((y+1)*(provinces_num_columns+1))+x;
+			if(vertices[index]!=NULL)
+			{
+				bottom_left = vertices[index];
+			}
+			else
+			{
+				bottom_left = new Vector2((x*province_width), (y*province_height) + province_height);
+				vertices[index] = bottom_left;
+			}
+
+			//BOTTOM RIGHT
+			index = ((y+1)*(provinces_num_columns+1))+(x+1);
+			if(vertices[index]!=NULL)
+			{
+				bottom_right = vertices[index];
+			}
+			else
+			{
+				bottom_right = new Vector2((x*province_width)+province_width, (y*province_height) + province_height);
+				vertices[index] = bottom_right;
+			}
+			Province* province = new Province(top_left,top_right,bottom_left,bottom_right);
+
+			provinces[y].push_back(province);
+		}
+	}
+
+	//Jiggle
+	for(std::vector<Vector2*>::size_type v = 0; v != vertices.size(); v++) 
+	{
+		vertices[v]->x = vertices[v]->x + 5 - (province_jiggle/2) + (rand()%province_jiggle);
+		vertices[v]->y = vertices[v]->y + 5 - (province_jiggle/2) + (rand()%province_jiggle);
+
+	}
+};
 void Game::CreateResources(int myNumber)
 {
 	for (int i = 0; i < myNumber; i++)
@@ -292,7 +385,7 @@ void Game::RunTime()
 {
 	//Do all your hourly logic here
 	ProcessPeople();
-	
+
 	current_hour++;
 
 	if(current_hour>hours_in_day)
@@ -319,24 +412,43 @@ void Game::ProcessPeople()
 
 	for(std::vector<Person*>::size_type i = starting_index; i < people.size(); i++) 
 	{
-		ProcessPersonAI();
+		ProcessPersonAI(people[i]);
 
 		if(i==people.size()-1)
 		{
 			for (int o = 0; o < starting_index; o++)
 			{
-				ProcessPersonAI();
+				ProcessPersonAI(people[i]);
 			}
 		}
 	}
 };
-void Game::ProcessPersonAI()
+void Game::ProcessPersonAI(Person* person)
 {
+	/*Priority Order
+	Food
+	Sleep
+	Building up food, shelter, crafts
+	Interaction
+	Dominion
+	Philisophical
+	*/
 
+
+	if(person->hunger<hunger_seek_level)
+	{
+		//Look for food
+	}
+	else
+	{
+
+	}
 };
 
 void Game::Draw()
 {
+	DrawProvinces();
+	DrawResources();
 	DrawPeople();
 	if(resources_drawn)
 		DrawResources();
@@ -345,6 +457,36 @@ void Game::Draw()
 	al_clear_to_color(al_map_rgb(0,0,0));
 };
 
+void Game::DrawProvinces()
+{
+	for(std::vector<std::vector<Province*>>::size_type y = 0; y < provinces_num_rows; y++) 
+	{
+		for(std::vector<Province*>::size_type x = 0; x < provinces_num_columns; x++) 
+		{
+			Province* province = (provinces[y][x]);
+			al_draw_line(province->p0->x,province->p0->y,province->p1->x,province->p1->y,
+				al_map_rgb(255,255,255),1);
+			al_draw_line(province->p1->x,province->p1->y,province->p3->x,province->p3->y,
+				al_map_rgb(255,255,255),1);
+			al_draw_line(province->p3->x,province->p3->y,province->p2->x,province->p2->y,
+				al_map_rgb(255,255,255),1);
+			al_draw_line(province->p2->x,province->p2->y,province->p0->x,province->p0->y,
+				al_map_rgb(255,255,255),1);
+
+			/*al_draw_line(provinces[y][x]->vertices[0],provinces[y][x]->vertices[1],provinces[y][x]->vertices[2],provinces[y][x]->vertices[3],
+			al_map_rgb(255,255,255),1);
+
+			al_draw_line(provinces[y][x]->vertices[2],provinces[y][x]->vertices[3],provinces[y][x]->vertices[4],provinces[y][x]->vertices[5],
+			al_map_rgb(255,255,255),1);
+
+			al_draw_line(provinces[y][x]->vertices[4],provinces[y][x]->vertices[5],provinces[y][x]->vertices[6],provinces[y][x]->vertices[7],
+			al_map_rgb(255,255,255),1);
+
+			al_draw_line(provinces[y][x]->vertices[6],provinces[y][x]->vertices[7],provinces[y][x]->vertices[0],provinces[y][x]->vertices[1],
+			al_map_rgb(255,255,255),1);*/
+		}
+	}
+};
 void Game::DrawPeople()
 {
 	//Maintianing highest of power strength and intel
@@ -409,7 +551,6 @@ void Game::DrawPeople()
 			color[1] = 0;
 			color[2] = 0;
 
-			mtx.lock();
 			if(ui_state == POWER)
 			{
 				if(power_context == HISTORY)
@@ -497,102 +638,6 @@ void Game::DrawPeople()
 				color [2] =((double)people[i]->generation/ generation_youngest * color_generation[2]);
 			}
 
-			mtx.unlock();
-
-			//if(ui_state == POWER)
-			//{
-			//	if(power_context = HISTORY)
-			//	{
-			//		person_color = al_map_rgb(color_power.r*(people[i]->power/power_highest_historical),0,0);
-			//	}
-			//	else//CURRENT
-			//	{
-			//		person_color = al_map_rgb(color_power.r*(people[i]->power/power_highest_current),0,0);
-			//	}
-			//}
-			//else if(ui_state == HUNGER)
-			//{
-			//	person_color = al_map_rgb(
-			//		color_hunger.r*(people[i]->hunger/hunger_death_level * color_hunger.r),
-			//		color_hunger.g*(people[i]->hunger/hunger_death_level * color_hunger.g),
-			//		color_hunger.b*(people[i]->hunger/hunger_death_level * color_hunger.b));
-			//}
-			//else if(ui_state == STRENGTH)
-			//{
-			//	if(strength_context = HISTORY)
-			//	{
-			//		person_color = al_map_rgb(
-			//			color_strength.r*(people[i]->strength/strength_highest_historical * color_strength.r),
-			//			color_strength.g*(people[i]->strength/strength_highest_historical * color_strength.g),
-			//			color_strength.b*(people[i]->strength/strength_highest_historical * color_strength.b));
-			//	}
-			//	else//CURRENT
-			//	{
-			//		person_color = al_map_rgb(
-			//			color_strength.r*(people[i]->strength/strength_highest_current * color_strength.r),
-			//			color_strength.g*(people[i]->strength/strength_highest_current * color_strength.g),
-			//			color_strength.b*(people[i]->strength/strength_highest_current * color_strength.b));
-			//	}
-			//}
-			//else if(ui_state == INTELLIGENCE)
-			//{
-			//	if(intelligence_context = HISTORY)
-			//	{
-			//		person_color = al_map_rgb(
-			//			color_intelligence.r*(people[i]->intelligence/intelligence_highest_historical * color_intelligence.r),
-			//			color_intelligence.g*(people[i]->intelligence/intelligence_highest_historical * color_intelligence.g),
-			//			color_intelligence.b*(people[i]->intelligence/intelligence_highest_historical * color_intelligence.b));
-			//	}
-			//	else//CURRENT
-			//	{
-			//		person_color = al_map_rgb(
-			//			color_intelligence.r*(people[i]->intelligence/intelligence_highest_current * color_intelligence.r),
-			//			color_intelligence.g*(people[i]->intelligence/intelligence_highest_current * color_intelligence.g),
-			//			color_intelligence.b*(people[i]->intelligence/intelligence_highest_current * color_intelligence.b));
-			//	}
-			//}
-			//else if(ui_state == FOREIGN)
-			//{
-			//	if(people[i]->foreign_x>=0 && people[i]->foreign_y>=0)
-			//	{
-			//		//first quadrant
-			//		person_color = al_map_rgb(
-			//			color_intelligence.r*((people[i]->foreign_x/foreign_max * color_foreign_east.r)+(people[i]->foreign_y/foreign_max * color_foreign_north.r) ),
-			//			color_intelligence.g*((people[i]->foreign_x/foreign_max * color_foreign_east.g)+(people[i]->foreign_y/foreign_max * color_foreign_north.g)),
-			//			color_intelligence.b*((people[i]->foreign_x/foreign_max * color_foreign_east.b)+(people[i]->foreign_y/foreign_max * color_foreign_north.b)));
-			//	}
-			//	else if(people[i]->foreign_x>=0 && people[i]->foreign_y>=0)
-			//	{
-			//		//second quadrant
-			//		person_color = al_map_rgb(
-			//			color_intelligence.r*((people[i]->foreign_x/-foreign_max * color_foreign_west.r)+(people[i]->foreign_y/foreign_max * color_foreign_north.r) ),
-			//			color_intelligence.g*((people[i]->foreign_x/-foreign_max * color_foreign_west.g)+(people[i]->foreign_y/foreign_max * color_foreign_north.g)),
-			//			color_intelligence.b*((people[i]->foreign_x/-foreign_max * color_foreign_west.b)+(people[i]->foreign_y/foreign_max * color_foreign_north.b)));
-			//	}
-			//	else if(people[i]->foreign_x>=0 && people[i]->foreign_y>=0)
-			//	{
-			//		//third quadrant
-			//		person_color = al_map_rgb(
-			//			color_intelligence.r*((people[i]->foreign_x/-foreign_max * color_foreign_west.r)+(people[i]->foreign_y/-foreign_max * color_foreign_south.r) ),
-			//			color_intelligence.g*((people[i]->foreign_x/-foreign_max * color_foreign_west.g)+(people[i]->foreign_y/-foreign_max * color_foreign_south.g)),
-			//			color_intelligence.b*((people[i]->foreign_x/-foreign_max * color_foreign_west.b)+(people[i]->foreign_y/-foreign_max * color_foreign_south.b)));
-			//	}
-			//	else
-			//	{
-			//		//fourth quadrant
-			//		person_color = al_map_rgb(
-			//			color_intelligence.r*((people[i]->foreign_x/foreign_max * color_foreign_east.r)+(people[i]->foreign_y/-foreign_max * color_foreign_south.r) ),
-			//			color_intelligence.g*((people[i]->foreign_x/foreign_max * color_foreign_east.g)+(people[i]->foreign_y/-foreign_max * color_foreign_south.g)),
-			//			color_intelligence.b*((people[i]->foreign_x/foreign_max * color_foreign_east.b)+(people[i]->foreign_y/-foreign_max * color_foreign_south.b)));
-			//	}
-			//}
-			//else //Generation
-			//{
-			//	person_color = al_map_rgb(
-			//		color_intelligence.r*(people[i]->generation/ generation_youngest * color_generation.r),
-			//		color_intelligence.g*(people[i]->generation/ generation_youngest * color_generation.g),
-			//		color_intelligence.b*(people[i]->generation/ generation_youngest * color_generation.b));
-			//}
 			for (int c = 0; c < 3; c++)
 			{
 				if(color[c]>255)
@@ -620,19 +665,13 @@ void Game::DrawResources()
 
 void Game::DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b)
 {
-	//al_draw_pixel(x,y,al_map_rgb(r,g,b));
-	al_draw_pixel(x+1,y,al_map_rgb(r,g,b));
-	al_draw_pixel(x-1,y,al_map_rgb(r,g,b));
-	//al_draw_pixel(x,y+1,al_map_rgb(r,g,b));
+	al_draw_line(x-2,y,x+2,y,al_map_rgb(r,g,b),1);
 	al_draw_pixel(x,y-1,al_map_rgb(r,g,b));
 };
 void Game::DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b)
 {
-	al_draw_pixel(x,y,al_map_rgb(r,g,b));
-	al_draw_pixel(x,y-1,al_map_rgb(r,g,b));
-	al_draw_pixel(x,y-2,al_map_rgb(r,g,b));
-	al_draw_pixel(x,y-3,al_map_rgb(r,g,b));
-	al_draw_pixel(x,y-4,al_map_rgb(r,g,b));
+	al_draw_line(x,y,x,y-3,al_map_rgb(r,g,b),1);
+
 };
 
 void Game::FreeMemory()

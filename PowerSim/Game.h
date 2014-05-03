@@ -4,7 +4,7 @@
 #include <allegro5\allegro_ttf.h>
 #include <allegro5\allegro_audio.h>
 #include <allegro5\allegro_acodec.h>
-#include <allegro5\allegro_primitives.h>
+#include <allegro5/allegro_primitives.h>
 
 #include <vector>
 #include <thread>
@@ -16,6 +16,7 @@
 #include "Resource.h"
 #include "UIState.h"
 #include "ColorContext.h"
+#include "Province.h"
 
 class Game
 {
@@ -24,6 +25,7 @@ public:
 	void Initialize();
 	void InitializeGame();
 	void CreateWorld();
+	void CreateProvinces();
 	void CreateResources(int myNumber);
 	void CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius);
 	void InitializeAllegro();
@@ -35,9 +37,10 @@ public:
 	void TakeInput();
 	void RunTime();
 	void ProcessPeople();
-	void ProcessPersonAI();
+	void ProcessPersonAI(Person* person);
 
 	void Draw();
+	void DrawProvinces();
 	void DrawPeople();
 	void DrawResources();
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
@@ -77,12 +80,22 @@ private:
 	int current_hour;
 	int current_day;
 	int current_year;
+	
+	//Provinces
+	std::vector<std::vector<Province*>> provinces;
+	int province_width;
+	int province_height;
+	int provinces_num_columns;
+	int provinces_num_rows;
+	
+	int province_jiggle;
 
 	//People
 	std::vector<Person*> people;
 
 	//Resources
 	std::vector<Resource*> resources;
+
 	bool resources_drawn;
 
 	//Color Relative poitns
@@ -102,6 +115,7 @@ private:
 	ColorContext intelligence_context;
 
 	int hunger_death_level;
+	int hunger_seek_level;
 
 	int foreign_max;
 

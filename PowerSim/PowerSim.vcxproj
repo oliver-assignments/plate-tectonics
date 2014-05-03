@@ -68,9 +68,12 @@
   <ItemGroup>
     <ClInclude Include="ColorContext.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="Map.h" />
     <ClInclude Include="Person.h" />
+    <ClInclude Include="Province.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="UIState.h" />
+    <ClInclude Include="Vector2.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />
