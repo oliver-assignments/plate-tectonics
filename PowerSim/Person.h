@@ -1,6 +1,8 @@
 #ifndef Person_H
 #define Person_H
 
+#include "House.h"
+
 enum Occupation
 {
 	FARMER,ARTISAN
@@ -28,14 +30,19 @@ public:
 		foreign_x =myForeignX;
 		foreign_y=myForeignY;
 
-		hunger = 0;
+		hunger = 10;
+		food_carried=30;
 
 		occupation = FARMER;
 
 		generation = myGeneration;
 
+		home = NULL;
+
 		dead =false;
 	};
+
+	House* home;
 
 	int power;
 
@@ -43,6 +50,7 @@ public:
 	int intelligence;
 
 	int hunger;
+	int food_carried;
 
 	bool dead;
 	
@@ -59,5 +67,6 @@ public:
 
 	int generation;
 };
+
 
 #endif

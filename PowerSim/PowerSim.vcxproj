@@ -68,6 +68,7 @@
   <ItemGroup>
     <ClInclude Include="ColorContext.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="House.h" />
     <ClInclude Include="Person.h" />
     <ClInclude Include="Province.h" />
     <ClInclude Include="Resource.h" />

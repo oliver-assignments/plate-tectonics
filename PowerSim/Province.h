@@ -35,6 +35,7 @@ public:
 
 	int altitude;
 	int vegetation;
+	int food_produced;
 
 
 //	Province(int x0,int y0,

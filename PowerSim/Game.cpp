@@ -13,11 +13,6 @@ void Game::Initialize()
 	screen_width = 1350;
 	screen_height = 690;
 
-	province_width = 20;
-	province_height = 20;
-	province_jiggle_width = (int)(province_width*0.8);
-	province_jiggle_height = (int)(province_height*0.8);
-
 	done= false;
 	FPS=0;
 	total_frames=0;
@@ -63,11 +58,16 @@ void Game::InitializeAllegro()
 };
 
 void Game::InitializeGame()
-{
-	ui_state = FOREIGN;
+{	
+	province_width = 50;
+	province_height = 40;
+	province_jiggle_width = (int)(province_width*0.8);
+	province_jiggle_height = (int)(province_height*0.8);
+
+	ui_state = HUNGER;
 	resources_drawn = true;
 	provinces_drawn = true;
-	draw_every_hour = false;
+	draw_every_hour = true;
 
 	//Setuping up our values
 	hours_in_day =24;
@@ -90,7 +90,7 @@ void Game::InitializeGame()
 	intelligence_context = CURRENT;
 
 	hunger_death_level = 100;
-	hunger_seek_level = hunger_death_level/20;
+	hunger_seek_level = hunger_death_level/9;
 
 	foreign_max=100;
 
@@ -107,9 +107,9 @@ void Game::CreateWorld()
 	CreatePeople(20,25,75);
 
 	generation_youngest=1;
-	power_highest_person = people[0];
-	strength_highest_person = people[0];
-	intelligence_highest_person = people[0];
+	power_highest_person = NULL;
+	strength_highest_person = NULL;
+	intelligence_highest_person = NULL;
 }
 void Game::CreateProvinces()
 {
@@ -193,6 +193,18 @@ void Game::CreateProvinces()
 		vertices[v]->y = vertices[v]->y + 5 - (province_jiggle_height/2) + (rand()%province_jiggle_height);
 
 	}
+
+	//Initializing houses vectors
+	for (int y = 0; y < provinces_num_rows;y++)
+	{
+		std::vector<std::vector<House*>> row;
+		houses_ptr.push_back(row);
+		for (int x = 0; x < provinces_num_columns; x++)
+		{
+			std::vector<House*> column;
+			houses_ptr[y].push_back(column);
+		}
+	}
 };
 void Game::CreateResources(int myNumber)
 {
@@ -252,6 +264,9 @@ void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForei
 				province_y,
 				province_center.x -(province_width/2) + rand()%province_width,
 				province_center.y -(province_height/2) + rand()%province_height);
+
+			person->power+=rand()%40;
+
 			people.push_back(person);
 		}
 	}
@@ -264,7 +279,6 @@ void Game::LoadContent()
 	arial12 = al_load_font("arial.ttf",12,0);
 	DefineColors();
 };
-
 void Game::DefineColors()
 {
 	color_base_value = 0.5;
@@ -504,19 +518,24 @@ void Game::RunTime()
 
 void Game::ProcessPeople()
 {
-	int starting_index = 0;//rand()%people.size();
-
-	for(std::vector<Person*>::size_type i = starting_index; i < people.size(); i++) 
+	for(std::vector<Person*>::size_type i = 0; i < people.size(); i++) 
 	{
+		//Time of the day people get hungry
+		if(current_hour==11 || current_hour==16 || current_hour==20)
+		{
+			people[i]->hunger= people[i]->hunger + hunger_seek_level;
+		}
+
 		ProcessPersonAI(people[i]);
 
-		/*if(i==people.size()-1)
+		if(people[i]->hunger>=hunger_death_level)
 		{
-			for (int o = 0; o < starting_index; o++)
-			{
-				ProcessPersonAI(people[i]);
-			}
-		}*/
+			people[i]->dead = true;
+			delete(people[i]);
+			people.erase(people.begin()+i);
+			i--;
+		}
+
 	}
 };
 void Game::ProcessPersonAI(Person* person)
@@ -530,6 +549,112 @@ void Game::ProcessPersonAI(Person* person)
 	Philisophical
 	*/
 
+	/*if(person->hunger>=hunger_seek_level)
+	{
+	SeekFood(person);
+	}*/
+
+	BuildResources(person);
+
+
+	//if(person->hunger<hunger_seek_level)
+	//{
+	//	//Look for food
+	//}
+	//else
+	//{
+
+	//}
+};
+void Game::SeekFood(Person* person)
+{
+	//Currently eating -whatever amount- takes an hour
+
+	if(person->food_carried!=0)//
+	{
+		//Eat all your food
+		person->hunger-=person->food_carried;
+
+		//If you are more than food add the food back to what you carried
+		if(person->hunger<0)
+		{
+			person->food_carried-=person->hunger;
+			person->hunger = 0;
+		}
+	}
+	else if(person->home->food_stored!=0)//If you have food in your home
+	{
+		if(person->province_x == person->home->province_x &&person->province_x == person->home->province_x )
+		{
+			//You are on your houses tile
+		} 
+		else
+		{
+			//You are away from home
+		}
+	}
+	else//You don't have any food
+	{
+
+	}
+
+
+};
+void Game::Sleep(Person* person)
+{
+
+};
+void Game::BuildResources(Person* person)
+{
+	//First off: do you have a home?
+	if(person->home ==NULL)
+	{
+		int province_x = person->province_x;
+		int province_y = person->province_y;
+
+		//Calculating the power buy in for the home
+		int province_total_power = 0;
+		if(houses_ptr[province_y][province_x].size()!=0)
+		{
+			for (int h = 0; h < houses_ptr[province_y][province_x].size(); h++)
+			{
+				province_total_power += houses_ptr[province_y][province_x][h]->owner->power;
+			}
+			province_total_power = province_total_power/houses_ptr[province_y][province_x].size();
+		}
+	
+		//Can you afford it?
+		if(person->power>=province_total_power)
+		{
+			person->power-=province_total_power;
+			BuildHome(person);
+		}
+		else
+		{
+			MoveRandomDirection(person);
+		}
+	}
+};
+void Game::BuildHome(Person* person)
+{
+	House* home = new House(person,person->province_x,person->province_y,
+		provinces[person->province_y][person->province_x]->getCenter().x-((province_width-10)/2)+(rand()% (province_width-10)),
+		provinces[person->province_y][person->province_x]->getCenter().y-((province_height-10)/2)+(rand()%(province_height-10)));
+
+	person->home = home;
+	houses.push_back(home);
+	houses_ptr[person->province_y][person->province_x].push_back(home);
+};
+void Game::SeekInteraction(Person* person)
+{
+
+};
+void Game::SeekDominion(Person* person)
+{
+
+};
+void Game::MoveRandomDirection(Person* person)
+{
 	int direction = rand()%20;
 
 	switch (direction)
@@ -588,32 +713,32 @@ void Game::ProcessPersonAI(Person* person)
 	default:
 		break;
 	}
-
-	//if(person->hunger<hunger_seek_level)
-	//{
-	//	//Look for food
-	//}
-	//else
-	//{
-
-	//}
 };
+
 void Game::UpdatePersonPositionToProvince(Person* person)
 {
 	Vector2 province_center = provinces[person->province_y][person->province_x]->getCenter();
 	person->position_x = province_center.x -(province_width/2) + rand()%province_width;
 	person->position_y =province_center.y -(province_height/2) + rand()%province_height;
 }
+//void Game::UpdateProvinceFood()
+//{
+//
+//}
 
 void Game::Draw()
 {
 	if(provinces_drawn)
 		DrawProvinces();
 
+	DrawHouses();
+
 	DrawPeople();
 
 	if(resources_drawn)
 		DrawResources();
+
+
 
 	DrawDate();
 	DrawPopulation();
@@ -655,22 +780,27 @@ void Game::DrawProvinces()
 void Game::DrawPeople()
 {
 	//Maintianing highest of power strength and intel
-	if(power_highest_person->dead)
-		power_highest_person = nullptr;
-	if(strength_highest_person->dead)
-		strength_highest_person = nullptr;
-	if(intelligence_highest_person->dead)
-		intelligence_highest_person=nullptr;
+	if(power_highest_person != NULL)
+		if(power_highest_person->dead)
+			power_highest_person = NULL;
+	if(strength_highest_person != NULL)
+		if(strength_highest_person->dead)
+			strength_highest_person = NULL;
+	if(intelligence_highest_person != NULL)
+		if(intelligence_highest_person->dead)
+			intelligence_highest_person=NULL;
 
+
+	//Processing highest
 	for(std::vector<Person*>::size_type i = 0; i != people.size(); i++) 
 	{
 		if(!people[i]->dead)
 		{
-			if(power_highest_person == nullptr)
+			if(power_highest_person == NULL)
 				power_highest_person = people[i];
-			if(strength_highest_person== nullptr)
+			if(strength_highest_person== NULL)
 				strength_highest_person  = people[i];
-			if(intelligence_highest_person== nullptr)
+			if(intelligence_highest_person== NULL)
 				intelligence_highest_person = people[i];
 
 			//Power
@@ -826,9 +956,7 @@ void Game::DrawPeople()
 				}
 			}
 			DrawBlade(people[i]->position_x,people[i]->position_y,color[0],color[1],color[2]);
-
 		}
-		DrawCluster(100,100,100,100,100);
 	}
 };
 void Game::DrawResources()
@@ -842,7 +970,29 @@ void Game::DrawResources()
 			50+ (resources[i]->necessity_value/10*(double)color_resource[2]));
 	}
 };
+void Game::DrawHouses()
+{
+	for(std::vector<House*>::size_type i = 0; i < houses.size(); i++) 
+	{
+		int position_x=houses[i]->position_x;
+		int position_y=houses[i]->position_y;
 
+		DrawHouse(position_x,position_y);
+	}
+};
+
+void Game::DrawHouse(int x, int y)
+{
+	//Roof
+	al_draw_line(x-2,y-3,x,y-6,al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
+	al_draw_line(x,y-6,x+2, y-3,al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
+
+	//Walls
+	al_draw_line(x-2, y,   x-2, y-3, al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
+	al_draw_line(x-2, y-3, x+2, y-3, al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
+	al_draw_line(x+2, y-3, x+2, y,   al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
+	al_draw_line(x-2, y,   x+2, y,   al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
+};
 void Game::DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b)
 {
 	al_draw_line(x-2,y,x+2,y,al_map_rgb(r,g,b),1);
@@ -868,8 +1018,28 @@ void Game::DrawPopulation()
 
 void Game::FreeMemory()
 {
+	al_destroy_font(arial24);
+	al_destroy_font(arial16);
+	al_destroy_font(arial12);
+
 	for(std::vector<Person*>::size_type i = 0; i != people.size(); i++) 
 	{
 		delete people[i];
+	}
+
+	for(std::vector<Resource*>::size_type i = 0; i != resources.size(); i++) 
+	{
+		delete resources[i];
+	}
+	for(std::vector<House*>::size_type i = 0; i != houses.size(); i++) 
+	{
+		delete houses[i];
+	}
+	for(std::vector<Province*>::size_type i = 0; i != provinces.size(); i++) 
+	{
+		for(std::vector<Province*>::size_type x = 0; x != provinces[i].size(); x++) 
+		{
+			delete provinces[i][x];
+		}
 	}
 };

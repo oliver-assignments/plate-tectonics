@@ -22,6 +22,7 @@
 class Game
 {
 public:
+	//Initialize//
 	Game();
 	void Initialize();
 	void InitializeGame();
@@ -31,26 +32,43 @@ public:
 	void CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius);
 	void InitializeAllegro();
 
+	//LoadContent
 	void LoadContent();
 	void DefineColors();
 
+	//Update//
 	void Update();
 	void TakeInput();
 	void RunTime();
 	void ProcessPeople();
+
+	//AI
 	void ProcessPersonAI(Person* person);
+	void SeekDominion(Person* person);
+	void SeekFood(Person* person);
+	void BuildHome(Person* person);
+	void Sleep(Person* person);
+	void BuildResources(Person* person);
+	void SeekInteraction(Person* person);
+	void MoveRandomDirection(Person* person);
+
 	void UpdatePersonPositionToProvince(Person* person);
 
+	//Draw
 	void Draw();
 	void DrawProvinces();
 	void DrawPeople();
 	void DrawResources();
+	void DrawHouses();
+
+	void DrawHouse(int x, int y);
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
-	
+
 	void DrawDate();
 	void DrawPopulation();
 
+	//Unload
 	void FreeMemory();
 
 	long int PMrand();
@@ -87,14 +105,14 @@ private:
 	int current_hour;
 	int current_day;
 	int current_year;
-	
+
 	//Provinces
 	std::vector<std::vector<Province*>> provinces;
 	int province_width;
 	int province_height;
 	int provinces_num_columns;
 	int provinces_num_rows;
-	
+
 	int province_jiggle_width;
 	int province_jiggle_height;
 
@@ -102,6 +120,10 @@ private:
 
 	//People
 	std::vector<Person*> people;
+
+	//Houses
+	std::vector<std::vector<std::vector<House*>>> houses_ptr;
+	std::vector<House*> houses;
 
 	//Resources
 	std::vector<Resource*> resources;
@@ -149,14 +171,14 @@ private:
 
 	int color_power[3];
 	int color_hunger[3];
-	 
+
 	int color_intelligence[3];
 	int color_strength[3];
-	 
+
 	int color_foreign_north[3];
 	int color_foreign_east[3];
 	int color_foreign_south[3];
 	int color_foreign_west[3];
-	
+
 	int color_generation[3];
 };
