@@ -7,12 +7,13 @@ class Province
 {
 
 public:
-	Province(Vector2* myP0,Vector2* myP1,Vector2* myP2,Vector2* myP3)
+	Province(Vector2* myP0,Vector2* myP1,Vector2* myP2,Vector2* myP3, int myVegetation)
 	{
 		p0 = myP0;
 		p1 = myP1;
 		p2 = myP2;
 		p3 = myP3;
+		vegetation = myVegetation;
 	};
 
 	/*int getArea()
@@ -34,7 +35,7 @@ public:
 	Vector2* p3;
 
 	int altitude;
-	int vegetation;
+	int vegetation;//100 is fully vegetable
 	int food_produced;
 
 

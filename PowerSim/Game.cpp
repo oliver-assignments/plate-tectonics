@@ -59,15 +59,17 @@ void Game::InitializeAllegro()
 
 void Game::InitializeGame()
 {	
-	province_width = 50;
-	province_height = 40;
+	province_width = 60;
+	province_height = 60;
 	province_jiggle_width = (int)(province_width*0.8);
 	province_jiggle_height = (int)(province_height*0.8);
 
-	ui_state = HUNGER;
+	ui_state = FOREIGN;
 	resources_drawn = true;
 	provinces_drawn = true;
 	draw_every_hour = true;
+
+	vegetation_max = 100;
 
 	//Setuping up our values
 	hours_in_day =24;
@@ -104,7 +106,7 @@ void Game::CreateWorld()
 {
 	CreateProvinces();
 	CreateResources(30);
-	CreatePeople(20,25,75);
+	CreatePeople(20,100,75);
 
 	generation_youngest=1;
 	power_highest_person = NULL;
@@ -180,7 +182,7 @@ void Game::CreateProvinces()
 				bottom_right = new Vector2((x*province_width)+province_width, (y*province_height) + province_height);
 				vertices[index] = bottom_right;
 			}
-			Province* province = new Province(top_left,top_right,bottom_left,bottom_right);
+			Province* province = new Province(top_left,top_right,bottom_left,bottom_right,(vegetation_max/3)+ rand()%(vegetation_max-(vegetation_max/3)));
 
 			provinces[y].push_back(province);
 		}
@@ -286,7 +288,8 @@ void Game::DefineColors()
 	color_text[0] = 255;color_text[1] = 255;color_text[2] = 255;
 
 	color_resource[0] = 200;color_resource[1] = 200;color_resource[2] = 200;
-	color_province[0] = 20;color_province[1] = 20;color_province[2] = 20;
+	color_house[0] = 100;color_house[1] = 100;color_house[2] = 100;
+	color_province[0] = 0;color_province[1] =25;color_province[2] = 0;
 
 	color_occupation_farmer[0] = 5;color_occupation_farmer[1] = 102;color_occupation_farmer[2] = 100;
 	color_occupation_artisan[0] = 252;color_occupation_artisan[1] = 50;color_occupation_artisan[2] = 4;
@@ -324,7 +327,6 @@ void Game::Update()
 		previous_tick_timestamp = current_timestamp;
 		accumulator+=seconds_since_last_tick;
 
-
 		//Do this before drawing
 		while ( accumulator >= dt )
 		{
@@ -336,6 +338,8 @@ void Game::Update()
 			}
 			accumulator -= dt;
 		}
+
+		
 	}
 	FreeMemory();
 };
@@ -622,7 +626,7 @@ void Game::BuildResources(Person* person)
 			}
 			province_total_power = province_total_power/houses_ptr[province_y][province_x].size();
 		}
-	
+
 		//Can you afford it?
 		if(person->power>=province_total_power)
 		{
@@ -638,8 +642,8 @@ void Game::BuildResources(Person* person)
 void Game::BuildHome(Person* person)
 {
 	House* home = new House(person,person->province_x,person->province_y,
-		provinces[person->province_y][person->province_x]->getCenter().x-((province_width-10)/2)+(rand()% (province_width-10)),
-		provinces[person->province_y][person->province_x]->getCenter().y-((province_height-10)/2)+(rand()%(province_height-10)));
+		provinces[person->province_y][person->province_x]->getCenter().x-((province_width)/2)+(rand()% (province_width)),
+		provinces[person->province_y][person->province_x]->getCenter().y-((province_height)/2)+(rand()%(province_height)));
 
 	person->home = home;
 	houses.push_back(home);
@@ -729,16 +733,14 @@ void Game::UpdatePersonPositionToProvince(Person* person)
 void Game::Draw()
 {
 	if(provinces_drawn)
-		DrawProvinces();
+	DrawProvinces();
 
 	DrawHouses();
 
 	DrawPeople();
 
 	if(resources_drawn)
-		DrawResources();
-
-
+	DrawResources();
 
 	DrawDate();
 	DrawPopulation();
@@ -754,14 +756,39 @@ void Game::DrawProvinces()
 		for(std::vector<Province*>::size_type x = 0; x < provinces_num_columns; x++) 
 		{
 			Province* province = (provinces[y][x]);
-			al_draw_line(province->p0->x,province->p0->y,province->p1->x,province->p1->y,
-				al_map_rgb(color_province[0],color_province[1],color_province[2]),1);
-			al_draw_line(province->p1->x,province->p1->y,province->p3->x,province->p3->y,
-				al_map_rgb(color_province[0],color_province[1],color_province[2]),1);
-			al_draw_line(province->p3->x,province->p3->y,province->p2->x,province->p2->y,
-				al_map_rgb(color_province[0],color_province[1],color_province[2]),1);
-			al_draw_line(province->p2->x,province->p2->y,province->p0->x,province->p0->y,
-				al_map_rgb(color_province[0],color_province[1],color_province[2]),1);
+
+			int color[3];
+			color[0] = ((double)province->vegetation/vegetation_max) * color_province[0];
+			color[1] = ((double)province->vegetation/vegetation_max) * color_province[1];
+			color[2] = ((double)province->vegetation/vegetation_max) * color_province[2];
+
+			if(color[1] == 0)
+			{
+				return;
+			}
+			
+			ALLEGRO_VERTEX half[] = 
+			{
+				{province->p0->x, province->p0->y, 0},
+				{province->p1->x,province->p1->y, 0},
+				{province->p3->x,province->p3->y,0},
+				{province->p2->x,province->p2->y,0},
+			};
+			for (int i = 0; i < 4; i++)
+			{
+				half[i].color = al_map_rgb(color[0],color[1],color[2]);
+			}
+			al_draw_prim(half, NULL, 0, 0, 4, ALLEGRO_PRIM_TRIANGLE_FAN );
+
+			////Draw border
+			//al_draw_line(province->p0->x,province->p0->y,province->p1->x,province->p1->y,
+			//	al_map_rgb(color[0],color[1],color[2]),2);
+			//al_draw_line(province->p1->x,province->p1->y,province->p3->x,province->p3->y,
+			//	al_map_rgb(color[0],color[1],color[2]),2);
+			//al_draw_line(province->p3->x,province->p3->y,province->p2->x,province->p2->y,
+			//	al_map_rgb(color[0],color[1],color[2]),2);
+			//al_draw_line(province->p2->x,province->p2->y,province->p0->x,province->p0->y,
+			//	al_map_rgb(color[0],color[1],color[2]),2);
 
 			/*al_draw_line(provinces[y][x]->vertices[0],provinces[y][x]->vertices[1],provinces[y][x]->vertices[2],provinces[y][x]->vertices[3],
 			al_map_rgb(255,255,255),1);
@@ -972,27 +999,149 @@ void Game::DrawResources()
 };
 void Game::DrawHouses()
 {
-	for(std::vector<House*>::size_type i = 0; i < houses.size(); i++) 
+	for (int y = 0; y < provinces_num_rows; y++)
 	{
-		int position_x=houses[i]->position_x;
-		int position_y=houses[i]->position_y;
+		for (int x = 0; x < provinces_num_columns; x++)
+		{
+			int position_x=provinces[y][x]->getCenter().x;
+			int position_y=provinces[y][x]->getCenter().y;
 
-		DrawHouse(position_x,position_y);
+			if(houses_ptr[y][x].size()>500000000000)
+			{
+				DrawMegalopolis(position_x,position_y);
+			}
+			else if(houses_ptr[y][x].size()>400000)
+			{
+				DrawConurbation(position_x,position_y);
+			}
+			else if(houses_ptr[y][x].size()>300000)
+			{
+				DrawMetropolis(position_x,y);
+			}
+			else if(houses_ptr[y][x].size()>30000)
+			{
+				DrawCity(position_x,position_y);
+			}
+			else if(houses_ptr[y][x].size()>2000)
+			{
+				DrawTown(position_x,position_y);
+			}
+			else if(houses_ptr[y][x].size()>100)
+			{
+				DrawVillage(position_x,position_y);
+			}
+			else if(houses_ptr[y][x].size()>10)
+			{
+				DrawHamlet(position_x,position_y);
+			}
+			else if(houses_ptr[y][x].size()>0)
+			{
+				DrawHouse(position_x,position_y);
+			}
+			else//Nothing
+			{
+
+			}
+
+
+		}
 	}
+
+
+	//Draw every house
+	/*for(std::vector<House*>::size_type i = 0; i < houses.size(); i++) 
+	{
+	int position_x=houses[i]->position_x;
+	int position_y=houses[i]->position_y;
+
+	DrawHouse(position_x,position_y);
+	}*/
 };
 
 void Game::DrawHouse(int x, int y)
 {
 	//Roof
-	al_draw_line(x-2,y-3,x,y-6,al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
-	al_draw_line(x,y-6,x+2, y-3,al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
+	al_draw_line(x-1,y-3,x,y-6,al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
+	al_draw_line(x,y-6,x+1, y-3,al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
 
 	//Walls
-	al_draw_line(x-2, y,   x-2, y-3, al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
-	al_draw_line(x-2, y-3, x+2, y-3, al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
-	al_draw_line(x+2, y-3, x+2, y,   al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
-	al_draw_line(x-2, y,   x+2, y,   al_map_rgb(color_resource[0],color_resource[1],color_resource[2]),1);
+	al_draw_line(x-1, y,   x-1, y-3, al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
+	al_draw_line(x-1, y-3, x+1, y-3, al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
+	al_draw_line(x+1, y-3, x+1, y,   al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
+	al_draw_line(x-1, y,   x+1, y,   al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
 };
+void Game::DrawHamlet(int x, int y)
+{
+	DrawHouse(x-5,y);
+	DrawHouse(x+5,y);
+};
+void Game::DrawVillage(int x, int y)
+{
+	DrawHouse(x-5,y+2);
+	DrawHouse(x+5,y+2);
+	DrawHouse(x,y-1);
+};
+void Game::DrawTown(int x, int y)
+{
+	DrawHouse(x-5,y+5);
+	DrawHouse(x+5,y+5);
+	DrawHouse(x+5,y-5);
+	DrawHouse(x-5,y-5);
+};
+void Game::DrawCity(int x, int y)
+{
+	DrawHouse(x,y);
+	DrawHouse(x-5,y+5);
+	DrawHouse(x+5,y+5);
+	DrawHouse(x+5,y-5);
+	DrawHouse(x-5,y-5);
+};
+void Game::DrawMetropolis(int x, int y)
+{
+	DrawHouse(x,y);
+	DrawHouse(x-5,y+5);
+	DrawHouse(x+5,y+5);
+	DrawHouse(x+5,y-5);
+	DrawHouse(x-5,y-5);
+
+	DrawHouse(x+10,y);
+	DrawHouse(x-10,y);
+};
+void Game::DrawConurbation(int x, int y)
+{
+	DrawHouse(x,y);
+	DrawHouse(x-5,y+5);
+	DrawHouse(x+5,y+5);
+	DrawHouse(x+5,y-5);
+	DrawHouse(x-5,y-5);
+
+	DrawHouse(x+10,y);
+	DrawHouse(x-10,y);
+
+	DrawHouse(x,y+10);
+	DrawHouse(x,y-10);
+};
+void Game::DrawMegalopolis(int x, int y)
+{
+	DrawHouse(x,y);
+	DrawHouse(x-5,y+5);
+	DrawHouse(x+5,y+5);
+	DrawHouse(x+5,y-5);
+	DrawHouse(x-5,y-5);
+
+	DrawHouse(x+10,y);
+	DrawHouse(x-10,y);
+
+	DrawHouse(x,y+10);
+	DrawHouse(x,y-10);
+
+	DrawHouse(x+10,y+10);
+	DrawHouse(x-10,y-10);
+
+	DrawHouse(x+10,y-10);
+	DrawHouse(x-10,y+10);
+};
+
 void Game::DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b)
 {
 	al_draw_line(x-2,y,x+2,y,al_map_rgb(r,g,b),1);

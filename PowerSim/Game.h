@@ -59,9 +59,18 @@ public:
 	void DrawProvinces();
 	void DrawPeople();
 	void DrawResources();
-	void DrawHouses();
 
+	void DrawHouses();
 	void DrawHouse(int x, int y);
+	void DrawHamlet (int x, int y); 
+	void DrawVillage(int x, int y);
+	void DrawTown(int x, int y);
+	void DrawCity(int x, int y);
+	void DrawMetropolis(int x, int y); 
+	void DrawConurbation(int x, int y);
+	void DrawMegalopolis(int x, int y);
+
+	
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 
@@ -118,6 +127,8 @@ private:
 
 	bool provinces_drawn;
 
+	int vegetation_max;
+
 	//People
 	std::vector<Person*> people;
 
@@ -164,6 +175,7 @@ private:
 	ALLEGRO_FONT* arial12;
 
 	int color_resource[3];
+	int color_house[3];
 	int color_province[3];
 
 	int color_occupation_farmer[3];
