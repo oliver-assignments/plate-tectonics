@@ -12,14 +12,14 @@ class Person
 {
 public:
 	Person(int myId,
-		   int myStrength,int myIntelligence, 
-		   
-		   int myGeneration, 
-		   
-		   int myForeignX,int myForeignY,
+		int myStrength,int myIntelligence, 
 
-		   int myProvinceX,int myProvinceY,
-		   int myX,int myY)
+		int myGeneration, 
+
+		int myForeignX,int myForeignY,
+
+		int myProvinceX,int myProvinceY,
+		int myX,int myY)
 	{
 		power = 10;
 		strength = myStrength;
@@ -58,7 +58,7 @@ public:
 	int food_carried;
 
 	bool dead;
-	
+
 	int position_x;
 	int position_y;
 
@@ -72,6 +72,12 @@ public:
 
 	int generation;
 	int id;
+
+	bool comparePower (const Person* first, const Person* second)
+	{
+		 return first->power<second->power;
+	};
+	//bool operator() (const Person* first, const Person* second) {  return first->power>second->power;}
 };
 
 

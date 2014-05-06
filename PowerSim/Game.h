@@ -12,6 +12,7 @@
 #include <ctime>
 #include <mutex>
 #include <string>
+#include <algorithm>  
 
 #include "Person.h"
 #include "Resource.h"
@@ -51,6 +52,10 @@ public:
 	void BuildResources(Person* person);
 	void SeekInteraction(Person* person);
 	void MoveRandomDirection(Person* person);
+
+	void GetInLineForFood(int x,int y,Person* myPerson);
+	void DivvyUpFood();
+	void UpdateProvinceFood();
 
 	void UpdatePersonPositionToProvince(Person* person);
 
@@ -119,6 +124,7 @@ private:
 	//Provinces
 	std::vector<std::vector<Province*>> provinces;
 	std::vector<Vector2*> province_vertices;
+	std::vector<Province*> provinces_with_hungry_people;
 	int province_width;
 	int province_height;
 	int provinces_num_columns;
@@ -131,6 +137,8 @@ private:
 	bool color_province_blending;
 
 	int arability_max;
+
+	int province_id;
 
 	//People
 	std::vector<Person*> people;
