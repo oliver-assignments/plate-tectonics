@@ -61,6 +61,7 @@ public:
 	void DrawResources();
 
 	void DrawHouses();
+	void CalculateVertexColor(int x, int y,ALLEGRO_VERTEX* myVertices);
 	void DrawHouse(int x, int y);
 	void DrawHamlet (int x, int y); 
 	void DrawVillage(int x, int y);
@@ -117,6 +118,7 @@ private:
 
 	//Provinces
 	std::vector<std::vector<Province*>> provinces;
+	std::vector<Vector2*> province_vertices;
 	int province_width;
 	int province_height;
 	int provinces_num_columns;
@@ -126,8 +128,9 @@ private:
 	int province_jiggle_height;
 
 	bool provinces_drawn;
+	bool color_province_blending;
 
-	int vegetation_max;
+	int arability_max;
 
 	//People
 	std::vector<Person*> people;
@@ -135,6 +138,7 @@ private:
 	//Houses
 	std::vector<std::vector<std::vector<House*>>> houses_ptr;
 	std::vector<House*> houses;
+	std::vector<int*> color_province_vertex_average;
 
 	//Resources
 	std::vector<Resource*> resources;

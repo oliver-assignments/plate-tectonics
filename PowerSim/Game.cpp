@@ -59,17 +59,19 @@ void Game::InitializeAllegro()
 
 void Game::InitializeGame()
 {	
-	province_width = 60;
-	province_height = 60;
+	province_width = 20;
+	province_height = 15;
+
 	province_jiggle_width = (int)(province_width*0.8);
 	province_jiggle_height = (int)(province_height*0.8);
 
 	ui_state = FOREIGN;
 	resources_drawn = true;
 	provinces_drawn = true;
+	color_province_blending = false;
 	draw_every_hour = true;
 
-	vegetation_max = 100;
+	arability_max = 100;
 
 	//Setuping up our values
 	hours_in_day =24;
@@ -118,10 +120,9 @@ void Game::CreateProvinces()
 	provinces_num_columns = (int)(screen_width/province_width);
 	provinces_num_rows= (int)(screen_height/province_height);
 
-	std::vector<Vector2*> vertices;
 	for (int i = 0; i < ((provinces_num_columns+1)*(provinces_num_rows+1)); i++)
 	{
-		vertices.push_back(NULL);
+		province_vertices.push_back(NULL);
 	}
 
 	for (int y = 0; y < provinces_num_rows;y++)
@@ -137,62 +138,62 @@ void Game::CreateProvinces()
 
 			//TOP LEFT
 			int index = (y*(provinces_num_columns+1))+x;
-			if(vertices[index]!=NULL)
+			if(province_vertices[index]!=NULL)
 			{
-				top_left = vertices[index];
+				top_left = province_vertices[index];
 			}
 			else
 			{
 				top_left = new Vector2((x*province_width), (y*province_height));
-				vertices[index] = top_left;
+				province_vertices[index] = top_left;
 			}
 
 			//TOP RIGHT
 			index = (y*(provinces_num_columns+1))+(x+1);
-			if(vertices[index]!=NULL)
+			if(province_vertices[index]!=NULL)
 			{
-				top_right = vertices[index];
+				top_right = province_vertices[index];
 			}
 			else
 			{
 				top_right = new Vector2((x*province_width)+province_width, y*province_height);
-				vertices[index] = top_right;
+				province_vertices[index] = top_right;
 			}
 
 			//BOTTOM LEFT
 			index = ((y+1)*(provinces_num_columns+1))+x;
-			if(vertices[index]!=NULL)
+			if(province_vertices[index]!=NULL)
 			{
-				bottom_left = vertices[index];
+				bottom_left = province_vertices[index];
 			}
 			else
 			{
 				bottom_left = new Vector2((x*province_width), (y*province_height) + province_height);
-				vertices[index] = bottom_left;
+				province_vertices[index] = bottom_left;
 			}
 
 			//BOTTOM RIGHT
 			index = ((y+1)*(provinces_num_columns+1))+(x+1);
-			if(vertices[index]!=NULL)
+			if(province_vertices[index]!=NULL)
 			{
-				bottom_right = vertices[index];
+				bottom_right = province_vertices[index];
 			}
 			else
 			{
 				bottom_right = new Vector2((x*province_width)+province_width, (y*province_height) + province_height);
-				vertices[index] = bottom_right;
+				province_vertices[index] = bottom_right;
 			}
-			Province* province = new Province(top_left,top_right,bottom_left,bottom_right,(vegetation_max/3)+ rand()%(vegetation_max-(vegetation_max/3)));
+			Province* province = new Province(top_left,top_right,bottom_right,bottom_left,(arability_max/3)+ rand()%(arability_max-(arability_max/3)));
 
 			provinces[y].push_back(province);
 		}
 	}
 
 	//Jiggle
-	for(std::vector<Vector2*>::size_type v = 0; v != vertices.size(); v++) 
+	for(std::vector<Vector2*>::size_type v = 0; v != province_vertices.size(); v++) 
 	{
-		vertices[v]->x = vertices[v]->x + 5 - (province_jiggle_width/2) + (rand()%province_jiggle_width);
-		vertices[v]->y = vertices[v]->y + 5 - (province_jiggle_height/2) + (rand()%province_jiggle_height);
+		province_vertices[v]->x = province_vertices[v]->x + 5 - (province_jiggle_width/2) + (rand()%province_jiggle_width);
+		province_vertices[v]->y = province_vertices[v]->y + 5 - (province_jiggle_height/2) + (rand()%province_jiggle_height);
 
 	}
 
@@ -289,7 +290,7 @@ void Game::DefineColors()
 
 	color_resource[0] = 200;color_resource[1] = 200;color_resource[2] = 200;
 	color_house[0] = 100;color_house[1] = 100;color_house[2] = 100;
-	color_province[0] = 0;color_province[1] =25;color_province[2] = 0;
+	color_province[0] = 0;color_province[1] =100;color_province[2] = 0;
 
 	color_occupation_farmer[0] = 5;color_occupation_farmer[1] = 102;color_occupation_farmer[2] = 100;
 	color_occupation_artisan[0] = 252;color_occupation_artisan[1] = 50;color_occupation_artisan[2] = 4;
@@ -339,7 +340,7 @@ void Game::Update()
 			accumulator -= dt;
 		}
 
-		
+
 	}
 	FreeMemory();
 };
@@ -485,6 +486,17 @@ void Game::TakeInput()
 				resources_drawn=false;
 			else
 				resources_drawn = true;
+		}
+	}
+	if(al_key_down(&new_keyboard_state,ALLEGRO_KEY_B))
+	{
+		if(!al_key_down(&old_keyboard_state,ALLEGRO_KEY_B))
+		{
+			//Draw();
+			if(color_province_blending)
+				color_province_blending=false;
+			else
+				color_province_blending = true;
 		}
 	}
 
@@ -733,14 +745,14 @@ void Game::UpdatePersonPositionToProvince(Person* person)
 void Game::Draw()
 {
 	if(provinces_drawn)
-	DrawProvinces();
+		DrawProvinces();
 
 	DrawHouses();
 
 	DrawPeople();
 
 	if(resources_drawn)
-	DrawResources();
+		DrawResources();
 
 	DrawDate();
 	DrawPopulation();
@@ -758,27 +770,30 @@ void Game::DrawProvinces()
 			Province* province = (provinces[y][x]);
 
 			int color[3];
-			color[0] = ((double)province->vegetation/vegetation_max) * color_province[0];
-			color[1] = ((double)province->vegetation/vegetation_max) * color_province[1];
-			color[2] = ((double)province->vegetation/vegetation_max) * color_province[2];
 
-			if(color[1] == 0)
-			{
-				return;
-			}
-			
-			ALLEGRO_VERTEX half[] = 
+			//Provicne color Seperation
+			color[0] = ((double)province->arability/arability_max) * color_province[0];
+			color[1] = ((double)province->arability/arability_max) * color_province[1];
+			color[2] = ((double)province->arability/arability_max) * color_province[2];
+
+			ALLEGRO_VERTEX vertices[] = 
 			{
 				{province->p0->x, province->p0->y, 0},
 				{province->p1->x,province->p1->y, 0},
-				{province->p3->x,province->p3->y,0},
 				{province->p2->x,province->p2->y,0},
+				{province->p3->x,province->p3->y,0},
 			};
-			for (int i = 0; i < 4; i++)
+			if(color_province_blending)
 			{
-				half[i].color = al_map_rgb(color[0],color[1],color[2]);
+				CalculateVertexColor(x,y,vertices);
 			}
-			al_draw_prim(half, NULL, 0, 0, 4, ALLEGRO_PRIM_TRIANGLE_FAN );
+			else{
+				for (int i = 0; i < 4; i++)
+				{
+					vertices[i].color = al_map_rgb(color[0],color[1],color[2]);
+				}
+			}
+			al_draw_prim(vertices, NULL, 0, 0, 4, ALLEGRO_PRIM_TRIANGLE_FAN );
 
 			////Draw border
 			//al_draw_line(province->p0->x,province->p0->y,province->p1->x,province->p1->y,
@@ -803,6 +818,194 @@ void Game::DrawProvinces()
 			al_map_rgb(255,255,255),1);*/
 		}
 	}
+};
+void Game::CalculateVertexColor(int x, int y, ALLEGRO_VERTEX* myVertices)
+{
+	int color[3];
+
+	int average_arability = 0;
+
+	//Top left vertex
+	{
+		int total_arability = 0;
+		int provinces_used = 0;
+
+		int bottomRightArability;
+		int topLeftArability;
+		int topRightArability;
+		int bottomLeftArability;
+
+		if(y-1>=0 && x-1>=0)//Topleft
+		{
+			bottomRightArability = provinces[y-1][x-1]->arability;
+			total_arability+= bottomRightArability;
+			provinces_used++;
+		}
+
+		if(y-1>=0)//Topright
+		{
+			topLeftArability = provinces[y-1][x]->arability;
+			total_arability+=topLeftArability;
+			provinces_used++;
+		}
+		if(true)//bottomright
+		{
+			topRightArability = provinces[y][x]->arability;
+			total_arability+= topRightArability;
+			provinces_used++;
+		}
+
+		if(x-1>=0)//bottomleft
+		{
+			bottomLeftArability = provinces[y][x-1]->arability;
+			total_arability+= bottomLeftArability;
+			provinces_used++;
+		}
+		average_arability = total_arability/provinces_used;
+
+		//Top left vertex
+		color[0] = ((double)average_arability/arability_max) * color_province[0];
+		color[1] = ((double)average_arability/arability_max) * color_province[1];
+		color[2] = ((double)average_arability/arability_max) * color_province[2];
+
+		myVertices[0].color = al_map_rgb(color[0],color[1],color[2]);
+	}
+	//Top right vertex
+	{
+		int total_arability = 0;
+		int provinces_used = 0;
+
+		int bottomRightArability;
+		int topLeftArability;
+		int topRightArability;
+		int bottomLeftArability;
+
+		if(y-1>=0)//Topleft
+		{
+			bottomRightArability = provinces[y-1][x]->arability;
+			total_arability+= bottomRightArability;
+			provinces_used++;
+		}
+
+		if(y-1>=0 && x+1<provinces_num_columns)//Topright
+		{
+			topLeftArability = provinces[y-1][x+1]->arability;
+			total_arability+=topLeftArability;
+			provinces_used++;
+		}
+		if(x+1<provinces_num_columns)//bottomright
+		{
+			topRightArability = provinces[y][x+1]->arability;
+			total_arability+= topRightArability;
+			provinces_used++;
+		}
+
+		if(true)//bottomleft
+		{
+			bottomLeftArability = provinces[y][x]->arability;
+			total_arability+= bottomLeftArability;
+			provinces_used++;
+		}
+		average_arability = total_arability/provinces_used;
+
+		//Top right vertex
+		color[0] = ((double)average_arability/arability_max) * color_province[0];
+		color[1] = ((double)average_arability/arability_max) * color_province[1];
+		color[2] = ((double)average_arability/arability_max) * color_province[2];
+
+		myVertices[1].color = al_map_rgb(color[0],color[1],color[2]);
+	}
+	//Bottomright vertex
+	{
+		int total_arability = 0;
+		int provinces_used = 0;
+
+		int bottomRightArability;
+		int topLeftArability;
+		int topRightArability;
+		int bottomLeftArability;
+
+		if(true)//Topleft
+		{
+			bottomRightArability = provinces[y][x]->arability;
+			total_arability+= bottomRightArability;
+			provinces_used++;
+		}
+
+		if(x+1<provinces_num_columns)//Topright
+		{
+			topLeftArability = provinces[y][x+1]->arability;
+			total_arability+=topLeftArability;
+			provinces_used++;
+		}
+		if(x+1<provinces_num_columns&&y+1<provinces_num_rows)//bottomright
+		{
+			topRightArability = provinces[y+1][x+1]->arability;
+			total_arability+= topRightArability;
+			provinces_used++;
+		}
+
+		if(y+1<provinces_num_rows)//bottomleft
+		{
+			bottomLeftArability = provinces[y+1][x]->arability;
+			total_arability+= bottomLeftArability;
+			provinces_used++;
+		}
+		average_arability = total_arability/provinces_used;
+
+		//Bottomright vertex
+		color[0] = ((double)average_arability/arability_max) * color_province[0];
+		color[1] = ((double)average_arability/arability_max) * color_province[1];
+		color[2] = ((double)average_arability/arability_max) * color_province[2];
+
+		myVertices[2].color = al_map_rgb(color[0],color[1],color[2]);
+	}
+	//Bottomleft vertex
+	{
+		int total_arability = 0;
+		int provinces_used = 0;
+
+		int bottomRightArability;
+		int topLeftArability;
+		int topRightArability;
+		int bottomLeftArability;
+
+		if(x-1>=0)//Topleft
+		{
+			bottomRightArability = provinces[y][x-1]->arability;
+			total_arability+= bottomRightArability;
+			provinces_used++;
+		}
+
+		if(true)//Topright
+		{
+			topLeftArability = provinces[y][x]->arability;
+			total_arability+=topLeftArability;
+			provinces_used++;
+		}
+		if(y+1<provinces_num_rows)//bottomright
+		{
+			topRightArability = provinces[y+1][x]->arability;
+			total_arability+= topRightArability;
+			provinces_used++;
+		}
+
+		if(y+1<provinces_num_rows && x-1>=0)//bottomleft
+		{
+			bottomLeftArability = provinces[y+1][x-1]->arability;
+			total_arability+= bottomLeftArability;
+			provinces_used++;
+		}
+		average_arability = total_arability/provinces_used;
+
+		//Bottomleft vertex
+		color[0] = ((double)average_arability/arability_max) * color_province[0];
+		color[1] = ((double)average_arability/arability_max) * color_province[1];
+		color[2] = ((double)average_arability/arability_max) * color_province[2];
+
+		myVertices[3].color = al_map_rgb(color[0],color[1],color[2]);
+	}
+
 };
 void Game::DrawPeople()
 {
