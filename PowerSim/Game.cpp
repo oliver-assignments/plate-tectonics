@@ -100,6 +100,9 @@ void Game::InitializeGame()
 
 	generation_youngest=1;
 
+	player_id = 0;
+	house_id = 0;
+
 	CreateWorld();
 
 };
@@ -183,7 +186,7 @@ void Game::CreateProvinces()
 				bottom_right = new Vector2((x*province_width)+province_width, (y*province_height) + province_height);
 				province_vertices[index] = bottom_right;
 			}
-			Province* province = new Province(top_left,top_right,bottom_right,bottom_left,(arability_max/3)+ rand()%(arability_max-(arability_max/3)));
+			Province* province = new Province(top_left,top_right,bottom_right,bottom_left,70+ rand()%(30));
 
 			provinces[y].push_back(province);
 		}
@@ -195,18 +198,6 @@ void Game::CreateProvinces()
 		province_vertices[v]->x = province_vertices[v]->x + 5 - (province_jiggle_width/2) + (rand()%province_jiggle_width);
 		province_vertices[v]->y = province_vertices[v]->y + 5 - (province_jiggle_height/2) + (rand()%province_jiggle_height);
 
-	}
-
-	//Initializing houses vectors
-	for (int y = 0; y < provinces_num_rows;y++)
-	{
-		std::vector<std::vector<House*>> row;
-		houses_ptr.push_back(row);
-		for (int x = 0; x < provinces_num_columns; x++)
-		{
-			std::vector<House*> column;
-			houses_ptr[y].push_back(column);
-		}
 	}
 };
 void Game::CreateResources(int myNumber)
@@ -258,7 +249,8 @@ void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForei
 			//5int province_area = provinces[province_y][province_x]->getArea();
 			Vector2 province_center = provinces[province_y][province_x]->getCenter();
 
-			Person* person = new Person(10+(1+rand()%50),
+			Person* person = new Person(player_id,
+				10+(1+rand()%50),
 				3+(1+rand()%50),
 				1,
 				-10+foreign_origin_x+(rand()%20), 
@@ -267,6 +259,8 @@ void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForei
 				province_y,
 				province_center.x -(province_width/2) + rand()%province_width,
 				province_center.y -(province_height/2) + rand()%province_height);
+
+			player_id++;
 
 			person->power+=rand()%40;
 
@@ -546,10 +540,10 @@ void Game::ProcessPeople()
 
 		if(people[i]->hunger>=hunger_death_level)
 		{
-			people[i]->dead = true;
-			delete(people[i]);
-			people.erase(people.begin()+i);
-			i--;
+		people[i]->dead = true;
+		delete(people[i]);
+		people.erase(people.begin()+i);
+		i--;
 		}
 
 	}
@@ -630,13 +624,13 @@ void Game::BuildResources(Person* person)
 
 		//Calculating the power buy in for the home
 		int province_total_power = 0;
-		if(houses_ptr[province_y][province_x].size()!=0)
+		if(provinces[province_y][province_x]->homes_on_province.size()!=0)
 		{
-			for (int h = 0; h < houses_ptr[province_y][province_x].size(); h++)
+			for (int h = 0; h < provinces[province_y][province_x]->homes_on_province.size(); h++)
 			{
-				province_total_power += houses_ptr[province_y][province_x][h]->owner->power;
+				province_total_power += provinces[province_y][province_x]->homes_on_province[h]->owner->power;
 			}
-			province_total_power = province_total_power/houses_ptr[province_y][province_x].size();
+			province_total_power = province_total_power/provinces[province_y][province_x]->homes_on_province.size();
 		}
 
 		//Can you afford it?
@@ -653,13 +647,13 @@ void Game::BuildResources(Person* person)
 };
 void Game::BuildHome(Person* person)
 {
-	House* home = new House(person,person->province_x,person->province_y,
+	House* home = new House(house_id,person,person->province_x,person->province_y,
 		provinces[person->province_y][person->province_x]->getCenter().x-((province_width)/2)+(rand()% (province_width)),
 		provinces[person->province_y][person->province_x]->getCenter().y-((province_height)/2)+(rand()%(province_height)));
 
 	person->home = home;
 	houses.push_back(home);
-	houses_ptr[person->province_y][person->province_x].push_back(home);
+	provinces[person->province_y][person->province_x]->homes_on_province[house_id] = home;
 };
 void Game::SeekInteraction(Person* person)
 {
@@ -1206,50 +1200,50 @@ void Game::DrawHouses()
 	{
 		for (int x = 0; x < provinces_num_columns; x++)
 		{
-			int position_x=provinces[y][x]->getCenter().x;
-			int position_y=provinces[y][x]->getCenter().y;
+			if(provinces[y][x]->homes_on_province.size()>0)
+			{
+				int position_x=provinces[y][x]->getCenter().x;
+				int position_y=provinces[y][x]->getCenter().y;
 
-			if(houses_ptr[y][x].size()>500000000000)
-			{
-				DrawMegalopolis(position_x,position_y);
-			}
-			else if(houses_ptr[y][x].size()>400000)
-			{
-				DrawConurbation(position_x,position_y);
-			}
-			else if(houses_ptr[y][x].size()>300000)
-			{
-				DrawMetropolis(position_x,y);
-			}
-			else if(houses_ptr[y][x].size()>30000)
-			{
-				DrawCity(position_x,position_y);
-			}
-			else if(houses_ptr[y][x].size()>2000)
-			{
-				DrawTown(position_x,position_y);
-			}
-			else if(houses_ptr[y][x].size()>100)
-			{
-				DrawVillage(position_x,position_y);
-			}
-			else if(houses_ptr[y][x].size()>10)
-			{
-				DrawHamlet(position_x,position_y);
-			}
-			else if(houses_ptr[y][x].size()>0)
-			{
-				DrawHouse(position_x,position_y);
-			}
-			else//Nothing
-			{
+				if(provinces[y][x]->homes_on_province.size()>500000000000)
+				{
+					DrawMegalopolis(position_x,position_y);
+				}
+				else if(provinces[y][x]->homes_on_province.size()>400000)
+				{
+					DrawConurbation(position_x,position_y);
+				}
+				else if(provinces[y][x]->homes_on_province.size()>300000)
+				{
+					DrawMetropolis(position_x,y);
+				}
+				else if(provinces[y][x]->homes_on_province.size()>30000)
+				{
+					DrawCity(position_x,position_y);
+				}
+				else if(provinces[y][x]->homes_on_province.size()>2000)
+				{
+					DrawTown(position_x,position_y);
+				}
+				else if(provinces[y][x]->homes_on_province.size()>100)
+				{
+					DrawVillage(position_x,position_y);
+				}
+				else if(provinces[y][x]->homes_on_province.size()>10)
+				{
+					DrawHamlet(position_x,position_y);
+				}
+				else if(provinces[y][x]->homes_on_province.size()>0)
+				{
+					DrawHouse(position_x,position_y);
+				}
+				else//Nothing
+				{
 
+				}
 			}
-
-
 		}
 	}
-
 
 	//Draw every house
 	/*for(std::vector<House*>::size_type i = 0; i < houses.size(); i++) 

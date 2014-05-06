@@ -11,9 +11,13 @@ enum Occupation
 class Person
 {
 public:
-	Person(int myStrength,int myIntelligence, 
+	Person(int myId,
+		   int myStrength,int myIntelligence, 
+		   
 		   int myGeneration, 
+		   
 		   int myForeignX,int myForeignY,
+
 		   int myProvinceX,int myProvinceY,
 		   int myX,int myY)
 	{
@@ -40,6 +44,7 @@ public:
 		home = NULL;
 
 		dead =false;
+		id= myId;
 	};
 
 	House* home;
@@ -66,6 +71,7 @@ public:
 	Occupation occupation;
 
 	int generation;
+	int id;
 };
 
 

@@ -6,7 +6,7 @@ class Person;
 class House
 {
 public:
-	House(Person* myOwner,int myProvinceX,int myProvinceY,int myX,int myY)
+	House(int myId,Person* myOwner,int myProvinceX,int myProvinceY,int myX,int myY)
 	{
 		owner = myOwner;
 

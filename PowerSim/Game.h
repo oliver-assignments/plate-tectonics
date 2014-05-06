@@ -134,10 +134,11 @@ private:
 
 	//People
 	std::vector<Person*> people;
+	int player_id;
 
 	//Houses
-	std::vector<std::vector<std::vector<House*>>> houses_ptr;
 	std::vector<House*> houses;
+	int house_id;
 	std::vector<int*> color_province_vertex_average;
 
 	//Resources
