@@ -112,7 +112,7 @@ void Game::CreateWorld()
 {
 	CreateProvinces();
 	CreateResources(30);
-	CreatePeople(5,200,75);
+	CreatePeople(10,200,75);
 
 	generation_youngest=1;
 	power_highest_person = NULL;
@@ -578,7 +578,6 @@ void Game::ProcessPersonAI(Person* person)
 	}
 	else
 	{
-
 		BuildResources(person);
 	}
 
@@ -855,11 +854,7 @@ void Game::UpdatePersonPositionToProvince(Person* person)
 	Vector2 province_center = provinces[person->province_y][person->province_x]->getCenter();
 	person->position_x = province_center.x -(province_width/2) + rand()%province_width;
 	person->position_y =province_center.y -(province_height/2) + rand()%province_height;
-}
-//void Game::UpdateProvinceFood()
-//{
-//
-//}
+};
 
 void Game::Draw()
 {
