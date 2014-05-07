@@ -1382,6 +1382,9 @@ void Game::DrawHouses()
 
 void Game::DrawHouse(int x, int y)
 {
+	//Shadow border
+	al_draw_line(x-2, y+1,   x+2, y+1, al_map_rgb(0,0,0),2);
+
 	//Roof
 	al_draw_line(x-1,y-3,x,y-6,al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
 	al_draw_line(x,y-6,x+1, y-3,al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
@@ -1466,13 +1469,15 @@ void Game::DrawMegalopolis(int x, int y)
 
 void Game::DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b)
 {
+	al_draw_line(x-2,y+2,x+2,y+2,al_map_rgb(0,0,0),1);
+
 	al_draw_line(x-2,y,x+2,y,al_map_rgb(r,g,b),1);
 	al_draw_pixel(x,y-1,al_map_rgb(r,g,b));
 };
 void Game::DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b)
 {
-	al_draw_line(x,y,x,y-3,al_map_rgb(r,g,b),1);
-
+	al_draw_line(x,y+1,x,y-4,al_map_rgb(0,0,0),1);//Shadow
+	al_draw_line(x,y-1,x,y-4,al_map_rgb(r,g,b),2);//Actual
 };
 void Game::DrawDate()
 {
