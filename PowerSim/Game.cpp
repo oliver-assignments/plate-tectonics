@@ -543,6 +543,13 @@ void Game::ProcessPeople()
 
 			if(people[i]->hunger>=hunger_death_level)
 			{
+				House* home = people[i]->home;
+				if(home!=NULL)
+				{
+					home->abandoned = true;
+					provinces[home->province_y][home->province_x]->homes_on_province.erase(home->id);
+				}
+
 				people[i]->dead = true;
 				delete(people[i]);
 				people.erase(people.begin()+i);
@@ -679,7 +686,7 @@ void Game::BuildResources(Person* person)
 		if(person->occupation == FARMER)
 		{
 			//Work the land
-			provinces[person->province_y][person->province_x] ->food_in_province += person->strength/3;
+			provinces[person->province_y][person->province_x] ->food_in_province += person->strength/20;
 		}
 		else if (person->occupation == ARTISAN)
 		{
@@ -694,12 +701,12 @@ void Game::BuildHome(Person* person)
 		provinces[person->province_y][person->province_x]->getCenter().y-((province_height)/2)+(rand()%(province_height)));
 
 	person->home = home;
-	houses.push_back(home);
 	Province* prov = provinces[person->province_y][person->province_x];
 	prov->homes_on_province[house_id] = home;//home;
-	house_id++;
-	printf(std::to_string(provinces[person->province_y][person->province_x]->homes_on_province.size()).c_str());
-	
+	house_id=house_id+1;
+	//printf(std::to_string(provinces[person->province_y][person->province_x]->homes_on_province.size()).c_str());
+	printf(std::to_string(house_id).c_str());
+
 };
 void Game::SeekInteraction(Person* person)
 {
@@ -1382,7 +1389,7 @@ void Game::DrawHouses()
 				}
 				else//Nothing
 				{
-
+					return;
 				}
 			}
 		}
@@ -1523,10 +1530,6 @@ void Game::FreeMemory()
 	for(std::vector<Resource*>::size_type i = 0; i != resources.size(); i++) 
 	{
 		delete resources[i];
-	}
-	for(std::vector<House*>::size_type i = 0; i != houses.size(); i++) 
-	{
-		delete houses[i];
 	}
 	for(std::vector<Province*>::size_type i = 0; i != provinces.size(); i++) 
 	{

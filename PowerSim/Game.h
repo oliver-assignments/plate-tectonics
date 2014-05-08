@@ -145,7 +145,6 @@ private:
 	int player_id;
 
 	//Houses
-	std::vector<House*> houses;
 	int house_id;
 	std::vector<int*> color_province_vertex_average;
 

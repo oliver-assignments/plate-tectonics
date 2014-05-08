@@ -8,6 +8,7 @@ class House
 public:
 	House(int myId,Person* myOwner,int myProvinceX,int myProvinceY,int myX,int myY)
 	{
+		id = myId;
 		owner = myOwner;
 
 		province_x = myProvinceX;
@@ -17,6 +18,7 @@ public:
 
 		abandoned = false;
 	};
+	int id;
 	Person* owner;
 
 	bool abandoned;

@@ -46,6 +46,13 @@ public:
 		dead =false;
 		id= myId;
 	};
+	~Person()
+	{
+		if(home!=NULL)
+		{
+			delete(home);
+		}
+	};
 
 	House* home;
 
