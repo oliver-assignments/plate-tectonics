@@ -557,7 +557,7 @@ void Game::ProcessPeople()
 
 			ProcessPersonAI(people[i]);
 
-			
+
 		}
 	}
 };
@@ -649,14 +649,17 @@ void Game::BuildResources(Person* person)
 		int province_y = person->province_y;
 
 		//Calculating the power buy in for the home
+		Province* prov = provinces[province_y][province_x];
 		int province_total_power = 0;
-		if(provinces[province_y][province_x]->homes_on_province.size()!=0)
+
+		if(prov->homes_on_province.size()!=0)
 		{
-			for (int h = 0; h < provinces[province_y][province_x]->homes_on_province.size(); h++)
+			for (auto h = prov->homes_on_province.begin(); h != prov->homes_on_province.end(); ++h)
 			{
-				province_total_power += provinces[province_y][province_x]->homes_on_province[h]->owner->power;
+				House* home = h->second;
+				province_total_power += home->owner->power;
 			}
-			province_total_power = province_total_power/provinces[province_y][province_x]->homes_on_province.size();
+			province_total_power = province_total_power/prov->homes_on_province.size();
 		}
 
 		//Can you afford it?
@@ -670,6 +673,19 @@ void Game::BuildResources(Person* person)
 			MoveRandomDirection(person);
 		}
 	}
+	//Now we work
+	else
+	{
+		if(person->occupation == FARMER)
+		{
+			//Work the land
+			provinces[person->province_y][person->province_x] ->food_in_province += person->strength/3;
+		}
+		else if (person->occupation == ARTISAN)
+		{
+
+		}
+	}
 };
 void Game::BuildHome(Person* person)
 {
@@ -679,7 +695,11 @@ void Game::BuildHome(Person* person)
 
 	person->home = home;
 	houses.push_back(home);
-	provinces[person->province_y][person->province_x]->homes_on_province[house_id] = home;
+	Province* prov = provinces[person->province_y][person->province_x];
+	prov->homes_on_province[house_id] = home;//home;
+	house_id++;
+	printf(std::to_string(provinces[person->province_y][person->province_x]->homes_on_province.size()).c_str());
+	
 };
 void Game::SeekInteraction(Person* person)
 {
@@ -809,7 +829,7 @@ void Game::DivvyUpFood()
 		for (int i = 0; i < provinces_with_hungry_people.size(); i++)
 		{
 			if(i<0 || i >=provinces_with_hungry_people.size()){
-						return;}
+				return;}
 			Province* prov = provinces_with_hungry_people[i];
 
 			std::vector<Person*> line = prov->people_in_line;
@@ -861,9 +881,9 @@ void Game::Draw()
 	if(provinces_drawn)
 		DrawProvinces();
 
-	DrawHouses();
-
 	DrawPeople();
+
+	DrawHouses();
 
 	if(resources_drawn)
 		DrawResources();
@@ -1314,6 +1334,7 @@ void Game::DrawResources()
 			50+ (resources[i]->necessity_value/10*(double)color_resource[2]));
 	}
 };
+
 void Game::DrawHouses()
 {
 	for (int y = 0; y < provinces_num_rows; y++)
@@ -1325,35 +1346,37 @@ void Game::DrawHouses()
 				int position_x=provinces[y][x]->getCenter().x;
 				int position_y=provinces[y][x]->getCenter().y;
 
-				if(provinces[y][x]->homes_on_province.size()>500000000000)
+				int pop = provinces[y][x]->homes_on_province.size();
+
+				if(pop>500000000000)
 				{
 					DrawMegalopolis(position_x,position_y);
 				}
-				else if(provinces[y][x]->homes_on_province.size()>400000)
+				else if(pop>400000)
 				{
 					DrawConurbation(position_x,position_y);
 				}
-				else if(provinces[y][x]->homes_on_province.size()>300000)
+				else if(pop>300000)
 				{
 					DrawMetropolis(position_x,y);
 				}
-				else if(provinces[y][x]->homes_on_province.size()>30000)
+				else if(pop>30000)
 				{
 					DrawCity(position_x,position_y);
 				}
-				else if(provinces[y][x]->homes_on_province.size()>2000)
+				else if(pop>2000)
 				{
 					DrawTown(position_x,position_y);
 				}
-				else if(provinces[y][x]->homes_on_province.size()>100)
+				else if(pop>100)
 				{
 					DrawVillage(position_x,position_y);
 				}
-				else if(provinces[y][x]->homes_on_province.size()>10)
+				else if(pop>10)
 				{
 					DrawHamlet(position_x,position_y);
 				}
-				else if(provinces[y][x]->homes_on_province.size()>0)
+				else if(pop>0)
 				{
 					DrawHouse(position_x,position_y);
 				}
@@ -1374,7 +1397,6 @@ void Game::DrawHouses()
 	DrawHouse(position_x,position_y);
 	}*/
 };
-
 void Game::DrawHouse(int x, int y)
 {
 	//Shadow border
