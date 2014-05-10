@@ -28,7 +28,17 @@ public:
 	void Initialize();
 	void InitializeGame();
 	void CreateWorld();
+
 	void CreateProvinces();
+	void CreateGrassland();
+	void CreateMountains();
+	void CreateForests();
+	void CreateDeserts();
+	void CreateEquator();
+	void CreateRivers();
+	void CreateFrozenPoles();
+	void CreateSeas();
+
 	void CreateResources(int myNumber);
 	void CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius);
 	void InitializeAllegro();
@@ -52,10 +62,14 @@ public:
 	void BuildResources(Person* person);
 	void SeekInteraction(Person* person);
 	void MoveRandomDirection(Person* person);
+	void Game::MoveToCoordinates(Person* person, int x,int y);
 
+	std::vector<Province*> GetBlobOfProvinces(int x, int y, int radius);
 	void GetInLineForFood(int x,int y,Person* myPerson);
 	void DivvyUpFood();
 	void UpdateProvinceFood();
+	std::vector<Province*> GetAllAdjacentProvinces(int x,int y);
+	std::vector<Province*> GetFourAdjacentProvinces(int x,int y);
 
 	void UpdatePersonPositionToProvince(Person* person);
 
@@ -76,7 +90,7 @@ public:
 	void DrawConurbation(int x, int y);
 	void DrawMegalopolis(int x, int y);
 
-	
+
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 
@@ -188,7 +202,14 @@ private:
 
 	int color_resource[3];
 	int color_house[3];
-	int color_province[3];
+
+	int color_grassland[3];
+	int color_forest[3];
+	int color_alpine[3];
+	int color_desert[3];
+	int color_water[3];
+	int color_jungle[3];
+	int color_tundra[3];
 
 	int color_occupation_farmer[3];
 	int color_occupation_artisan[3];

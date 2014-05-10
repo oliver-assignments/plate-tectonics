@@ -5,6 +5,13 @@
 #include <unordered_map>
 class Person;
 
+#define GRASSLAND_ARABILITY 60
+#define DESERT_ARABILITY 10
+#define JUNGLE_ARABILITY 30
+#define FOREST_ARABILITY 50
+#define TUNDRA_ARABILITY 10
+#define ALPINE_ARABILITY 20
+
 enum Biome
 {
 	GRASSLAND,DESERT,JUNGLE,FOREST,TUNDRA,ALPINE,WATER
@@ -13,15 +20,19 @@ enum Biome
 class Province
 {
 public:
-	Province(int myId,Vector2* myP0,Vector2* myP1,Vector2* myP2,Vector2* myP3, int myArability)
+	Province(int myId,int myProvinceX,int myProvinceY,Vector2* myP0,Vector2* myP1,Vector2* myP2,Vector2* myP3)
 	{
 		id = myId;
+
+		province_x = myProvinceX;
+		province_y = myProvinceY;
+
 		p0 = myP0;
 		p1 = myP1;
 		p2 = myP2;
 		p3 = myP3;
-		arability = myArability;
-		biome = GRASSLAND;
+		arability = 50;
+		biome = WATER;
 		food_in_province=0;
 	};
 	int id;
@@ -42,11 +53,24 @@ public:
 	std::vector<Person*> people_in_line;
 
 	Biome biome;
+	void SetBiome(Biome myBiome)
+	{
+		biome = myBiome;
+		switch(biome)
+		{
+		case JUNGLE:arability = JUNGLE_ARABILITY;break;
+		case FOREST:arability = FOREST_ARABILITY;break;
+		case TUNDRA:arability = TUNDRA_ARABILITY;break;
+		case WATER:arability = 0;break;
+		case ALPINE:arability = ALPINE_ARABILITY;break;
+		case DESERT:arability = DESERT_ARABILITY;break;
+		}
+	};
 
 	std::unordered_map<int,Person*> people_on_province;
 	std::unordered_map<int,House*> homes_on_province;
 
-	
+	int province_x,province_y;
 };
 
 #endif

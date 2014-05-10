@@ -65,7 +65,7 @@ void Game::InitializeGame()
 	province_jiggle_width = (int)(province_width*0.8);
 	province_jiggle_height = (int)(province_height*0.8);
 
-	ui_state = FOREIGN;
+	ui_state = POWER;
 	resources_drawn = true;
 	provinces_drawn = true;
 	color_province_blending = false;
@@ -110,15 +110,27 @@ void Game::InitializeGame()
 
 void Game::CreateWorld()
 {
+	srand(time(NULL));
 	CreateProvinces();
-	CreateResources(30);
-	CreatePeople(10,200,75);
+	//CreateResources(30);
+
+
+	CreateGrassland();
+	CreateForests();
+	CreateDeserts();
+	CreateEquator();
+	//CreateMountains();
+	CreateFrozenPoles();
+	//CreateRivers();
+
+	CreatePeople(10,100,75);
 
 	generation_youngest=1;
 	power_highest_person = NULL;
 	strength_highest_person = NULL;
 	intelligence_highest_person = NULL;
 }
+
 void Game::CreateProvinces()
 {
 	provinces_num_columns = (int)(screen_width/province_width);
@@ -187,7 +199,8 @@ void Game::CreateProvinces()
 				bottom_right = new Vector2((x*province_width)+province_width, (y*province_height) + province_height);
 				province_vertices[index] = bottom_right;
 			}
-			Province* province = new Province(province_id,top_left,top_right,bottom_right,bottom_left,70+ rand()%(30));
+			Province* province = new Province(province_id,x,y,top_left,top_right,bottom_right,bottom_left);
+			province->arability=70+ rand()%(30);
 			province_id++;
 
 			provinces[y].push_back(province);
@@ -206,6 +219,293 @@ void Game::CreateProvinces()
 		}
 	}
 };
+
+void Game::CreateGrassland()
+{
+	for (int f = 0; f <3; f++)
+	{
+		int cluster_origin_province_x = rand()%provinces_num_columns;
+		int cluster_origin_province_y = 10+rand()%(provinces_num_rows-20);
+
+		int radius = 10+rand()%5;
+
+		std::vector<Province*> grassland_blob = GetBlobOfProvinces(cluster_origin_province_x, cluster_origin_province_y, radius);
+		for (int p = 0; p < grassland_blob.size(); p++)
+		{
+			grassland_blob[p]->SetBiome(GRASSLAND);
+		}
+
+		for (int w = 0; w < 5; w++)
+		{
+			int smallerRadius = ((double)radius/2);
+
+			int location_x = cluster_origin_province_x + (-radius+(rand()%(radius*2)));
+			int location_y = cluster_origin_province_y + (-radius+(rand()%(radius*2)));
+
+			std::vector<Province*> grassland_smaller_blob = GetBlobOfProvinces(location_x, location_y, smallerRadius);
+			for (int p = 0; p < grassland_smaller_blob.size(); p++)
+			{
+				grassland_smaller_blob[p]->SetBiome(GRASSLAND);
+			}
+		}
+	}
+};
+void Game::CreateForests()
+{
+	for (int f = 0; f < 50; f++)
+	{
+		int cluster_origin_province_x = rand()%provinces_num_columns;
+		int cluster_origin_province_y = rand()%provinces_num_rows;
+
+		std::vector<Province*> forest_blob = GetBlobOfProvinces(cluster_origin_province_x, cluster_origin_province_y, 1+rand()%3);
+		for (int p = 0; p < forest_blob.size(); p++)
+		{
+			if(forest_blob[p]->biome!=WATER)
+			{
+				forest_blob[p]->SetBiome(FOREST);
+			}
+		}
+	}
+};
+void Game::CreateDeserts()
+{
+	for (int f = 0; f < 10; f++)
+	{
+		int cluster_origin_province_x = rand()%provinces_num_columns;
+		int cluster_origin_province_y = ((provinces_num_rows/5)*2) + rand()%(provinces_num_rows/5);
+
+		std::vector<Province*> desert_blob = GetBlobOfProvinces(cluster_origin_province_x, cluster_origin_province_y, 2+rand()%3);
+		for (int p = 0; p < desert_blob.size(); p++)
+		{
+			if(desert_blob[p]->biome!=WATER)
+			{
+				desert_blob[p]->SetBiome(DESERT);
+			}
+		}
+	}
+};
+void Game::CreateMountains()
+{
+	for (int m = 0; m < 5; m++)
+	{
+		int slope_x = 0;
+		while(slope_x ==0)
+		{
+			slope_x = -1+rand()%5;
+		}
+		int slope_y = rand()%7;
+
+
+		int starting_x = rand()%provinces_num_columns;
+		int starting_y = 0;
+
+		int waveLength = rand()%10;
+		int current_wave = 0;
+
+		int location_x = starting_x;
+		int location_y = starting_y;
+		while(true)
+		{
+			if(current_wave>=0)
+			{
+				if(location_y >=0 && location_y < provinces_num_rows && location_x >=0 && location_x < provinces_num_columns)
+				{
+					provinces[location_y][location_x]->SetBiome(ALPINE);
+				}
+				else
+				{
+					break;
+				}
+			}
+			current_wave++;
+			if(current_wave > waveLength)
+			{
+				current_wave = -waveLength;
+			}
+
+			location_y += 1;
+			location_x += slope_x;
+		}
+	}
+};
+void Game::CreateEquator()
+{
+	for (int y = (provinces_num_columns/3)-1; y <= (provinces_num_columns/3)+1; y++)
+	{
+		for (int x = 0; x < provinces_num_columns; x++)
+		{
+			if(provinces[y][x]->biome!=WATER)
+			{
+				provinces[y][x]->biome = JUNGLE;
+			}
+		}
+	}
+};
+void Game::CreateRivers()
+{
+
+};
+void Game::CreateFrozenPoles()
+{
+	/*for (int y = 0; y < 2; y++)
+	{
+	for (int x = 0; x < provinces_num_columns; x++)
+	{
+	provinces[y][x]->biome = TUNDRA;
+	}
+	}*/
+
+	for (int y = provinces_num_rows-1; y > provinces_num_rows-3; y--)
+	{
+		for (int x = 0; x < provinces_num_columns; x++)
+		{
+			provinces[y][x]->biome = TUNDRA;
+		}
+	}
+};
+void Game::CreateSeas()
+{
+	for (int f = 0; f <20; f++)
+	{
+		int cluster_origin_province_x = rand()%provinces_num_columns;
+		int cluster_origin_province_y = rand()%provinces_num_rows;
+
+		int radius = 5+rand()%5;
+
+		std::vector<Province*> water_blob = GetBlobOfProvinces(cluster_origin_province_x, cluster_origin_province_y, radius);
+		for (int p = 0; p < water_blob.size(); p++)
+		{
+			water_blob[p]->SetBiome(WATER);
+		}
+
+		for (int w = 0; w < 5; w++)
+		{
+			int smallerRadius = ((double)radius/2);
+
+			int location_x = cluster_origin_province_x + (-radius+(rand()%(radius*2)));
+			int location_y = cluster_origin_province_y + (-radius+(rand()%(radius*2)));
+
+			std::vector<Province*> water_smaller_blob = GetBlobOfProvinces(location_x, location_y, smallerRadius);
+			for (int p = 0; p < water_smaller_blob.size(); p++)
+			{
+				water_smaller_blob[p]->SetBiome(WATER);
+			}
+		}
+	}
+};
+
+//This wraps by x but not y
+std::vector<Province*> Game::GetBlobOfProvinces(int province_x, int province_y, int radius)
+{
+	std::vector<Province*> blob;
+
+	//Center
+	if(province_y >=0 && province_y < provinces_num_rows && province_x >=0 && province_x < provinces_num_columns)
+	{ 
+		blob.push_back(provinces[province_y][province_x]);
+	}
+
+	//Axis
+	for (int r = 1; r <= radius; r++)
+	{
+		if(province_y-r >=0 && province_y-r < provinces_num_rows)
+		{
+			int wrapped_x = province_x;
+			if(province_x <0){wrapped_x+=provinces_num_columns;}
+			if(province_x >= provinces_num_columns){wrapped_x-=provinces_num_columns;}
+
+			blob.push_back(provinces[province_y-r][wrapped_x]);
+		}
+		if(province_y >=0 && province_y < provinces_num_rows)
+		{ 
+			int wrapped_x = province_x+r;
+			if(province_x+r <0){wrapped_x+=provinces_num_columns;}
+			if(province_x+r >= provinces_num_columns){wrapped_x-=provinces_num_columns;}
+
+			blob.push_back(provinces[province_y][wrapped_x]);
+		}
+		if(province_y+r >=0 && province_y+r < provinces_num_rows)
+		{
+			int wrapped_x = province_x;
+			if(province_x <0){wrapped_x+=provinces_num_columns;}
+			if(province_x >= provinces_num_columns){wrapped_x-=provinces_num_columns;}
+
+			blob.push_back(provinces[province_y+r][wrapped_x]);
+		}
+		if(province_y >=0 && province_y < provinces_num_rows)
+		{ 
+			int wrapped_x = province_x-r;
+			if(province_x-r <0){wrapped_x+=provinces_num_columns;}
+			if(province_x-r >= provinces_num_columns){wrapped_x-=provinces_num_columns;}
+
+			blob.push_back(provinces[province_y][wrapped_x]);
+		}
+	}
+
+	//Making circles
+	int location_x = 0;
+	int location_y = 0;
+	for (int r = radius; r > 1; r--)
+	{
+		location_x = province_x;
+		location_y = province_y-r;
+
+		while(location_x != province_x+r)
+		{
+			location_x++;
+			location_y++;
+			if(location_y >=0 && location_y < provinces_num_rows)
+			{
+				int wrapped_location = location_x;
+				if(location_x <0){wrapped_location+=provinces_num_columns;}
+				if(location_x >= provinces_num_columns){wrapped_location-=provinces_num_columns;}
+
+				blob.push_back(provinces[location_y][wrapped_location]);
+			}
+		}
+		while(location_x != province_x)
+		{
+			location_x--;
+			location_y++;
+			if(location_y >=0 && location_y < provinces_num_rows)
+			{
+				int wrapped_location = location_x;
+				if(location_x <0){wrapped_location+=provinces_num_columns;}
+				if(location_x >= provinces_num_columns){wrapped_location-=provinces_num_columns;}
+
+				blob.push_back(provinces[location_y][wrapped_location]);
+			}
+		}
+		while(location_x != province_x-r)
+		{
+			location_x--;
+			location_y--;
+			if(location_y >=0 && location_y < provinces_num_rows)
+			{
+				int wrapped_location = location_x;
+				if(location_x <0){wrapped_location+=provinces_num_columns;}
+				if(location_x >= provinces_num_columns){wrapped_location-=provinces_num_columns;}
+
+				blob.push_back(provinces[location_y][wrapped_location]);
+			}
+		}
+		while(location_y != province_y-r)
+		{
+			location_x++;
+			location_y--;
+			if(location_y >=0 && location_y < provinces_num_rows)
+			{
+				int wrapped_location = location_x;
+				if(location_x <0){wrapped_location+=provinces_num_columns;}
+				if(location_x >= provinces_num_columns){wrapped_location-=provinces_num_columns;}
+				blob.push_back(provinces[location_y][wrapped_location]);
+			}
+		}
+	}
+
+	return blob;
+}
+
 void Game::CreateResources(int myNumber)
 {
 	for (int i = 0; i < myNumber; i++)
@@ -224,25 +524,18 @@ void Game::CreateResources(int myNumber)
 };
 void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius)
 {
-	srand(time(NULL));
 	for(int c = 0 ; c<myNumberClusters;c++)
 	{
-		//Anyway spawn
-		/*int cluster_origin_x = 100+(rand()%(screen_width-200));
-		int cluster_origin_y = 100+(rand()%(screen_height-200));
-
-		int foreign_origin_x = cos(c*(2*3.14)/myNumberClusters) * myForeignRadius;
-		int foreign_origin_y = sin(c*(2*3.14)/myNumberClusters) * myForeignRadius;
-
-		for(int p = 0 ; p < myPeoplePerCluster;p++)
-		{
-		Person* person = new Person (10+(1+rand()%50),3+(1+rand()%50),1,-10+foreign_origin_x+(rand()%20),-10+foreign_origin_y+(rand()%20),cluster_origin_x+(-50+(rand()%100)),cluster_origin_y+(-50+(rand()%100)));
-		people.push_back(person);
-		}*/
-
 		//Province Spawn
-		int cluster_origin_province_x = rand()%provinces_num_columns;
-		int cluster_origin_province_y = rand()%provinces_num_rows;
+		int cluster_origin_province_x =0;
+		int cluster_origin_province_y =0;
+		do
+		{
+			cluster_origin_province_x = rand()%provinces_num_columns;
+			cluster_origin_province_y = rand()%provinces_num_rows;
+		} while (provinces[cluster_origin_province_y][cluster_origin_province_x]->biome == WATER ||
+				 provinces[cluster_origin_province_y][cluster_origin_province_x]->biome == TUNDRA);
+
 
 		int foreign_origin_x = cos(c*(2*3.14)/myNumberClusters) * myForeignRadius;
 		int foreign_origin_y = sin(c*(2*3.14)/myNumberClusters) * myForeignRadius;
@@ -256,17 +549,20 @@ void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForei
 			Vector2 province_center = provinces[province_y][province_x]->getCenter();
 
 			Person* person = new Person(player_id,
-				10+(1+rand()%50),
+				(rand()%hunger_seek_level),
 				3+(1+rand()%50),
 				1,
 				-10+foreign_origin_x+(rand()%20), 
 				-10+foreign_origin_y+(rand()%20),
-				province_x, 
+				province_x,
 				province_y,
 				province_center.x -(province_width/2) + rand()%province_width,
 				province_center.y -(province_height/2) + rand()%province_height);
 
-			player_id++;
+			Province* prov = provinces[province_y][province_x];
+			prov->people_on_province[player_id] = person;
+
+			player_id = player_id+1;
 
 			person->power+=rand()%40;
 
@@ -290,7 +586,15 @@ void Game::DefineColors()
 
 	color_resource[0] = 200;color_resource[1] = 200;color_resource[2] = 200;
 	color_house[0] = 200;color_house[1] = 200;color_house[2] = 200;
-	color_province[0] = 0;color_province[1] =100;color_province[2] = 0;
+
+	color_grassland[0] = 75;color_grassland[1] =150;color_grassland[2] = 60;
+	color_jungle[0] = 130;color_jungle[1] =140;color_jungle[2] = 70;
+	color_desert[0] = 245;color_desert[1] =245;color_desert[2] = 100;
+	color_water[0] = 0;color_water[1] =0;color_water[2] = 150;
+	color_tundra[0] = 235;color_tundra[1] =255;color_tundra[2] = 235;
+	color_alpine[0] = 190;color_alpine[1] =190;color_alpine[2] = 170;
+	color_forest[0] = 40;color_forest[1] =940;color_forest[2] = 30;
+
 
 	color_occupation_farmer[0] = 5;color_occupation_farmer[1] = 102;color_occupation_farmer[2] = 100;
 	color_occupation_artisan[0] = 252;color_occupation_artisan[1] = 50;color_occupation_artisan[2] = 4;
@@ -512,6 +816,7 @@ void Game::RunTime()
 
 	DivvyUpFood();
 
+
 	if(draw_every_hour || current_hour==12)
 		Draw();
 
@@ -538,10 +843,9 @@ void Game::ProcessPeople()
 {
 	for(std::vector<Person*>::size_type i = 0; i < people.size(); i++) 
 	{
-		if(i>=0 && i <people.size()){
-			//Time of the day people get hungry
-
-			if(people[i]->hunger>=hunger_death_level)
+		if(i>=0 && i <people.size())
+		{
+			/*if(people[i]->hunger>=hunger_death_level)
 			{
 				House* home = people[i]->home;
 				if(home!=NULL)
@@ -551,11 +855,12 @@ void Game::ProcessPeople()
 				}
 
 				people[i]->dead = true;
+				provinces[people[i]->province_y][people[i]->province_x]->people_on_province.erase(people[i]->id);
 				delete(people[i]);
 				people.erase(people.begin()+i);
 				i--;
 				continue;
-			}
+			}*/
 
 			if(current_hour==11 || current_hour==16 || current_hour==20)
 			{
@@ -563,8 +868,6 @@ void Game::ProcessPeople()
 			}
 
 			ProcessPersonAI(people[i]);
-
-
 		}
 	}
 };
@@ -579,23 +882,78 @@ void Game::ProcessPersonAI(Person* person)
 	Philisophical
 	*/
 
+
 	if(person->hunger>=hunger_seek_level)
 	{
+		//Hungry
 		SeekFood(person);
+	}
+	//else if(current_hour < 6 || current_hour > 20)
+	//{
+	//	//Sleepy
+	//	if(person->home!=NULL)
+	//	{
+	//		if(person->province_x != person->home->province_x || person->province_y != person->home->province_y)
+	//		{
+	//			//Go home
+	//			MoveToCoordinates(person,person->home->province_x,person->home->province_y);
+	//		}
+	//	}
+	//}
+	/*else if( current_hour == 9 || current_hour ==19 ||current_hour ==20 || current_hour==21)
+	{
+	SeekInteraction(person);
+	}*/
+	else if(person->home == NULL)
+	{
+		int province_x = person->province_x;
+		int province_y = person->province_y;
+
+		//Calculating the power buy in for the home
+		Province* prov = provinces[province_y][province_x];
+		int province_total_power = 0;
+
+		if(prov->homes_on_province.size()!=0)
+		{
+			for (auto h = prov->homes_on_province.begin(); h != prov->homes_on_province.end(); ++h)
+			{
+				House* home = h->second;
+				province_total_power += home->owner->power;
+			}
+			province_total_power = province_total_power/prov->homes_on_province.size();
+		}
+
+		//Can you afford it?
+		if(person->power>=province_total_power)
+		{
+			person->power-=province_total_power;
+			BuildHome(person);
+		}
+		else
+		{
+			MoveRandomDirection(person);
+		}
 	}
 	else
 	{
-		BuildResources(person);
+		if(person->occupation == FARMER)
+		{
+			////If there isnt a house here
+			//if(provinces[person->province_y][person->province_x]->homes_on_province.size()!=0)
+			//{
+			//	//Work the land
+			//	provinces[person->home->province_y][person->home->province_x] ->food_in_province += person->strength;
+			//}
+			//else
+			//{
+			//	MoveRandomDirection(person);
+			//}
+		}
+		else if (person->occupation == ARTISAN)
+		{
+
+		}
 	}
-
-	//if(person->hunger<hunger_seek_level)
-	//{
-	//	//Look for food
-	//}
-	//else
-	//{
-
-	//}
 };
 void Game::SeekFood(Person* person)
 {
@@ -604,7 +962,7 @@ void Game::SeekFood(Person* person)
 	if(person->food_carried>0)//
 	{
 		//Eat all your food
-		int amount_eaten = person->food_carried-person->hunger;
+		int amount_eaten = person->food_carried - person->hunger;
 		if(amount_eaten<=0)
 		{
 			person->food_carried = 0;
@@ -615,8 +973,6 @@ void Game::SeekFood(Person* person)
 			person->hunger-=amount_eaten;
 			person->food_carried-=amount_eaten;
 		}
-
-
 		//If you are more than food add the food back to what you carried
 		if(person->hunger<0)
 		{
@@ -649,50 +1005,7 @@ void Game::Sleep(Person* person)
 };
 void Game::BuildResources(Person* person)
 {
-	//First off: do you have a home?
-	if(person->home ==NULL)
-	{
-		int province_x = person->province_x;
-		int province_y = person->province_y;
 
-		//Calculating the power buy in for the home
-		Province* prov = provinces[province_y][province_x];
-		int province_total_power = 0;
-
-		if(prov->homes_on_province.size()!=0)
-		{
-			for (auto h = prov->homes_on_province.begin(); h != prov->homes_on_province.end(); ++h)
-			{
-				House* home = h->second;
-				province_total_power += home->owner->power;
-			}
-			province_total_power = province_total_power/prov->homes_on_province.size();
-		}
-
-		//Can you afford it?
-		if(person->power>=province_total_power)
-		{
-			person->power-=province_total_power;
-			BuildHome(person);
-		}
-		else
-		{
-			MoveRandomDirection(person);
-		}
-	}
-	//Now we work
-	else
-	{
-		if(person->occupation == FARMER)
-		{
-			//Work the land
-			provinces[person->province_y][person->province_x] ->food_in_province += person->strength/20;
-		}
-		else if (person->occupation == ARTISAN)
-		{
-
-		}
-	}
 };
 void Game::BuildHome(Person* person)
 {
@@ -704,77 +1017,315 @@ void Game::BuildHome(Person* person)
 	Province* prov = provinces[person->province_y][person->province_x];
 	prov->homes_on_province[house_id] = home;//home;
 	house_id=house_id+1;
-	//printf(std::to_string(provinces[person->province_y][person->province_x]->homes_on_province.size()).c_str());
-	printf(std::to_string(house_id).c_str());
-
 };
 void Game::SeekInteraction(Person* person)
 {
+	std::vector<Province*> adjacent_provinces = GetAllAdjacentProvinces(person->province_x,person->province_y);
 
+	Province* most_populated_neighbor = provinces[person->province_y][person->province_x];
+
+	for (int p = 0; p < adjacent_provinces.size(); p++)
+	{
+		int prov_size =  most_populated_neighbor->people_on_province.size();
+		int adj_size =adjacent_provinces[p]->people_on_province.size();
+
+		if(adj_size >prov_size)
+		{
+			most_populated_neighbor = adjacent_provinces[p];
+		}
+	}
+	MoveToCoordinates(person,most_populated_neighbor->province_x,most_populated_neighbor->province_y);
+
+	if(person->province_x == most_populated_neighbor->province_x &&person->province_y == most_populated_neighbor->province_y)
+	{
+		if(most_populated_neighbor->people_on_province.size() >0)
+		{
+			int randomPersonIndex = rand()%most_populated_neighbor->people_on_province.size();
+			Person* conversation_partner = most_populated_neighbor->people_on_province[randomPersonIndex];
+			if(conversation_partner !=NULL)
+			{
+				int power_transfer = 1;
+
+				//Whoever is stronger gets more powerful
+				if(person->strength>conversation_partner->strength)
+				{
+					person->power = person->power+power_transfer;
+					conversation_partner->power = conversation_partner->power-power_transfer;
+				}
+				else
+				{
+					person->power = person->power-power_transfer;
+					conversation_partner->power = conversation_partner->power+power_transfer;
+				}
+
+				//Whoever is smarter gets more powerful
+				if(person->intelligence>conversation_partner->intelligence)
+				{
+					person->power = person->power+power_transfer;
+					conversation_partner->power = conversation_partner->power-power_transfer;
+				}
+				else
+				{
+					person->power = person->power-power_transfer;
+					conversation_partner->power = conversation_partner->power+power_transfer;
+				}
+
+				//They cant be less than human
+				if(person->power <0)
+					person->power =0;
+				if(conversation_partner->power <0)
+					conversation_partner->power = 0;
+
+				//Foreigness pulling//
+			}
+			else{most_populated_neighbor->people_on_province.erase(randomPersonIndex);}
+		}
+	}
 };
 void Game::SeekDominion(Person* person)
 {
 
 };
+
 void Game::MoveRandomDirection(Person* person)
 {
 	int direction = rand()%20;
+
+	provinces[person->province_y][person->province_x]->people_on_province.erase(person->id);
 
 	switch (direction)
 	{
 	case 0 :
 		//Up
-		person->province_y = person->province_y-1;
-		if(person->province_y>=0)
+		if(person->province_y-1>=0)
 		{
-			UpdatePersonPositionToProvince(person);
-		}
-		else
-		{
-			person->province_y = person->province_y+1; 
+			if(provinces[person->province_y-1][person->province_x]->biome !=WATER)
+			{
+				person->province_y = person->province_y-1;
+
+				UpdatePersonPositionToProvince(person);
+			}
+			else
+			{
+				MoveRandomDirection(person);
+			}
 		}
 		break;
 	case 1 :
-		person->province_x = person->province_x+1;
-		if(person->province_x<provinces_num_columns)
+		if(person->province_x+1<provinces_num_columns)
 		{
-			UpdatePersonPositionToProvince(person);
+			if(provinces[person->province_y][person->province_x+1]->biome !=WATER)
+			{
+				person->province_x = person->province_x+1;
 
+				UpdatePersonPositionToProvince(person);
+			}
+			else
+			{
+				MoveRandomDirection(person);
+			}
 		}
 		else
 		{
-			person->province_x = person->province_x-1; 
-		}
+			if(provinces[person->province_y][person->province_x+1-provinces_num_columns]->biome !=WATER)
+			{
+				person->province_x = person->province_x+1-provinces_num_columns;
 
+				UpdatePersonPositionToProvince(person);
+			}
+			else
+			{
+				MoveRandomDirection(person);
+			}
+		}
 		break;
 	case 2 :
 		//Down
-		person->province_y = person->province_y+1;
-		if(person->province_y<provinces_num_rows)
+		if(person->province_y+1<provinces_num_rows)
 		{
-			UpdatePersonPositionToProvince(person);
+			if(provinces[person->province_y+1][person->province_x]->biome !=WATER)
+			{
+				person->province_y = person->province_y+1;
 
-		}
-		else
-		{
-			person->province_y = person->province_y-1; 
+				UpdatePersonPositionToProvince(person);
+			}
+			else
+			{
+				MoveRandomDirection(person);
+			}
 		}
 		break;
 	case 3 :
 		//Left
-		person->province_x = person->province_x-1;
-		if(person->province_x>=0)
+		if(person->province_x-1>=0)
 		{
-			UpdatePersonPositionToProvince(person);
+			if(provinces[person->province_y][person->province_x-1]->biome !=WATER)
+			{
+				person->province_x = person->province_x-1;
+
+				UpdatePersonPositionToProvince(person);
+			}
+			else
+			{
+				MoveRandomDirection(person);
+			}
 		}
 		else
 		{
-			person->province_x = person->province_x+1; 
-		}
+			if(provinces[person->province_y][person->province_x-1+provinces_num_columns]->biome !=WATER)
+			{
+				person->province_x = person->province_x-1+provinces_num_columns;
 
+				UpdatePersonPositionToProvince(person);
+			}
+			else
+			{
+				MoveRandomDirection(person);
+			}
+		}
 		break;
 	default:
 		break;
+	}
+	provinces[person->province_y][person->province_x]->people_on_province[person->id] = person;
+};
+void Game::MoveToCoordinates(Person* person, int x,int y)
+{
+	//If you are within bounds
+	if(x != person->province_x && y!=person->province_y)
+	{
+		if(x>=0 && x<provinces_num_columns && y>=0 && y<provinces_num_rows)
+		{
+			provinces[person->province_y][person->province_x]->people_on_province.erase(person->id);
+			int location_difference_x = x - person->province_x;
+			int location_difference_y = y - person->province_y;
+
+			if(std::abs(location_difference_x)>std::abs(location_difference_y))
+			{
+				//X difference is greater than y difference
+				//move in x diretion
+				if(location_difference_x>0)
+				{
+					//Move right
+					person->province_x = person->province_x+1;
+					if(person->province_x<provinces_num_columns)
+					{
+						UpdatePersonPositionToProvince(person);
+
+					}
+					else
+					{
+						person->province_x = person->province_x-1; 
+					}
+				}
+				else
+				{
+					//Move left
+					person->province_x = person->province_x-1;
+					if(person->province_x>=0)
+					{
+						UpdatePersonPositionToProvince(person);
+					}
+					else
+					{
+						person->province_x = person->province_x+1; 
+					}
+				}
+			}
+			else if(std::abs(location_difference_x)==std::abs(location_difference_y))
+			{
+				if(location_difference_x>0)
+				{
+					//Move right
+					person->province_x = person->province_x+1;
+					if(person->province_x<provinces_num_columns)
+					{
+						UpdatePersonPositionToProvince(person);
+
+					}
+					else
+					{
+						person->province_x = person->province_x-1; 
+					}
+				}
+				else
+				{
+					//Move left
+					person->province_x = person->province_x-1;
+					if(person->province_x>=0)
+					{
+						UpdatePersonPositionToProvince(person);
+					}
+					else
+					{
+						person->province_x = person->province_x+1; 
+					}
+				}
+				if(location_difference_y>0)
+				{
+					//Down
+					person->province_y = person->province_y+1;
+					if(person->province_y<provinces_num_rows)
+					{
+						UpdatePersonPositionToProvince(person);
+
+					}
+					else
+					{
+						person->province_y = person->province_y-1; 
+					}
+
+				}
+				else
+				{
+					//Up
+					person->province_y = person->province_y-1;
+					if(person->province_y>=0)
+					{
+						UpdatePersonPositionToProvince(person);
+					}
+					else
+					{
+						person->province_y = person->province_y+1; 
+					}
+				}
+			}
+			else
+			{
+				// ydifference is greater than x difference
+				//move in y diretion
+
+				if(location_difference_y>0)
+				{
+					//Down
+					person->province_y = person->province_y+1;
+					if(person->province_y<provinces_num_rows)
+					{
+						UpdatePersonPositionToProvince(person);
+
+					}
+					else
+					{
+						person->province_y = person->province_y-1; 
+					}
+
+				}
+				else
+				{
+					//Up
+					person->province_y = person->province_y-1;
+					if(person->province_y>=0)
+					{
+						UpdatePersonPositionToProvince(person);
+					}
+					else
+					{
+						person->province_y = person->province_y+1; 
+					}
+				}
+			}
+		}
+		provinces[person->province_y][person->province_x]->people_on_province[person->id] = person;
 	}
 };
 
@@ -801,10 +1352,11 @@ void Game::UpdateProvinceFood()
 		{
 			Province* province = provinces[y][x];
 
+			province->food_in_province = 0;
 			switch (province->biome)
 			{
 			case GRASSLAND:
-				province->food_in_province=hunger_seek_level*10;
+				province->food_in_province=hunger_seek_level*20;
 				break;
 			case DESERT:
 				province->food_in_province=hunger_seek_level*5;
@@ -823,10 +1375,9 @@ void Game::UpdateProvinceFood()
 				break;
 			default:
 				break;
-
 			}
-
 		}
+
 	}
 };
 void Game::DivvyUpFood()
@@ -850,11 +1401,12 @@ void Game::DivvyUpFood()
 						return;}
 					Person* next_in_line = line[p];
 
-					int amountTaken = hunger_seek_level + ((next_in_line->strength*next_in_line->power)/hunger_seek_level);
+					int amountTaken = ((next_in_line->strength*next_in_line->power)/hunger_seek_level);
 
 					if(amountTaken<prov->food_in_province)
 					{
 						prov->food_in_province-=amountTaken;
+						
 					}
 					else
 					{
@@ -866,6 +1418,23 @@ void Game::DivvyUpFood()
 				}
 				else
 				{
+					//Find place with more food
+					std::vector<Province*> adjacent_provinces = GetAllAdjacentProvinces(line[p]->province_x,line[p]->province_y);
+
+					Province* least_populated_neighbor = provinces[line[p]->province_y][line[p]->province_x];
+
+					for (int p = 0; p < adjacent_provinces.size(); p++)
+					{
+						int prov_size =  least_populated_neighbor->people_on_province.size();
+						int adj_size =adjacent_provinces[p]->people_on_province.size();
+
+						if(adj_size <prov_size)
+						{
+							least_populated_neighbor = adjacent_provinces[p];
+						}
+					}
+					//MoveToCoordinates(line[p],least_populated_neighbor->province_x,least_populated_neighbor->province_y);
+
 					MoveRandomDirection(line[p]);
 				}
 			}
@@ -874,7 +1443,43 @@ void Game::DivvyUpFood()
 		provinces_with_hungry_people.clear();
 	}
 };
+std::vector<Province*> Game::GetAllAdjacentProvinces(int x,int y)
+{
+	std::vector<Province*> adjacentProvinces;
+	if(y-1>=0 && x-1>=0)
+		adjacentProvinces.push_back(provinces[y-1][x-1]);
+	if(y-1>=0 && x+1<provinces_num_columns)
+		adjacentProvinces.push_back(provinces[y-1][x+1]);
+	if(y+1<provinces_num_rows && x+1<provinces_num_columns)
+		adjacentProvinces.push_back(provinces[y+1][x+1]);
+	if(y+1<provinces_num_rows && x-1>=0)
+		adjacentProvinces.push_back(provinces[y+1][x-1]);
 
+
+	if(y-1>=0)
+		adjacentProvinces.push_back(provinces[y-1][x]);
+	if(x+1<provinces_num_columns)
+		adjacentProvinces.push_back(provinces[y][x+1]);
+	if(y+1<provinces_num_rows)
+		adjacentProvinces.push_back(provinces[y+1][x]);
+	if(x-1>=0)
+		adjacentProvinces.push_back(provinces[y][x-1]);
+
+	return adjacentProvinces;
+}
+std::vector<Province*> Game::GetFourAdjacentProvinces(int x,int y)
+{
+	std::vector<Province*> adjacentProvinces;
+	if(y-1>=0)
+		adjacentProvinces.push_back(provinces[y-1][x]);
+	if(x+1<provinces_num_columns)
+		adjacentProvinces.push_back(provinces[y][x+1]);
+	if(y+1<provinces_num_rows)
+		adjacentProvinces.push_back(provinces[y+1][x]);
+	if(x-1>=0)
+		adjacentProvinces.push_back(provinces[y][x-1]);
+	return adjacentProvinces;
+}
 
 void Game::UpdatePersonPositionToProvince(Person* person)
 {
@@ -912,10 +1517,51 @@ void Game::DrawProvinces()
 
 			int color[3];
 
+			switch (province->biome)
+			{
+			case GRASSLAND:
+				color[0] = color_grassland[0];
+				color[1] = color_grassland[1];
+				color[2] = color_grassland[2];
+				break;
+			case DESERT:
+				color[0] = color_desert[0];
+				color[1] = color_desert[1];
+				color[2] = color_desert[2];
+				break;
+			case JUNGLE:
+				color[0] = color_jungle[0];
+				color[1] = color_jungle[1];
+				color[2] = color_jungle[2];
+				break;
+			case FOREST:
+				color[0] = color_forest[0];
+				color[1] = color_forest[1];
+				color[2] = color_forest[2];
+				break;
+			case TUNDRA:
+				color[0] = color_tundra[0];
+				color[1] = color_tundra[1];
+				color[2] = color_tundra[2];
+				break;
+			case ALPINE:
+				color[0] = color_alpine[0];
+				color[1] = color_alpine[1];
+				color[2] = color_alpine[2];
+				break;
+			case WATER:
+				color[0] = color_water[0];
+				color[1] = color_water[1];
+				color[2] = color_water[2];
+				break;
+			}
+
 			//Provicne color Seperation
-			color[0] = ((double)province->arability/arability_max) * color_province[0];
-			color[1] = ((double)province->arability/arability_max) * color_province[1];
-			color[2] = ((double)province->arability/arability_max) * color_province[2];
+			/*color[0] = ((double)province->arability/arability_max) * color[0];
+			color[1] = ((double)province->arability/arability_max) * color[1];
+			color[2] = ((double)province->arability/arability_max) * color[2];*/
+
+
 
 			ALLEGRO_VERTEX vertices[] = 
 			{
@@ -928,7 +1574,8 @@ void Game::DrawProvinces()
 			{
 				CalculateVertexColor(x,y,vertices);
 			}
-			else{
+			else
+			{
 				for (int i = 0; i < 4; i++)
 				{
 					vertices[i].color = al_map_rgb(color[0],color[1],color[2]);
@@ -962,190 +1609,190 @@ void Game::DrawProvinces()
 };
 void Game::CalculateVertexColor(int x, int y, ALLEGRO_VERTEX* myVertices)
 {
-	int color[3];
+	//int color[3];
 
-	int average_arability = 0;
+	//int average_arability = 0;
 
-	//Top left vertex
-	{
-		int total_arability = 0;
-		int provinces_used = 0;
+	////Top left vertex
+	//{
+	//	int total_arability = 0;
+	//	int provinces_used = 0;
 
-		int bottomRightArability;
-		int topLeftArability;
-		int topRightArability;
-		int bottomLeftArability;
+	//	int bottomRightArability;
+	//	int topLeftArability;
+	//	int topRightArability;
+	//	int bottomLeftArability;
 
-		if(y-1>=0 && x-1>=0)//Topleft
-		{
-			bottomRightArability = provinces[y-1][x-1]->arability;
-			total_arability+= bottomRightArability;
-			provinces_used++;
-		}
+	//	if(y-1>=0 && x-1>=0)//Topleft
+	//	{
+	//		bottomRightArability = provinces[y-1][x-1]->arability;
+	//		total_arability+= bottomRightArability;
+	//		provinces_used++;
+	//	}
 
-		if(y-1>=0)//Topright
-		{
-			topLeftArability = provinces[y-1][x]->arability;
-			total_arability+=topLeftArability;
-			provinces_used++;
-		}
-		if(true)//bottomright
-		{
-			topRightArability = provinces[y][x]->arability;
-			total_arability+= topRightArability;
-			provinces_used++;
-		}
+	//	if(y-1>=0)//Topright
+	//	{
+	//		topLeftArability = provinces[y-1][x]->arability;
+	//		total_arability+=topLeftArability;
+	//		provinces_used++;
+	//	}
+	//	if(true)//bottomright
+	//	{
+	//		topRightArability = provinces[y][x]->arability;
+	//		total_arability+= topRightArability;
+	//		provinces_used++;
+	//	}
 
-		if(x-1>=0)//bottomleft
-		{
-			bottomLeftArability = provinces[y][x-1]->arability;
-			total_arability+= bottomLeftArability;
-			provinces_used++;
-		}
-		average_arability = total_arability/provinces_used;
+	//	if(x-1>=0)//bottomleft
+	//	{
+	//		bottomLeftArability = provinces[y][x-1]->arability;
+	//		total_arability+= bottomLeftArability;
+	//		provinces_used++;
+	//	}
+	//	average_arability = total_arability/provinces_used;
 
-		//Top left vertex
-		color[0] = ((double)average_arability/arability_max) * color_province[0];
-		color[1] = ((double)average_arability/arability_max) * color_province[1];
-		color[2] = ((double)average_arability/arability_max) * color_province[2];
+	//	//Top left vertex
+	//	color[0] = ((double)average_arability/arability_max) * color_province[0];
+	//	color[1] = ((double)average_arability/arability_max) * color_province[1];
+	//	color[2] = ((double)average_arability/arability_max) * color_province[2];
 
-		myVertices[0].color = al_map_rgb(color[0],color[1],color[2]);
-	}
-	//Top right vertex
-	{
-		int total_arability = 0;
-		int provinces_used = 0;
+	//	myVertices[0].color = al_map_rgb(color[0],color[1],color[2]);
+	//}
+	////Top right vertex
+	//{
+	//	int total_arability = 0;
+	//	int provinces_used = 0;
 
-		int bottomRightArability;
-		int topLeftArability;
-		int topRightArability;
-		int bottomLeftArability;
+	//	int bottomRightArability;
+	//	int topLeftArability;
+	//	int topRightArability;
+	//	int bottomLeftArability;
 
-		if(y-1>=0)//Topleft
-		{
-			bottomRightArability = provinces[y-1][x]->arability;
-			total_arability+= bottomRightArability;
-			provinces_used++;
-		}
+	//	if(y-1>=0)//Topleft
+	//	{
+	//		bottomRightArability = provinces[y-1][x]->arability;
+	//		total_arability+= bottomRightArability;
+	//		provinces_used++;
+	//	}
 
-		if(y-1>=0 && x+1<provinces_num_columns)//Topright
-		{
-			topLeftArability = provinces[y-1][x+1]->arability;
-			total_arability+=topLeftArability;
-			provinces_used++;
-		}
-		if(x+1<provinces_num_columns)//bottomright
-		{
-			topRightArability = provinces[y][x+1]->arability;
-			total_arability+= topRightArability;
-			provinces_used++;
-		}
+	//	if(y-1>=0 && x+1<provinces_num_columns)//Topright
+	//	{
+	//		topLeftArability = provinces[y-1][x+1]->arability;
+	//		total_arability+=topLeftArability;
+	//		provinces_used++;
+	//	}
+	//	if(x+1<provinces_num_columns)//bottomright
+	//	{
+	//		topRightArability = provinces[y][x+1]->arability;
+	//		total_arability+= topRightArability;
+	//		provinces_used++;
+	//	}
 
-		if(true)//bottomleft
-		{
-			bottomLeftArability = provinces[y][x]->arability;
-			total_arability+= bottomLeftArability;
-			provinces_used++;
-		}
-		average_arability = total_arability/provinces_used;
+	//	if(true)//bottomleft
+	//	{
+	//		bottomLeftArability = provinces[y][x]->arability;
+	//		total_arability+= bottomLeftArability;
+	//		provinces_used++;
+	//	}
+	//	average_arability = total_arability/provinces_used;
 
-		//Top right vertex
-		color[0] = ((double)average_arability/arability_max) * color_province[0];
-		color[1] = ((double)average_arability/arability_max) * color_province[1];
-		color[2] = ((double)average_arability/arability_max) * color_province[2];
+	//	//Top right vertex
+	//	color[0] = ((double)average_arability/arability_max) * color_province[0];
+	//	color[1] = ((double)average_arability/arability_max) * color_province[1];
+	//	color[2] = ((double)average_arability/arability_max) * color_province[2];
 
-		myVertices[1].color = al_map_rgb(color[0],color[1],color[2]);
-	}
-	//Bottomright vertex
-	{
-		int total_arability = 0;
-		int provinces_used = 0;
+	//	myVertices[1].color = al_map_rgb(color[0],color[1],color[2]);
+	//}
+	////Bottomright vertex
+	//{
+	//	int total_arability = 0;
+	//	int provinces_used = 0;
 
-		int bottomRightArability;
-		int topLeftArability;
-		int topRightArability;
-		int bottomLeftArability;
+	//	int bottomRightArability;
+	//	int topLeftArability;
+	//	int topRightArability;
+	//	int bottomLeftArability;
 
-		if(true)//Topleft
-		{
-			bottomRightArability = provinces[y][x]->arability;
-			total_arability+= bottomRightArability;
-			provinces_used++;
-		}
+	//	if(true)//Topleft
+	//	{
+	//		bottomRightArability = provinces[y][x]->arability;
+	//		total_arability+= bottomRightArability;
+	//		provinces_used++;
+	//	}
 
-		if(x+1<provinces_num_columns)//Topright
-		{
-			topLeftArability = provinces[y][x+1]->arability;
-			total_arability+=topLeftArability;
-			provinces_used++;
-		}
-		if(x+1<provinces_num_columns&&y+1<provinces_num_rows)//bottomright
-		{
-			topRightArability = provinces[y+1][x+1]->arability;
-			total_arability+= topRightArability;
-			provinces_used++;
-		}
+	//	if(x+1<provinces_num_columns)//Topright
+	//	{
+	//		topLeftArability = provinces[y][x+1]->arability;
+	//		total_arability+=topLeftArability;
+	//		provinces_used++;
+	//	}
+	//	if(x+1<provinces_num_columns&&y+1<provinces_num_rows)//bottomright
+	//	{
+	//		topRightArability = provinces[y+1][x+1]->arability;
+	//		total_arability+= topRightArability;
+	//		provinces_used++;
+	//	}
 
-		if(y+1<provinces_num_rows)//bottomleft
-		{
-			bottomLeftArability = provinces[y+1][x]->arability;
-			total_arability+= bottomLeftArability;
-			provinces_used++;
-		}
-		average_arability = total_arability/provinces_used;
+	//	if(y+1<provinces_num_rows)//bottomleft
+	//	{
+	//		bottomLeftArability = provinces[y+1][x]->arability;
+	//		total_arability+= bottomLeftArability;
+	//		provinces_used++;
+	//	}
+	//	average_arability = total_arability/provinces_used;
 
-		//Bottomright vertex
-		color[0] = ((double)average_arability/arability_max) * color_province[0];
-		color[1] = ((double)average_arability/arability_max) * color_province[1];
-		color[2] = ((double)average_arability/arability_max) * color_province[2];
+	//	//Bottomright vertex
+	//	color[0] = ((double)average_arability/arability_max) * color_province[0];
+	//	color[1] = ((double)average_arability/arability_max) * color_province[1];
+	//	color[2] = ((double)average_arability/arability_max) * color_province[2];
 
-		myVertices[2].color = al_map_rgb(color[0],color[1],color[2]);
-	}
-	//Bottomleft vertex
-	{
-		int total_arability = 0;
-		int provinces_used = 0;
+	//	myVertices[2].color = al_map_rgb(color[0],color[1],color[2]);
+	//}
+	////Bottomleft vertex
+	//{
+	//	int total_arability = 0;
+	//	int provinces_used = 0;
 
-		int bottomRightArability;
-		int topLeftArability;
-		int topRightArability;
-		int bottomLeftArability;
+	//	int bottomRightArability;
+	//	int topLeftArability;
+	//	int topRightArability;
+	//	int bottomLeftArability;
 
-		if(x-1>=0)//Topleft
-		{
-			bottomRightArability = provinces[y][x-1]->arability;
-			total_arability+= bottomRightArability;
-			provinces_used++;
-		}
+	//	if(x-1>=0)//Topleft
+	//	{
+	//		bottomRightArability = provinces[y][x-1]->arability;
+	//		total_arability+= bottomRightArability;
+	//		provinces_used++;
+	//	}
 
-		if(true)//Topright
-		{
-			topLeftArability = provinces[y][x]->arability;
-			total_arability+=topLeftArability;
-			provinces_used++;
-		}
-		if(y+1<provinces_num_rows)//bottomright
-		{
-			topRightArability = provinces[y+1][x]->arability;
-			total_arability+= topRightArability;
-			provinces_used++;
-		}
+	//	if(true)//Topright
+	//	{
+	//		topLeftArability = provinces[y][x]->arability;
+	//		total_arability+=topLeftArability;
+	//		provinces_used++;
+	//	}
+	//	if(y+1<provinces_num_rows)//bottomright
+	//	{
+	//		topRightArability = provinces[y+1][x]->arability;
+	//		total_arability+= topRightArability;
+	//		provinces_used++;
+	//	}
 
-		if(y+1<provinces_num_rows && x-1>=0)//bottomleft
-		{
-			bottomLeftArability = provinces[y+1][x-1]->arability;
-			total_arability+= bottomLeftArability;
-			provinces_used++;
-		}
-		average_arability = total_arability/provinces_used;
+	//	if(y+1<provinces_num_rows && x-1>=0)//bottomleft
+	//	{
+	//		bottomLeftArability = provinces[y+1][x-1]->arability;
+	//		total_arability+= bottomLeftArability;
+	//		provinces_used++;
+	//	}
+	//	average_arability = total_arability/provinces_used;
 
-		//Bottomleft vertex
-		color[0] = ((double)average_arability/arability_max) * color_province[0];
-		color[1] = ((double)average_arability/arability_max) * color_province[1];
-		color[2] = ((double)average_arability/arability_max) * color_province[2];
+	//	//Bottomleft vertex
+	//	color[0] = ((double)average_arability/arability_max) * color_province[0];
+	//	color[1] = ((double)average_arability/arability_max) * color_province[1];
+	//	color[2] = ((double)average_arability/arability_max) * color_province[2];
 
-		myVertices[3].color = al_map_rgb(color[0],color[1],color[2]);
-	}
+	//	myVertices[3].color = al_map_rgb(color[0],color[1],color[2]);
+	//}
 
 };
 void Game::DrawPeople()
@@ -1210,7 +1857,8 @@ void Game::DrawPeople()
 	//Drawing alle
 	for(std::vector<Person*>::size_type i = 0; i != people.size(); i++) 
 	{
-		if(people[i]->dead == false){
+		Person* person = people[i];
+		if(person->dead == false){
 			ALLEGRO_COLOR person_color;
 			double color [3]; 
 			color[0] = 0;
@@ -1221,85 +1869,85 @@ void Game::DrawPeople()
 			{
 				if(power_context == HISTORY)
 				{
-					double ratio =(double) people[i]->power/power_highest_historical;
+					double ratio =(double) person->power/power_highest_historical;
 					color [0]= color_power[0]*(ratio);
 				}
 				else //CURRENT
 				{
-					color[0] = color_power[0]*((double)people[i]->power/power_highest_current);
+					color[0] = color_power[0]*((double)person->power/power_highest_current);
 				}
 			}
 			else if(ui_state == HUNGER)
 			{
-				color [0] =color_hunger[0]*(double)people[i]->hunger/hunger_death_level;
-				color [1] =color_hunger[1]*(double)people[i]->hunger/hunger_death_level;
-				color [2] =color_hunger[2]*(double)people[i]->hunger/hunger_death_level;
+				color [0] =color_hunger[0]*(double)person->hunger/hunger_death_level;
+				color [1] =color_hunger[1]*(double)person->hunger/hunger_death_level;
+				color [2] =color_hunger[2]*(double)person->hunger/hunger_death_level;
 			}
 			else if(ui_state == STRENGTH)
 			{
 				if(strength_context == HISTORY)
 				{
-					color [0] =color_strength[0]*(double)people[i]->strength/strength_highest_historical;
-					color [1] =color_strength[1]*(double)people[i]->strength/strength_highest_historical;
-					color [2] =color_strength[2]*(double)people[i]->strength/strength_highest_historical;
+					color [0] =color_strength[0]*(double)person->strength/strength_highest_historical;
+					color [1] =color_strength[1]*(double)person->strength/strength_highest_historical;
+					color [2] =color_strength[2]*(double)person->strength/strength_highest_historical;
 				}
 				else//CURRENT
 				{
-					color [0] =color_strength[0]*(double)people[i]->strength/strength_highest_current;
-					color [1] =color_strength[1]*(double)people[i]->strength/strength_highest_current;
-					color [2] =color_strength[2]*(double)people[i]->strength/strength_highest_current;
+					color [0] =color_strength[0]*(double)person->strength/strength_highest_current;
+					color [1] =color_strength[1]*(double)person->strength/strength_highest_current;
+					color [2] =color_strength[2]*(double)person->strength/strength_highest_current;
 				}
 			}
 			else if(ui_state == INTELLIGENCE)
 			{
 				if(intelligence_context == HISTORY)
 				{
-					color [0] =color_intelligence[0]*(double)people[i]->intelligence/intelligence_highest_historical;
-					color [1] =color_intelligence[1]*(double)people[i]->intelligence/intelligence_highest_historical;
-					color [2] =color_intelligence[2]*(double)people[i]->intelligence/intelligence_highest_historical;
+					color [0] =color_intelligence[0]*(double)person->intelligence/intelligence_highest_historical;
+					color [1] =color_intelligence[1]*(double)person->intelligence/intelligence_highest_historical;
+					color [2] =color_intelligence[2]*(double)person->intelligence/intelligence_highest_historical;
 				}
 				else//CURRENT
 				{
-					color [0] = color_intelligence[0]*(double)people[i]->intelligence/intelligence_highest_current;
-					color [1] = color_intelligence[1] *(double)people[i]->intelligence/intelligence_highest_current;
-					color [2] = color_intelligence[2] *(double)people[i]->intelligence/intelligence_highest_current;
+					color [0] = color_intelligence[0]*(double)person->intelligence/intelligence_highest_current;
+					color [1] = color_intelligence[1] *(double)person->intelligence/intelligence_highest_current;
+					color [2] = color_intelligence[2] *(double)person->intelligence/intelligence_highest_current;
 				}
 			}
 			else if(ui_state == FOREIGN)
 			{
-				if(people[i]->foreign_x>=0 && people[i]->foreign_y>=0)
+				if(person->foreign_x>=0 && person->foreign_y>=0)
 				{
 					//first quadrant
 
-					color [0] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[0])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[0]);
-					color [1] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[1])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[1]);
-					color [2] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[2])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[2]);
+					color [0] =((double)person->foreign_x/foreign_max * color_foreign_east[0])+((double)person->foreign_y/foreign_max * color_foreign_north[0]);
+					color [1] =((double)person->foreign_x/foreign_max * color_foreign_east[1])+((double)person->foreign_y/foreign_max * color_foreign_north[1]);
+					color [2] =((double)person->foreign_x/foreign_max * color_foreign_east[2])+((double)person->foreign_y/foreign_max * color_foreign_north[2]);
 				}
-				else if(people[i]->foreign_x<=0 && people[i]->foreign_y>=0)
+				else if(person->foreign_x<=0 && person->foreign_y>=0)
 				{
 					//second quad
-					color [0] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[0])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[0]);
-					color [1] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[1])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[1]);
-					color [2] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[2])+((double)people[i]->foreign_y/foreign_max * color_foreign_north[2]);
+					color [0] =((double)person->foreign_x/-foreign_max * color_foreign_west[0])+((double)person->foreign_y/foreign_max * color_foreign_north[0]);
+					color [1] =((double)person->foreign_x/-foreign_max * color_foreign_west[1])+((double)person->foreign_y/foreign_max * color_foreign_north[1]);
+					color [2] =((double)person->foreign_x/-foreign_max * color_foreign_west[2])+((double)person->foreign_y/foreign_max * color_foreign_north[2]);
 				}
-				else if(people[i]->foreign_x<=0 && people[i]->foreign_y<=0)
+				else if(person->foreign_x<=0 && person->foreign_y<=0)
 				{
 					//third quad
-					color [0] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[0])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[0]);
-					color [1] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[1])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[1]);
-					color [2] =((double)people[i]->foreign_x/-foreign_max * color_foreign_west[2])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[2]);
+					color [0] =((double)person->foreign_x/-foreign_max * color_foreign_west[0])+((double)person->foreign_y/-foreign_max * color_foreign_south[0]);
+					color [1] =((double)person->foreign_x/-foreign_max * color_foreign_west[1])+((double)person->foreign_y/-foreign_max * color_foreign_south[1]);
+					color [2] =((double)person->foreign_x/-foreign_max * color_foreign_west[2])+((double)person->foreign_y/-foreign_max * color_foreign_south[2]);
 				}
 				else
 				{
 					//fourth quadrant
-					color [0] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[0])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[0]);
-					color [1] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[1])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[1]);
-					color [2] =((double)people[i]->foreign_x/foreign_max * color_foreign_east[2])+((double)people[i]->foreign_y/-foreign_max * color_foreign_south[2]);
+					color [0] =((double)person->foreign_x/foreign_max * color_foreign_east[0])+((double)person->foreign_y/-foreign_max * color_foreign_south[0]);
+					color [1] =((double)person->foreign_x/foreign_max * color_foreign_east[1])+((double)person->foreign_y/-foreign_max * color_foreign_south[1]);
+					color [2] =((double)person->foreign_x/foreign_max * color_foreign_east[2])+((double)person->foreign_y/-foreign_max * color_foreign_south[2]);
 				}
 			}
 			else if(ui_state == OCCUPATION)
 			{
-				if(people[i]->occupation == FARMER)
+				if(person->occupation == FARMER)
 				{
 					color[0] = color_occupation_farmer[0];
 					color[1] = color_occupation_farmer[1];
@@ -1314,9 +1962,9 @@ void Game::DrawPeople()
 			}
 			else //Generation
 			{
-				color [0] =((double)people[i]->generation/ generation_youngest * color_generation[0]);
-				color [1] =((double)people[i]->generation/ generation_youngest * color_generation[1]);
-				color [2] =((double)people[i]->generation/ generation_youngest * color_generation[2]);
+				color [0] =((double)person->generation/ generation_youngest * color_generation[0]);
+				color [1] =((double)person->generation/ generation_youngest * color_generation[1]);
+				color [2] =((double)person->generation/ generation_youngest * color_generation[2]);
 			}
 
 			for (int c = 0; c < 3; c++)
@@ -1326,7 +1974,8 @@ void Game::DrawPeople()
 					color[c]=255;
 				}
 			}
-			DrawBlade(people[i]->position_x,people[i]->position_y,color[0],color[1],color[2]);
+
+			DrawBlade(person->position_x,person->position_y,color[0],color[1],color[2]);
 		}
 	}
 };
