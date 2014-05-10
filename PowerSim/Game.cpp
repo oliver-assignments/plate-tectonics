@@ -235,12 +235,12 @@ void Game::CreateGrassland()
 			grassland_blob[p]->SetBiome(GRASSLAND);
 		}
 
-		for (int w = 0; w < 5; w++)
+		for (int w = 0; w < 10; w++)
 		{
-			int smallerRadius = ((double)radius/2);
+			int smallerRadius = ((rand()%(radius)));
 
-			int location_x = cluster_origin_province_x + (-radius+(rand()%(radius*2)));
-			int location_y = cluster_origin_province_y + (-radius+(rand()%(radius*2)));
+			int location_x = cluster_origin_province_x + (-(radius*1)+(rand()%(radius*2)));
+			int location_y = cluster_origin_province_y + (-(radius*1)+(rand()%(radius*2)));
 
 			std::vector<Province*> grassland_smaller_blob = GetBlobOfProvinces(location_x, location_y, smallerRadius);
 			for (int p = 0; p < grassland_smaller_blob.size(); p++)
@@ -262,7 +262,7 @@ void Game::CreateForests()
 		{
 			if(forest_blob[p]->biome!=WATER)
 			{
-				forest_blob[p]->SetBiome(FOREST);
+				forest_blob[p]->biome = FOREST;
 			}
 		}
 	}
@@ -279,7 +279,7 @@ void Game::CreateDeserts()
 		{
 			if(desert_blob[p]->biome!=WATER)
 			{
-				desert_blob[p]->SetBiome(DESERT);
+				desert_blob[p]->biome = DESERT;
 			}
 		}
 	}
@@ -534,7 +534,7 @@ void Game::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForei
 			cluster_origin_province_x = rand()%provinces_num_columns;
 			cluster_origin_province_y = rand()%provinces_num_rows;
 		} while (provinces[cluster_origin_province_y][cluster_origin_province_x]->biome == WATER ||
-				 provinces[cluster_origin_province_y][cluster_origin_province_x]->biome == TUNDRA);
+			provinces[cluster_origin_province_y][cluster_origin_province_x]->biome == TUNDRA);
 
 
 		int foreign_origin_x = cos(c*(2*3.14)/myNumberClusters) * myForeignRadius;
@@ -585,7 +585,7 @@ void Game::DefineColors()
 	color_text[0] = 255;color_text[1] = 255;color_text[2] = 255;
 
 	color_resource[0] = 200;color_resource[1] = 200;color_resource[2] = 200;
-	color_house[0] = 200;color_house[1] = 200;color_house[2] = 200;
+	color_house[0] = 150;color_house[1] = 150;color_house[2] = 150;
 
 	color_grassland[0] = 75;color_grassland[1] =150;color_grassland[2] = 60;
 	color_jungle[0] = 130;color_jungle[1] =140;color_jungle[2] = 70;
@@ -593,7 +593,7 @@ void Game::DefineColors()
 	color_water[0] = 0;color_water[1] =0;color_water[2] = 150;
 	color_tundra[0] = 235;color_tundra[1] =255;color_tundra[2] = 235;
 	color_alpine[0] = 190;color_alpine[1] =190;color_alpine[2] = 170;
-	color_forest[0] = 40;color_forest[1] =940;color_forest[2] = 30;
+	color_forest[0] = 140;color_forest[1] =200;color_forest[2] = 130;
 
 
 	color_occupation_farmer[0] = 5;color_occupation_farmer[1] = 102;color_occupation_farmer[2] = 100;
@@ -847,19 +847,19 @@ void Game::ProcessPeople()
 		{
 			/*if(people[i]->hunger>=hunger_death_level)
 			{
-				House* home = people[i]->home;
-				if(home!=NULL)
-				{
-					home->abandoned = true;
-					provinces[home->province_y][home->province_x]->homes_on_province.erase(home->id);
-				}
+			House* home = people[i]->home;
+			if(home!=NULL)
+			{
+			home->abandoned = true;
+			provinces[home->province_y][home->province_x]->homes_on_province.erase(home->id);
+			}
 
-				people[i]->dead = true;
-				provinces[people[i]->province_y][people[i]->province_x]->people_on_province.erase(people[i]->id);
-				delete(people[i]);
-				people.erase(people.begin()+i);
-				i--;
-				continue;
+			people[i]->dead = true;
+			provinces[people[i]->province_y][people[i]->province_x]->people_on_province.erase(people[i]->id);
+			delete(people[i]);
+			people.erase(people.begin()+i);
+			i--;
+			continue;
 			}*/
 
 			if(current_hour==11 || current_hour==16 || current_hour==20)
@@ -1406,7 +1406,7 @@ void Game::DivvyUpFood()
 					if(amountTaken<prov->food_in_province)
 					{
 						prov->food_in_province-=amountTaken;
-						
+
 					}
 					else
 					{
@@ -1557,11 +1557,13 @@ void Game::DrawProvinces()
 			}
 
 			//Provicne color Seperation
-			/*color[0] = ((double)province->arability/arability_max) * color[0];
+			color[0] = ((double)province->arability/arability_max) * color[0];
 			color[1] = ((double)province->arability/arability_max) * color[1];
-			color[2] = ((double)province->arability/arability_max) * color[2];*/
+			color[2] = ((double)province->arability/arability_max) * color[2];
 
-
+			/*color[0] = ((91 + (rand()%20))/100) * color[0];
+			color[1] = ((91 + (rand()%20))/100) * color[1];
+			color[2] = ((91 + (rand()%20))/100) * color[2];*/
 
 			ALLEGRO_VERTEX vertices[] = 
 			{
@@ -2056,17 +2058,26 @@ void Game::DrawHouses()
 void Game::DrawHouse(int x, int y)
 {
 	//Shadow border
-	al_draw_line(x-2, y+1,   x+2, y+1, al_map_rgb(0,0,0),2);
+	al_draw_line(x-3, y+1, x+3, y+1, al_map_rgb(0,0,0),2);
 
-	//Roof
-	al_draw_line(x-1,y-3,x,y-6,al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
-	al_draw_line(x,y-6,x+1, y-3,al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
+	ALLEGRO_VERTEX vertices[] = 
+	{
+		{x-3, y, 0},
+		{x-3, y-4, 0},
+		{x+3, y-4,0},
+		{x+3, y,0},
+	};
+	for (int i = 0; i < 4; i++)
+	{
+		vertices[i].color = al_map_rgb(color_house[0],color_house[1],color_house[2]);
+	}
+	al_draw_prim(vertices, NULL, 0, 0, 4, ALLEGRO_PRIM_TRIANGLE_FAN );
 
 	//Walls
-	al_draw_line(x-1, y,   x-1, y-3, al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
-	al_draw_line(x-1, y-3, x+1, y-3, al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
-	al_draw_line(x+1, y-3, x+1, y,   al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
-	al_draw_line(x-1, y,   x+1, y,   al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
+	//al_draw_line(x-1, y,   x-1, y-2, al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
+	//al_draw_line(x-1, y-2, x+1, y-2, al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
+	//al_draw_line(x+1, y-2, x+1, y,   al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
+	//al_draw_line(x-1, y,   x+1, y,   al_map_rgb(color_house[0],color_house[1],color_house[2]),1);
 };
 void Game::DrawHamlet(int x, int y)
 {
