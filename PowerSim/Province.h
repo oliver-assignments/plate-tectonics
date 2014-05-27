@@ -34,6 +34,8 @@ public:
 		arability = 50;
 		biome = WATER;
 		food_in_province=0;
+		depth = -100;
+		altitude = 0;
 	};
 	int id;
 	Vector2 getCenter()
@@ -47,6 +49,7 @@ public:
 	Vector2* p3;
 
 	int altitude;
+	int depth;
 	int arability;//100 is fully vegetable
 
 	int food_in_province;

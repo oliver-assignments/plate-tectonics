@@ -20,6 +20,80 @@
 #include "ColorContext.h"
 #include "Province.h"
 
+/*
+Notes
+
+Food production thought order
+	Favorite Food(Tastiest) and Highest Payoff
+	Greatest certainty least effort
+
+	Some noticeable things about fruit:
+		Size
+		Fleshiness
+		Bitterness
+		Oiliness
+		Length of seed
+
+	Somethign must encourage a blend of hunting and farming
+
+Hunter Gatherer to Farmer
+	Plants like peas and wheat had low catalyst, were tasty, and not difficult, easy to domesticate
+	This allowed for quick transition
+
+Resource
+	Tastiness
+	Poision
+	Difficulty to gather
+	Difficulty to process
+	Edible
+	Lethality of gather
+	
+	Wild yield
+
+	Work catalyst
+
+	Ease of domestication
+	Domestication yield Yield
+
+	Latitude of growth
+	Grows in biome
+
+	Speed of spread
+
+Domesticating Animals
+	Meat, milk, cloths, travel and plows
+	
+Technology
+	Acceptance of tech
+		Commericalable
+		Prestige
+		Politics and inplace shit
+		How easy is it to see results
+	Tecnology spread
+		See and adopt
+		The get conquered and replaced
+	Technological Diffusion
+		Trade
+		Espionage
+		Emigration
+		War
+	Technology loss due ot weak spread
+
+	Autocatalytic technology
+
+	Tech develops fastest in 
+		larg prductive regions wiht large pops
+		many potential inventors
+		competativeness
+
+		Variations
+			Time of food prod
+			barriers to diffusion such as deserts
+			human pop size
+
+		So food can spread west and east easy, so can tech
+*/
+
 class Game
 {
 public:
@@ -37,7 +111,11 @@ public:
 	void CreateEquator();
 	void CreateRivers();
 	void CreateFrozenPoles();
-	void CreateSeas();
+	void CreateSeaDepth();
+
+	void CreatePlants();
+	std::string CreateName(int myNumberLetters);
+	void CreateAnimals();
 
 	void CreateResources(int myNumber);
 	void CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius);
@@ -76,6 +154,7 @@ public:
 	//Draw
 	void Draw();
 	void DrawProvinces();
+	void DrawRivers();
 	void DrawPeople();
 	void DrawResources();
 
@@ -89,7 +168,6 @@ public:
 	void DrawMetropolis(int x, int y); 
 	void DrawConurbation(int x, int y);
 	void DrawMegalopolis(int x, int y);
-
 
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
@@ -121,6 +199,8 @@ private:
 	ALLEGRO_DISPLAY* display;
 	int screen_width;
 	int screen_height;
+	int screen_game_width;
+	int screen_game_height;
 
 	bool draw_every_hour;
 
@@ -154,6 +234,9 @@ private:
 
 	int province_id;
 
+	//Rivers
+	std::vector<std::vector<Vector2*>> rivers_points;
+
 	//People
 	std::vector<Person*> people;
 	int player_id;
@@ -163,6 +246,9 @@ private:
 	std::vector<int*> color_province_vertex_average;
 
 	//Resources
+	std::vector<std::string> consonants;
+	std::vector<std::string> vowels;
+
 	std::vector<Resource*> resources;
 
 	bool resources_drawn;
