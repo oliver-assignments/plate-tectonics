@@ -19,80 +19,96 @@
 #include "UIState.h"
 #include "ColorContext.h"
 #include "Province.h"
+#include "Plant.h"
+#include "TectonicPlate.h"
 
 /*
 Notes
 
 Food production thought order
-	Favorite Food(Tastiest) and Highest Payoff
-	Greatest certainty least effort
+Favorite Food(Tastiest) and Highest Payoff
+Greatest certainty least effort
 
-	Some noticeable things about fruit:
-		Size
-		Fleshiness
-		Bitterness
-		Oiliness
-		Length of seed
+Some noticeable things about fruit:
+Size
+Fleshiness
+Bitterness
+Oiliness
+Length of seed
 
-	Somethign must encourage a blend of hunting and farming
+Somethign must encourage a blend of hunting and farming
 
 Hunter Gatherer to Farmer
-	Plants like peas and wheat had low catalyst, were tasty, and not difficult, easy to domesticate
-	This allowed for quick transition
+Plants like peas and wheat had low catalyst, were tasty, and not difficult, easy to domesticate
+This allowed for quick transition
 
 Resource
-	Tastiness
-	Poision
-	Difficulty to gather
-	Difficulty to process
-	Edible
-	Lethality of gather
-	
-	Wild yield
+Tastiness
+Poision
+Difficulty to gather
+Difficulty to process
+Edible
+Lethality of gather
 
-	Work catalyst
+Wild yield
 
-	Ease of domestication
-	Domestication yield Yield
+Work catalyst
 
-	Latitude of growth
-	Grows in biome
+Ease of domestication
+Domestication yield Yield
 
-	Speed of spread
+Latitude of growth
+Grows in biome
+
+Speed of spread
 
 Domesticating Animals
-	Meat, milk, cloths, travel and plows
-	
+Meat, milk, cloths, travel and plows
+
 Technology
-	Acceptance of tech
-		Commericalable
-		Prestige
-		Politics and inplace shit
-		How easy is it to see results
-	Tecnology spread
-		See and adopt
-		The get conquered and replaced
-	Technological Diffusion
-		Trade
-		Espionage
-		Emigration
-		War
-	Technology loss due ot weak spread
+Acceptance of tech
+Commericalable
+Prestige
+Politics and inplace shit
+How easy is it to see results
+Tecnology spread
+See and adopt
+The get conquered and replaced
+Technological Diffusion
+Trade
+Espionage
+Emigration
+War
+Technology loss due ot weak spread
 
-	Autocatalytic technology
+Autocatalytic technology
 
-	Tech develops fastest in 
-		larg prductive regions wiht large pops
-		many potential inventors
-		competativeness
+Tech develops fastest in 
+larg prductive regions wiht large pops
+many potential inventors
+competativeness
 
-		Variations
-			Time of food prod
-			barriers to diffusion such as deserts
-			human pop size
+Variations
+Time of food prod
+barriers to diffusion such as deserts
+human pop size
 
-		So food can spread west and east easy, so can tech
+So food can spread west and east easy, so can tech
 */
+
+// PERLYL noise
+
+enum GameState
+{
+	Menu, Ingame
+};
+enum IngameState
+{
+	TERRAIN, 
+	PLATE_TECTONICS, 
+	PLANT_AND_ANIMAL, 
+	HUMAN, 
+};
 
 class Game
 {
@@ -100,26 +116,29 @@ public:
 	//Initialize//
 	Game();
 	void Initialize();
+	void InitializeAllegro();
 	void InitializeGame();
 	void CreateWorld();
 
+	std::string CreateName(int myNumberLetters);
+
 	void CreateProvinces();
+	void CreateWater();
+	void ResolveWaterInProvince(Province* prov);
 	void CreateGrassland();
-	void CreateMountains();
 	void CreateForests();
 	void CreateDeserts();
 	void CreateEquator();
 	void CreateRivers();
-	void CreateFrozenPoles();
-	void CreateSeaDepth();
+
+	void CreateTectonicPlates();
 
 	void CreatePlants();
-	std::string CreateName(int myNumberLetters);
 	void CreateAnimals();
 
 	void CreateResources(int myNumber);
+
 	void CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius);
-	void InitializeAllegro();
 
 	//LoadContent
 	void LoadContent();
@@ -128,7 +147,8 @@ public:
 	//Update//
 	void Update();
 	void TakeInput();
-	void RunTime();
+	void RunTectonics();
+	void RunHumans();
 	void ProcessPeople();
 
 	//AI
@@ -142,7 +162,8 @@ public:
 	void MoveRandomDirection(Person* person);
 	void Game::MoveToCoordinates(Person* person, int x,int y);
 
-	std::vector<Province*> GetBlobOfProvinces(int x, int y, int radius);
+	std::vector<Province*> GetBlobOfProvinces(int x, int y, int radius,bool doGetCenter);
+	std::vector<Vector2*> GetBlobOfCoordinates(int province_x, int province_y, int radius);
 	void GetInLineForFood(int x,int y,Person* myPerson);
 	void DivvyUpFood();
 	void UpdateProvinceFood();
@@ -184,7 +205,9 @@ private:
 	//Management//
 	//			//
 	boolean done;
-	std::mutex mtx;
+
+	GameState currentGameState;
+	IngameState currentIngameState;
 
 	double FPS;
 	double total_frames;
@@ -215,14 +238,23 @@ private:
 	int current_day;
 	int current_year;
 
+	//Tectonic Plates
+	std::vector<TectonicPlate*> listOfTectonicPlates; 
+	std::vector<Vector2*> currentPlateCollisions;
+	std::vector<Vector2*> oldPlateCollisions;
+
 	//Provinces
+	bool province_jiggle;
 	std::vector<std::vector<Province*>> provinces;
 	std::vector<Vector2*> province_vertices;
 	std::vector<Province*> provinces_with_hungry_people;
+	std::vector<Vector2*> provinces_with_water;
 	int province_width;
 	int province_height;
 	int provinces_num_columns;
 	int provinces_num_rows;
+
+	
 
 	int province_jiggle_width;
 	int province_jiggle_height;
@@ -231,6 +263,8 @@ private:
 	bool color_province_blending;
 
 	int arability_max;
+	int province_max_altitude;
+	int province_max_depth;
 
 	int province_id;
 

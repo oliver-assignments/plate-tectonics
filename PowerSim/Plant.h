@@ -18,20 +18,21 @@ class Plant
 public:
 
 	Plant(
+		std::string myName,
 		Province* myProvince,
 		int myTastiness, 
 		int myCatalystHours, int myYield)
 	{
+		name = myName;
 		province_parent = myProvince;
 
 		tastiness = myTastiness;
 		
 		catalyst_hours = myCatalystHours;
 		yield = myYield;
-		/*
-		biomes_accepted = myBiomesAccepted;
 
-		generation = 0;
+
+		/*generation = 0;
 		generations_for_mutation = myGenerationsForMutation;
 
 		competativeness = myCompetativeness;*/
@@ -49,15 +50,20 @@ public:
 
 	std::string GetID()
 	{
-		return name + ":" + std::to_string(tastiness) + ":" + std::to_string(catalyst_hours) + ":" + std::to_string(yield)+ ":" + std::to_string(seeds_per_yield);
+		return name							  + ":" + 
+			   std::to_string(tastiness)      + ":" + 
+               std::to_string(catalyst_hours) + ":" + 
+			   std::to_string(yield)		  + ":" + 
+			   std::to_string(seeds_per_yield);
 	}
 
-	/*std::vector<Biome> biomes_accepted;
+	int climate_minimum;
+	int climate_maximum;
 
 	int generation;
 	int generations_for_mutation;
 
-	int competativeness;*/
+	int competativeness;
 
 	void Work()
 	{
@@ -84,7 +90,6 @@ public:
 	{
 		return ((double)catalyst_hours-worked_hours)/yield;
 	};
-
 };
 
 
