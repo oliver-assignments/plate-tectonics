@@ -247,6 +247,7 @@ private:
 	bool province_jiggle;
 
 	//Water Resolution
+	std::vector<Province*> province_water_unresolved;
 	int times_drawn;
 	int number_times_resolved;
 	int highest_unresolved;

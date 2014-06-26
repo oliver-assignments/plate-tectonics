@@ -236,7 +236,7 @@ void Game::CreateProvinces()
 			}
 			Province* province = new Province(province_id,x,y,top_left,top_right,bottom_right,bottom_left);
 
-			province->altitude+= rand()%5;
+			//province->altitude+= rand()%5;
 			province->distance_from_equator = abs(equator_position-y);
 			province_id++;
 
@@ -316,7 +316,7 @@ void Game::CreateGrassland()
 };
 void Game::CreateWater()
 {
-	for (int w = 0; w < 10000; w++)
+	for (int w = 0; w < 100000; w++)
 	{
 		Province* prov = NULL;
 		while(prov == NULL)
@@ -328,101 +328,89 @@ void Game::CreateWater()
 				prov = provinces[y][x];
 			}
 		}
-		prov->water_depth +=100;
+		prov->water_depth +=1000;
 		prov->biome = WATER;
-		ResolveWaterInProvince(prov);
+		province_water_unresolved.push_back(prov);
 	}
+	do
+	{
+		ResolveWaterInProvince(province_water_unresolved[province_water_unresolved.size()-1]);
+		province_water_unresolved.pop_back();
+
+	}while(province_water_unresolved.size()>0);
 
 };
 void Game::ResolveWaterInProvince(Province* prov)
 {
-	number_times_resolved ++;
-	if(number_times_resolved>highest_unresolved)
+	//The province above, to the right, down, and left of our prov BUT NOT the prov itself
+	std::vector<Province*> neighboring_provinces = GetBlobOfProvinces(prov->province_x,prov->province_y,1,false);
+
+	bool done = false;
+	int provinces_checked = 0;
+
+	while(!done)//Keep passing out water till ur done
 	{
-		highest_unresolved = number_times_resolved;
-	}
-	if(number_times_resolved<500)
-	{
-		//The province above, to the right, down, and left of our prov BUT NOT the prov itself
-		std::vector<Province*> neighboring_provinces = GetBlobOfProvinces(prov->province_x,prov->province_y,1,false);
-
-		bool done = false;
-		int provinces_checked = 0;
-		Province* neighbor = NULL;
-
-		std::vector<Province*> updated_provinces;
-
-		while(!done)//Keep passing out water till ur done
+		if(prov->water_depth > 1)//Do we have water to pass out?
 		{
-			if(prov->water_depth > 0)//Do we have water to pass out?
+			int steepest_slope = 1;
+			int chosen_slope = 0;
+
+			for (int n = 0; n < neighboring_provinces.size(); n++)
 			{
-				int steepest_slope = 1;
-				int chosen_slope = 0;
-
-				for (int n = 0; n < neighboring_provinces.size(); n++)
+				int difference = prov->getLandAndWaterHeight() - neighboring_provinces[n]->getLandAndWaterHeight();
+				if(difference>steepest_slope)
 				{
-					int difference = prov->getLandAndWaterHeight() - neighboring_provinces[n]->getLandAndWaterHeight();
-					if(difference>steepest_slope)
-					{
-						chosen_slope = n;
-						steepest_slope = difference;
-						provinces_checked = 0;
-					}
-					else
-					{
-						provinces_checked++;
-					}
-				}
-				if(provinces_checked<4)
-				{
-					neighbor = provinces[neighboring_provinces[chosen_slope]->province_y][neighboring_provinces[chosen_slope]->province_x];
-
-					prov->water_depth-=steepest_slope/2;//Lose water
-
-					neighbor->biome = WATER;
-					neighbor->water_depth+=steepest_slope/2;//Move water
-
-					if(times_drawn ==3000 )
-					{
-						Draw();
-						times_drawn =0;
-					}
-					times_drawn++;
-
-					updated_provinces.push_back(neighbor);
-
-					//ResolveWaterInProvince(neighbor);//Do the same for the next guy
+					chosen_slope = n;
+					steepest_slope = difference;
+					provinces_checked = 0;
 				}
 				else
 				{
-					done = true;
-					if(prov->water_depth>province_max_depth)
-					{
-						province_max_depth =prov->water_depth;
-					}
-
+					provinces_checked++;
 				}
 			}
-			else
+			if(provinces_checked<4)
 			{
-				//We're out of water
-				done = true;
+				Province* neighbor = provinces[neighboring_provinces[chosen_slope]->province_y][neighboring_provinces[chosen_slope]->province_x];
+
+				if(prov->water_depth>(steepest_slope/2))
+				{
+					prov->water_depth-=steepest_slope/2;
+
+					neighbor->biome = WATER;
+					neighbor->water_depth+=steepest_slope/2;
+				}
+				else
+				{
+					neighbor->water_depth+=prov->water_depth;
+					neighbor->biome = WATER;
+					prov->water_depth = 0;
+				}
+
 				if(prov->water_depth>province_max_depth)
 				{
 					province_max_depth =prov->water_depth;
 				}
+
+
+				if(times_drawn ==500 )
+				{
+					Draw();
+					times_drawn =0;
+				}
+				times_drawn++;
+
+				province_water_unresolved.push_back(neighbor);
+			}
+			else
+			{
+				done=true;
 			}
 		}
-
-		for (int i = 0; i < updated_provinces.size(); i++)
+		else
 		{
-			ResolveWaterInProvince(updated_provinces[i]);//Do the same for the next guy
+			done=true;
 		}
-		number_times_resolved--;
-	}
-	else
-	{
-		number_times_resolved--;
 	}
 };
 void Game::CreateForests()
@@ -1838,7 +1826,7 @@ void Game::Draw()
 	switch (currentIngameState)
 	{
 	case TERRAIN:
-		
+
 		break;
 	case PLATE_TECTONICS:
 		break;
@@ -1848,10 +1836,10 @@ void Game::Draw()
 		DrawPopulation();
 		break;
 	}
-	
-		DrawProvinces();
-		DrawRivers();
-	
+
+	DrawProvinces();
+	DrawRivers();
+
 
 	DrawPeople();
 
