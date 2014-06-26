@@ -316,7 +316,7 @@ void Game::CreateGrassland()
 };
 void Game::CreateWater()
 {
-	for (int w = 0; w < 100000; w++)
+	for (int w = 0; w < 1000; w++)
 	{
 		Province* prov = NULL;
 		while(prov == NULL)
@@ -335,13 +335,15 @@ void Game::CreateWater()
 	do
 	{
 		ResolveWaterInProvince(province_water_unresolved[province_water_unresolved.size()-1]);
-		province_water_unresolved.pop_back();
+		province_water_unresolved.erase(province_water_unresolved.end()-1);
+		number_times_resolved =province_water_unresolved.size();
 
 	}while(province_water_unresolved.size()>0);
 
 };
 void Game::ResolveWaterInProvince(Province* prov)
 {
+
 	//The province above, to the right, down, and left of our prov BUT NOT the prov itself
 	std::vector<Province*> neighboring_provinces = GetBlobOfProvinces(prov->province_x,prov->province_y,1,false);
 
@@ -362,45 +364,50 @@ void Game::ResolveWaterInProvince(Province* prov)
 				{
 					chosen_slope = n;
 					steepest_slope = difference;
+
 					provinces_checked = 0;
 				}
 				else
 				{
-					provinces_checked++;
+					//provinces_checked++;
 				}
 			}
-			if(provinces_checked<4)
+			if(provinces_checked<4 && steepest_slope !=1)
 			{
 				Province* neighbor = provinces[neighboring_provinces[chosen_slope]->province_y][neighboring_provinces[chosen_slope]->province_x];
+				if(prov->getLandAndWaterHeight() != neighbor->getLandAndWaterHeight()){
+					if(prov->water_depth>=(steepest_slope/2))
+					{
+						prov->water_depth-=steepest_slope/2;
 
-				if(prov->water_depth>(steepest_slope/2))
-				{
-					prov->water_depth-=steepest_slope/2;
+						neighbor->biome = WATER;
+						neighbor->water_depth+=steepest_slope/2;
+					}
+					else
+					{
+						neighbor->water_depth+=prov->water_depth;
+						neighbor->biome = WATER;
+						prov->water_depth = 0;
+					}
 
-					neighbor->biome = WATER;
-					neighbor->water_depth+=steepest_slope/2;
+					if(prov->water_depth>province_max_depth)
+					{
+						province_max_depth =prov->water_depth;
+					}
+
+
+					if(times_drawn ==100)
+					{
+						Draw();
+
+						times_drawn =0;
+					}
+					times_drawn++;
+
+					//Draw();
+
+					province_water_unresolved.push_back(neighbor);
 				}
-				else
-				{
-					neighbor->water_depth+=prov->water_depth;
-					neighbor->biome = WATER;
-					prov->water_depth = 0;
-				}
-
-				if(prov->water_depth>province_max_depth)
-				{
-					province_max_depth =prov->water_depth;
-				}
-
-
-				if(times_drawn ==500 )
-				{
-					Draw();
-					times_drawn =0;
-				}
-				times_drawn++;
-
-				province_water_unresolved.push_back(neighbor);
 			}
 			else
 			{
