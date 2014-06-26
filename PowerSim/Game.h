@@ -245,6 +245,8 @@ private:
 
 	//Provinces
 	bool province_jiggle;
+
+	//Water Resolution
 	int times_drawn;
 	int number_times_resolved;
 	int highest_unresolved;

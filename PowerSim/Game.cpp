@@ -96,6 +96,7 @@ void Game::InitializeGame()
 
 	province_jiggle_width = (int)(province_width*0.8);
 	province_jiggle_height = (int)(province_height*0.8);
+	province_jiggle = true;
 
 	ui_state = POWER;
 	resources_drawn = true;
@@ -271,17 +272,15 @@ void Game::CreateTectonicPlates()
 		int cluster_origin_province_y = rand()%provinces_num_rows;
 
 		int radius = 3+rand()%5;
-
-
 	}
 };
 
 void Game::CreateGrassland()
 {
-	for (int f = 0; f <10; f++)
+	for (int f = 0; f <20; f++)
 	{
-		int cluster_origin_province_x = (provinces_num_columns/2)+(rand()%100)-50;
-		int cluster_origin_province_y = (provinces_num_rows/2)+(rand()%30)-15;
+		int cluster_origin_province_x = (provinces_num_columns/2)+(rand()%50)-25;
+		int cluster_origin_province_y = (provinces_num_rows/2)+(rand()%50)-25;
 
 		//int radius = 10+rand()%5;
 		int radius  = 4;
@@ -342,8 +341,8 @@ void Game::ResolveWaterInProvince(Province* prov)
 	{
 		highest_unresolved = number_times_resolved;
 	}
-	if(number_times_resolved<1000){
-
+	if(number_times_resolved<500)
+	{
 		//The province above, to the right, down, and left of our prov BUT NOT the prov itself
 		std::vector<Province*> neighboring_provinces = GetBlobOfProvinces(prov->province_x,prov->province_y,1,false);
 
@@ -413,11 +412,6 @@ void Game::ResolveWaterInProvince(Province* prov)
 					province_max_depth =prov->water_depth;
 				}
 			}
-
-			//if(neighbor !=NULL)
-			//{
-			//	//ResolveWaterInProvince(neighbor);//Do the same for the next guy
-			//}
 		}
 
 		for (int i = 0; i < updated_provinces.size(); i++)
@@ -426,7 +420,10 @@ void Game::ResolveWaterInProvince(Province* prov)
 		}
 		number_times_resolved--;
 	}
-	else{number_times_resolved--;}
+	else
+	{
+		number_times_resolved--;
+	}
 };
 void Game::CreateForests()
 {
@@ -919,7 +916,7 @@ void Game::DefineColors()
 	color_grassland[0] = 75;color_grassland[1] =150;color_grassland[2] = 60;
 	color_jungle[0] = 130;color_jungle[1] =140;color_jungle[2] = 70;
 	color_desert[0] = 150;color_desert[1] =150;color_desert[2] = 10;
-	color_water[0] = 0;color_water[1] =0;color_water[2] = 190;
+	color_water[0] = 0;color_water[1] =0;color_water[2] = 100;
 	color_tundra[0] = 235;color_tundra[1] =255;color_tundra[2] = 235;
 	color_alpine[0] = 190;color_alpine[1] =190;color_alpine[2] = 170;
 	color_forest[0] = 140;color_forest[1] =200;color_forest[2] = 130;
@@ -1841,6 +1838,7 @@ void Game::Draw()
 	switch (currentIngameState)
 	{
 	case TERRAIN:
+		
 		break;
 	case PLATE_TECTONICS:
 		break;
@@ -1850,11 +1848,10 @@ void Game::Draw()
 		DrawPopulation();
 		break;
 	}
-	if(provinces_drawn)
-	{
+	
 		DrawProvinces();
 		DrawRivers();
-	}
+	
 
 	DrawPeople();
 
