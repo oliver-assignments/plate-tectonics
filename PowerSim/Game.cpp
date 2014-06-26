@@ -88,8 +88,8 @@ void Game::InitializeAllegro()
 
 void Game::InitializeGame()
 {	
-	province_width = 20;
-	province_height = 15;
+	province_width = 15;
+	province_height = 10;
 
 	province_jiggle_width = (int)(province_width*0.8);
 	province_jiggle_height = (int)(province_height*0.8);
@@ -159,6 +159,7 @@ void Game::CreateWorld()
 void Game::CreateProvinces()
 {
 	//36,794,240,000 acres on earth
+	times_drawn = 0;
 	provinces_num_columns = (int)(screen_game_width/province_width);
 	provinces_num_rows = (int)(screen_height/province_height);
 
@@ -238,18 +239,18 @@ void Game::CreateProvinces()
 	}
 
 	//Jiggle
-	/*if(province_jiggle){
-	for(std::vector<Vector2*>::size_type v = 0; v != province_vertices.size(); v++) 
-	{
-	int x = v% (provinces_num_columns+1);
-	int y = v/ (provinces_num_columns+1);
-	if(x>0 && y>0 && x<provinces_num_columns && y<provinces_num_rows)
-	{
-	province_vertices[v]->x = province_vertices[v]->x + 5 - (province_jiggle_width/2) + (rand()%province_jiggle_width);
-	province_vertices[v]->y = province_vertices[v]->y + 5 - (province_jiggle_height/2) + (rand()%province_jiggle_height);
+	if(province_jiggle){
+		for(std::vector<Vector2*>::size_type v = 0; v != province_vertices.size(); v++) 
+		{
+			int x = v% (provinces_num_columns+1);
+			int y = v/ (provinces_num_columns+1);
+			if(x>0 && y>0 && x<provinces_num_columns && y<provinces_num_rows)
+			{
+				province_vertices[v]->x = province_vertices[v]->x + 5 - (province_jiggle_width/2) + (rand()%province_jiggle_width);
+				province_vertices[v]->y = province_vertices[v]->y + 5 - (province_jiggle_height/2) + (rand()%province_jiggle_height);
+			}
+		}
 	}
-	}
-	}*/
 };
 
 void Game::CreateTectonicPlates()
@@ -272,7 +273,7 @@ void Game::CreateTectonicPlates()
 
 void Game::CreateGrassland()
 {
-	for (int f = 0; f <6; f++)
+	for (int f = 0; f <10; f++)
 	{
 		int cluster_origin_province_x = (provinces_num_columns/2)+(rand()%50)-25;
 		int cluster_origin_province_y = (provinces_num_rows/2)+(rand()%30)-15;
@@ -311,12 +312,11 @@ void Game::CreateGrassland()
 };
 void Game::CreateWater()
 {
-	for (int w = 0; w < 200; w++)
+	for (int w = 0; w < 300; w++)
 	{
 		Province* prov = NULL;
 		while(prov == NULL)
 		{
-
 			int x = (rand()%provinces_num_columns);
 			int y = (rand()%provinces_num_rows);
 			if(provinces[y][x]->biome != GRASSLAND)
@@ -324,7 +324,7 @@ void Game::CreateWater()
 				prov = provinces[y][x];
 			}
 		}
-		prov->water_depth +=1000;
+		prov->water_depth +=100;
 		prov->biome = WATER;
 		ResolveWaterInProvince(prov);
 	}
@@ -336,57 +336,62 @@ void Game::ResolveWaterInProvince(Province* prov)
 	std::vector<Province*> neighboring_provinces = GetBlobOfProvinces(prov->province_x,prov->province_y,1,false);
 
 	bool done = false;
+	int provinces_checked = 0;
+
 	while(!done)//Keep passing out water till ur done
 	{
-		if(neighboring_provinces.size() !=0)//Are there any provinces with less alt+depth than the main province?
+		if(prov->water_depth > 0)//Do we have water to pass out?
 		{
-			if(prov->water_depth > 0)//Do we have water to pass out?
+			int steepest_slope = 1;
+			int chosen_slope = 0;
+
+			for (int n = 0; n < neighboring_provinces.size(); n++)
 			{
-				int n = rand()%neighboring_provinces.size();//Pick a random province to give water to
-				Province* neighbor = provinces[neighboring_provinces[n]->province_y][neighboring_provinces[n]->province_x];
-
-				//Difference in altitude of land and depth of water makes a total height
-				//If your province has greater then we can pass the other prov water
-				int difference = prov->getLandAndWaterHeight()-neighboring_provinces[n]->getLandAndWaterHeight();
-
-				if(difference>5)//The difference has to be greater than 5 or its not worht shuffling
+				int difference = prov->getLandAndWaterHeight() - neighboring_provinces[n]->getLandAndWaterHeight();
+				if(difference>steepest_slope)
 				{
-					prov->water_depth-=5;//Lose water
-
-					neighbor->biome = WATER;
-					neighbor->water_depth+=5;//Move water
-
-					//Draw();
-
-					ResolveWaterInProvince(neighbor);//Do the same for the next guy
+					chosen_slope = n;
+					steepest_slope = difference;
+					provinces_checked = 0;
 				}
 				else
 				{
-					//All this shit does is delete the nextdoor province if its too tall to give water
-					int q = 0;
-
-					for (auto b = neighboring_provinces.begin(); b!=neighboring_provinces.end();)
-					{
-						if(q == n)
-						{
-							b = neighboring_provinces.erase(b);
-							break;
-						}
-						q++;
-					}
+					provinces_checked++;
 				}
+			}
+			if(provinces_checked<4)
+			{
+				Province* neighbor = provinces[neighboring_provinces[chosen_slope]->province_y][neighboring_provinces[chosen_slope]->province_x];
+
+				prov->water_depth-=steepest_slope/2;//Lose water
+
+				neighbor->biome = WATER;
+				neighbor->water_depth+=steepest_slope/2;//Move water
+
+				if(times_drawn ==100 )
+				{
+					Draw();
+					times_drawn =0;
+				}
+				times_drawn++;
+				
+				
+				ResolveWaterInProvince(neighbor);//Do the same for the next guy
+
 			}
 			else
 			{
-				//We're out of water
 				done = true;
 			}
 		}
 		else
 		{
-			//Everything around us is too tall
+			//We're out of water
 			done = true;
 		}
+		
+			
+		
 	}
 };
 void Game::CreateForests()
@@ -879,8 +884,8 @@ void Game::DefineColors()
 
 	color_grassland[0] = 75;color_grassland[1] =150;color_grassland[2] = 60;
 	color_jungle[0] = 130;color_jungle[1] =140;color_jungle[2] = 70;
-	color_desert[0] = 245;color_desert[1] =245;color_desert[2] = 100;
-	color_water[0] = 0;color_water[1] =0;color_water[2] = 150;
+	color_desert[0] = 150;color_desert[1] =150;color_desert[2] = 10;
+	color_water[0] = 0;color_water[1] =0;color_water[2] = 190;
 	color_tundra[0] = 235;color_tundra[1] =255;color_tundra[2] = 235;
 	color_alpine[0] = 190;color_alpine[1] =190;color_alpine[2] = 170;
 	color_forest[0] = 140;color_forest[1] =200;color_forest[2] = 130;

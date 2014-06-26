@@ -245,6 +245,7 @@ private:
 
 	//Provinces
 	bool province_jiggle;
+	int times_drawn;
 	std::vector<std::vector<Province*>> provinces;
 	std::vector<Vector2*> province_vertices;
 	std::vector<Province*> provinces_with_hungry_people;
@@ -253,8 +254,6 @@ private:
 	int province_height;
 	int provinces_num_columns;
 	int provinces_num_rows;
-
-	
 
 	int province_jiggle_width;
 	int province_jiggle_height;
