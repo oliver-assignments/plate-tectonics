@@ -15,6 +15,9 @@ void Game::Initialize()
 	screen_width = 1350;
 	screen_height = 690;
 
+	number_times_resolved=0;
+	highest_unresolved=0;
+
 	screen_game_width = screen_width;// - 250;
 	screen_game_height = screen_height;
 
@@ -99,8 +102,8 @@ void Game::InitializeGame()
 	provinces_drawn = true;
 	draw_every_hour = true;
 
-	province_max_altitude = 100;
-	province_max_depth = 100;
+	province_max_altitude = 1000;
+	province_max_depth = 10;
 
 	//Setuping up our values
 	hours_in_day = 24;
@@ -141,11 +144,13 @@ void Game::CreateWorld()
 	CreateProvinces();
 
 	CreateGrassland();
-	//CreateForests();
-	//CreateDeserts();
-	//CreateEquator();
+
 	CreateWater();
 	CreateRivers();
+
+	//	CreateForests();
+	//CreateDeserts();
+	//CreateEquator();
 
 
 	CreatePeople(10,100,75);
@@ -275,7 +280,7 @@ void Game::CreateGrassland()
 {
 	for (int f = 0; f <10; f++)
 	{
-		int cluster_origin_province_x = (provinces_num_columns/2)+(rand()%50)-25;
+		int cluster_origin_province_x = (provinces_num_columns/2)+(rand()%100)-50;
 		int cluster_origin_province_y = (provinces_num_rows/2)+(rand()%30)-15;
 
 		//int radius = 10+rand()%5;
@@ -288,7 +293,7 @@ void Game::CreateGrassland()
 				radius - 3 + (rand()%6),true);
 			for (int p = 0; p < grassland_blob.size(); p++)
 			{	
-				grassland_blob[p]->altitude += 30;
+				grassland_blob[p]->altitude += 30 + rand()%15;
 				grassland_blob[p]->biome = (GRASSLAND);
 
 			}
@@ -312,7 +317,7 @@ void Game::CreateGrassland()
 };
 void Game::CreateWater()
 {
-	for (int w = 0; w < 300; w++)
+	for (int w = 0; w < 10000; w++)
 	{
 		Province* prov = NULL;
 		while(prov == NULL)
@@ -332,67 +337,96 @@ void Game::CreateWater()
 };
 void Game::ResolveWaterInProvince(Province* prov)
 {
-	//The province above, to the right, down, and left of our prov BUT NOT the prov itself
-	std::vector<Province*> neighboring_provinces = GetBlobOfProvinces(prov->province_x,prov->province_y,1,false);
-
-	bool done = false;
-	int provinces_checked = 0;
-
-	while(!done)//Keep passing out water till ur done
+	number_times_resolved ++;
+	if(number_times_resolved>highest_unresolved)
 	{
-		if(prov->water_depth > 0)//Do we have water to pass out?
-		{
-			int steepest_slope = 1;
-			int chosen_slope = 0;
+		highest_unresolved = number_times_resolved;
+	}
+	if(number_times_resolved<1000){
 
-			for (int n = 0; n < neighboring_provinces.size(); n++)
+		//The province above, to the right, down, and left of our prov BUT NOT the prov itself
+		std::vector<Province*> neighboring_provinces = GetBlobOfProvinces(prov->province_x,prov->province_y,1,false);
+
+		bool done = false;
+		int provinces_checked = 0;
+		Province* neighbor = NULL;
+
+		std::vector<Province*> updated_provinces;
+
+		while(!done)//Keep passing out water till ur done
+		{
+			if(prov->water_depth > 0)//Do we have water to pass out?
 			{
-				int difference = prov->getLandAndWaterHeight() - neighboring_provinces[n]->getLandAndWaterHeight();
-				if(difference>steepest_slope)
+				int steepest_slope = 1;
+				int chosen_slope = 0;
+
+				for (int n = 0; n < neighboring_provinces.size(); n++)
 				{
-					chosen_slope = n;
-					steepest_slope = difference;
-					provinces_checked = 0;
+					int difference = prov->getLandAndWaterHeight() - neighboring_provinces[n]->getLandAndWaterHeight();
+					if(difference>steepest_slope)
+					{
+						chosen_slope = n;
+						steepest_slope = difference;
+						provinces_checked = 0;
+					}
+					else
+					{
+						provinces_checked++;
+					}
+				}
+				if(provinces_checked<4)
+				{
+					neighbor = provinces[neighboring_provinces[chosen_slope]->province_y][neighboring_provinces[chosen_slope]->province_x];
+
+					prov->water_depth-=steepest_slope/2;//Lose water
+
+					neighbor->biome = WATER;
+					neighbor->water_depth+=steepest_slope/2;//Move water
+
+					if(times_drawn ==3000 )
+					{
+						Draw();
+						times_drawn =0;
+					}
+					times_drawn++;
+
+					updated_provinces.push_back(neighbor);
+
+					//ResolveWaterInProvince(neighbor);//Do the same for the next guy
 				}
 				else
 				{
-					provinces_checked++;
+					done = true;
+					if(prov->water_depth>province_max_depth)
+					{
+						province_max_depth =prov->water_depth;
+					}
+
 				}
-			}
-			if(provinces_checked<4)
-			{
-				Province* neighbor = provinces[neighboring_provinces[chosen_slope]->province_y][neighboring_provinces[chosen_slope]->province_x];
-
-				prov->water_depth-=steepest_slope/2;//Lose water
-
-				neighbor->biome = WATER;
-				neighbor->water_depth+=steepest_slope/2;//Move water
-
-				if(times_drawn ==100 )
-				{
-					Draw();
-					times_drawn =0;
-				}
-				times_drawn++;
-				
-				
-				ResolveWaterInProvince(neighbor);//Do the same for the next guy
-
 			}
 			else
 			{
+				//We're out of water
 				done = true;
+				if(prov->water_depth>province_max_depth)
+				{
+					province_max_depth =prov->water_depth;
+				}
 			}
+
+			//if(neighbor !=NULL)
+			//{
+			//	//ResolveWaterInProvince(neighbor);//Do the same for the next guy
+			//}
 		}
-		else
+
+		for (int i = 0; i < updated_provinces.size(); i++)
 		{
-			//We're out of water
-			done = true;
+			ResolveWaterInProvince(updated_provinces[i]);//Do the same for the next guy
 		}
-		
-			
-		
+		number_times_resolved--;
 	}
+	else{number_times_resolved--;}
 };
 void Game::CreateForests()
 {
@@ -1907,7 +1941,7 @@ void Game::DrawProvinces()
 					float depth = (float)province->water_depth/(float)province_max_depth;
 					if(depth >1)
 						depth = 1;
-					color[c] = ((float)color[c]) - ((float)color[c]/2 * depth);
+					color[c] = ((float)color[c]) - (((float)color[c]/2) * depth);
 				}
 			}
 
@@ -2522,7 +2556,7 @@ void Game::DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char
 };
 void Game::DrawDate()
 {
-	std::string string_date = "Year: " + std::to_string(current_year) + " Day: " + std::to_string(current_day) + " Hour: " + std::to_string(current_hour);
+	std::string string_date = "Year: " + std::to_string(number_times_resolved) + " Day: " + std::to_string(highest_unresolved) + " Hour: " + std::to_string(current_hour);
 	const char * date = string_date.c_str();
 	al_draw_text(arial16,al_map_rgb(color_text[0],color_text[1],color_text[1]), (screen_game_width/2)-80, 0, 0, date);
 };

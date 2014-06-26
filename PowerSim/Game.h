@@ -246,6 +246,8 @@ private:
 	//Provinces
 	bool province_jiggle;
 	int times_drawn;
+	int number_times_resolved;
+	int highest_unresolved;
 	std::vector<std::vector<Province*>> provinces;
 	std::vector<Vector2*> province_vertices;
 	std::vector<Province*> provinces_with_hungry_people;
