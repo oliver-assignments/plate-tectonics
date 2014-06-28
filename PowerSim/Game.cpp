@@ -292,7 +292,7 @@ void Game::CreateGrassland()
 				radius - 3 + (rand()%6),false,true,true);
 			for (int p = 0; p < grassland_blob.size(); p++)
 			{	
-				grassland_blob[p]->altitude += 30 + rand()%15;
+				grassland_blob[p]->altitude += 60;
 				grassland_blob[p]->biome = (GRASSLAND);
 
 			}
@@ -382,7 +382,7 @@ void Game::ResolveWaterInProvince(Province* prov)
 					provinces_checked++;
 				}
 			}
-			if(provinces_checked<8 && steepest_slope !=1)
+			if(provinces_checked<8 && steepest_slope >1)
 			{
 				Province* neighbor = provinces[neighboring_provinces[chosen_slope]->province_y][neighboring_provinces[chosen_slope]->province_x];
 				if(prov->getLandAndWaterHeight() != neighbor->getLandAndWaterHeight()){
@@ -406,7 +406,7 @@ void Game::ResolveWaterInProvince(Province* prov)
 					}
 
 
-					if(times_drawn ==10)
+					if(times_drawn ==10000)
 					{
 						Draw();
 
@@ -2050,7 +2050,7 @@ void Game::DrawProvinces()
 
 			Province* province = provinces[y][x];
 			if(province->water_depth!=0){
-				std::string string_date = std::to_string(province->water_depth);
+				std::string string_date = std::to_string(province->getLandAndWaterHeight());
 				const char * date = string_date.c_str();
 				//al_draw_text(arial8,al_map_rgb(color_text[0],color_text[1],color_text[1]), province->p0->x, province->p0->y, 0, date);
 			}
