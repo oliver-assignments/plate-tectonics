@@ -162,7 +162,8 @@ public:
 	void MoveRandomDirection(Person* person);
 	void Game::MoveToCoordinates(Person* person, int x,int y);
 
-	std::vector<Province*> GetBlobOfProvinces(int x, int y, int radius,bool doGetCenter);
+	std::vector<Province*> Game::GetSquareOfProvinces(int province_x, int province_y, int radius,bool vertical_wrap,bool horizontal_wrap,bool doGetCenter);
+	std::vector<Province*> GetBlobOfProvinces(int x, int y, int radius,bool vertical_wrap,bool horizontal_wrap,bool doGetCenter);
 	std::vector<Vector2*> GetBlobOfCoordinates(int province_x, int province_y, int radius);
 	void GetInLineForFood(int x,int y,Person* myPerson);
 	void DivvyUpFood();
@@ -323,6 +324,7 @@ private:
 	ALLEGRO_FONT* arial24;
 	ALLEGRO_FONT* arial16;
 	ALLEGRO_FONT* arial12;
+	ALLEGRO_FONT* arial8;
 
 	int color_resource[3];
 	int color_house[3];

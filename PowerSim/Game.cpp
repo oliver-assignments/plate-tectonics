@@ -236,7 +236,7 @@ void Game::CreateProvinces()
 			}
 			Province* province = new Province(province_id,x,y,top_left,top_right,bottom_right,bottom_left);
 
-			//province->altitude+= rand()%5;
+			province->altitude+= rand()%15;
 			province->distance_from_equator = abs(equator_position-y);
 			province_id++;
 
@@ -245,18 +245,18 @@ void Game::CreateProvinces()
 	}
 
 	//Jiggle
-	if(province_jiggle){
-		for(std::vector<Vector2*>::size_type v = 0; v != province_vertices.size(); v++) 
-		{
-			int x = v% (provinces_num_columns+1);
-			int y = v/ (provinces_num_columns+1);
-			if(x>0 && y>0 && x<provinces_num_columns && y<provinces_num_rows)
-			{
-				province_vertices[v]->x = province_vertices[v]->x + 5 - (province_jiggle_width/2) + (rand()%province_jiggle_width);
-				province_vertices[v]->y = province_vertices[v]->y + 5 - (province_jiggle_height/2) + (rand()%province_jiggle_height);
-			}
-		}
+	/*if(province_jiggle){
+	for(std::vector<Vector2*>::size_type v = 0; v != province_vertices.size(); v++) 
+	{
+	int x = v% (provinces_num_columns+1);
+	int y = v/ (provinces_num_columns+1);
+	if(x>0 && y>0 && x<provinces_num_columns && y<provinces_num_rows)
+	{
+	province_vertices[v]->x = province_vertices[v]->x + 5 - (province_jiggle_width/2) + (rand()%province_jiggle_width);
+	province_vertices[v]->y = province_vertices[v]->y + 5 - (province_jiggle_height/2) + (rand()%province_jiggle_height);
 	}
+	}
+	}*/
 };
 
 void Game::CreateTectonicPlates()
@@ -289,7 +289,7 @@ void Game::CreateGrassland()
 		{
 			std::vector<Province*> grassland_blob = GetBlobOfProvinces(cluster_origin_province_x - (radius/2*3) + (rand()%(radius*3)),
 				cluster_origin_province_y - (radius/2*3) + (rand()%(radius*3)), 
-				radius - 3 + (rand()%6),true);
+				radius - 3 + (rand()%6),false,true,true);
 			for (int p = 0; p < grassland_blob.size(); p++)
 			{	
 				grassland_blob[p]->altitude += 30 + rand()%15;
@@ -340,12 +340,22 @@ void Game::CreateWater()
 
 	}while(province_water_unresolved.size()>0);
 
+	province_max_depth=0;
+	for(std::vector<std::vector<Province*>>::size_type y = 0; y < provinces_num_rows; y++) 
+	{
+		for(std::vector<Province*>::size_type x = 0; x < provinces_num_columns; x++) 
+		{
+			Province* province = provinces[y][x];
+
+			if(province_max_depth<province->water_depth)
+				province_max_depth = province->water_depth;
+		}
+	}
 };
 void Game::ResolveWaterInProvince(Province* prov)
 {
-
 	//The province above, to the right, down, and left of our prov BUT NOT the prov itself
-	std::vector<Province*> neighboring_provinces = GetBlobOfProvinces(prov->province_x,prov->province_y,1,false);
+	std::vector<Province*> neighboring_provinces = GetSquareOfProvinces(prov->province_x,prov->province_y,1,false,true,false);
 
 	bool done = false;
 	int provinces_checked = 0;
@@ -369,10 +379,10 @@ void Game::ResolveWaterInProvince(Province* prov)
 				}
 				else
 				{
-					//provinces_checked++;
+					provinces_checked++;
 				}
 			}
-			if(provinces_checked<4 && steepest_slope !=1)
+			if(provinces_checked<8 && steepest_slope !=1)
 			{
 				Province* neighbor = provinces[neighboring_provinces[chosen_slope]->province_y][neighboring_provinces[chosen_slope]->province_x];
 				if(prov->getLandAndWaterHeight() != neighbor->getLandAndWaterHeight()){
@@ -392,19 +402,17 @@ void Game::ResolveWaterInProvince(Province* prov)
 
 					if(prov->water_depth>province_max_depth)
 					{
-						province_max_depth =prov->water_depth;
+						province_max_depth = prov->water_depth;
 					}
 
 
-					if(times_drawn ==100)
+					if(times_drawn ==10)
 					{
 						Draw();
 
 						times_drawn =0;
 					}
 					times_drawn++;
-
-					//Draw();
 
 					province_water_unresolved.push_back(neighbor);
 				}
@@ -431,7 +439,7 @@ void Game::CreateForests()
 		{
 			std::vector<Province*> forest_blob = GetBlobOfProvinces(cluster_origin_province_x + - 3 + rand()%6, 
 				cluster_origin_province_y+ - 3 + rand()%6,
-				1+rand()%3,true);
+				1+rand()%3,false,true,true);
 			for (int p = 0; p < forest_blob.size(); p++)
 			{
 				if(forest_blob[p]->biome!=WATER)
@@ -449,7 +457,7 @@ void Game::CreateDeserts()
 		int cluster_origin_province_x = rand()%provinces_num_columns;
 		int cluster_origin_province_y = ((provinces_num_rows/5)*2) + rand()%(provinces_num_rows/5);
 
-		std::vector<Province*> desert_blob = GetBlobOfProvinces(cluster_origin_province_x, cluster_origin_province_y, 2+rand()%3,true);
+		std::vector<Province*> desert_blob = GetBlobOfProvinces(cluster_origin_province_x, cluster_origin_province_y, 2+rand()%3,false,true,true);
 		for (int p = 0; p < desert_blob.size(); p++)
 		{
 			if(desert_blob[p]->biome!=WATER)
@@ -497,7 +505,7 @@ void Game::CreateRivers()
 
 				while(old_prov == current_prov)
 				{
-					std::vector<Province*> surrounding = GetBlobOfProvinces(current_prov->province_x,current_prov->province_y,1,true);
+					std::vector<Province*> surrounding = GetBlobOfProvinces(current_prov->province_x,current_prov->province_y,1,false,true,true);
 
 					int next_prov = rand()%4;
 					switch (next_prov)
@@ -659,7 +667,63 @@ std::string Game::CreateName(int myNumberLetters)
 };
 
 //This wraps by x but not y
-std::vector<Province*> Game::GetBlobOfProvinces(int province_x, int province_y, int radius, bool doGetCenter)
+std::vector<Province*> Game::GetSquareOfProvinces(int province_x, int province_y, int radius,bool vertical_wrap,bool horizontal_wrap,bool doGetCenter)
+{
+	std::vector<Province*> square;
+
+	for (int x = province_x-radius; x <= province_x+radius; x++)
+	{
+		for (int y = province_y-radius; y <= province_y+radius; y++)
+		{
+			if(x == province_x && y == province_y )
+			{
+				if(doGetCenter)
+					square.push_back(provinces[y][x]);
+			}
+			else
+			{
+				int wrapped_x = x;
+				int wrapped_y = y;
+
+				bool valid = true;
+
+				if(horizontal_wrap)
+				{
+					if(wrapped_x <0)
+						wrapped_x+=provinces_num_columns;
+
+					if(wrapped_x>=provinces_num_columns)
+						wrapped_x-=provinces_num_columns;
+				}
+				else
+				{
+					if(wrapped_x <0 || wrapped_x>=provinces_num_columns)
+						valid = false;
+				}
+				if(vertical_wrap)
+				{
+					if(wrapped_y <0)
+						wrapped_y+=provinces_num_rows;
+
+					if(wrapped_y>=provinces_num_rows)
+						wrapped_y-=provinces_num_rows;
+				}
+				else
+				{
+					if(wrapped_y <0 || wrapped_y>=provinces_num_rows)
+						valid = false;
+				}
+				if(valid)
+				{
+					if(wrapped_y >=0 && wrapped_y<provinces_num_rows && wrapped_x >=0 && wrapped_x<provinces_num_columns)
+						square.push_back(provinces[wrapped_y][wrapped_x]);
+				}
+			}
+		}
+	}
+	return square;
+};
+std::vector<Province*> Game::GetBlobOfProvinces(int province_x, int province_y, int radius,bool vertical_wrap,bool horizontal_wrap, bool doGetCenter)
 {
 	//								//
 	//ADDS THE + SIGN MORE THAN ONCE//
@@ -897,6 +961,7 @@ void Game::LoadContent()
 	arial24 = al_load_font("arial.ttf",24,0);
 	arial16 = al_load_font("arial.ttf",16,0);
 	arial12 = al_load_font("arial.ttf",12,0);
+	arial8 = al_load_font("arial.ttf",8,0);
 	DefineColors();
 };
 void Game::DefineColors()
@@ -1952,6 +2017,9 @@ void Game::DrawProvinces()
 
 			al_draw_prim(vertices, NULL, 0, 0, 4, ALLEGRO_PRIM_TRIANGLE_FAN );
 
+
+
+
 			////Draw border
 			//al_draw_line(province->p0->x,province->p0->y,province->p1->x,province->p1->y,
 			//	al_map_rgb(color[0],color[1],color[2]),2);
@@ -1973,6 +2041,19 @@ void Game::DrawProvinces()
 
 			al_draw_line(provinces[y][x]->vertices[6],provinces[y][x]->vertices[7],provinces[y][x]->vertices[0],provinces[y][x]->vertices[1],
 			al_map_rgb(255,255,255),1);*/
+		}
+	}
+	for(std::vector<std::vector<Province*>>::size_type y = 0; y < provinces_num_rows; y++) 
+	{
+		for(std::vector<Province*>::size_type x = 0; x < provinces_num_columns; x++) 
+		{
+
+			Province* province = provinces[y][x];
+			if(province->water_depth!=0){
+				std::string string_date = std::to_string(province->water_depth);
+				const char * date = string_date.c_str();
+				//al_draw_text(arial8,al_map_rgb(color_text[0],color_text[1],color_text[1]), province->p0->x, province->p0->y, 0, date);
+			}
 		}
 	}
 };
@@ -2564,6 +2645,7 @@ void Game::FreeMemory()
 	al_destroy_font(arial24);
 	al_destroy_font(arial16);
 	al_destroy_font(arial12);
+	al_destroy_font(arial8);
 
 	for(std::vector<Person*>::size_type i = 0; i != people.size(); i++) 
 	{
