@@ -10,7 +10,7 @@ public:
 	TectonicPlate(){};
 	
 	std::vector<Vector2*> provinces_in_plate;
-	double x_velocity;// provinces '/. years it takes 
+	double x_velocity;
 	double y_velocity;
 
 	void Move()

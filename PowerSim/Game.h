@@ -152,6 +152,9 @@ public:
 	void RunHumans();
 	void ProcessPeople();
 
+	void UpdateDeepestWater();
+	void UpdateHighestMountain();
+
 	//AI
 	void ProcessPersonAI(Person* person);
 	void SeekDominion(Person* person);
@@ -201,7 +204,7 @@ public:
 	//Unload
 	void FreeMemory();
 
-	long int PMrand();
+	void WrapCoordinates(Vector2* myCoordinate, bool horizontal_wrap, bool vertical_wrap);
 
 private:
 	//Management//
@@ -242,6 +245,7 @@ private:
 
 	//Tectonic Plates
 	std::vector<std::vector<bool>> provinces_has_plate;
+	std::vector<std::vector<int>> provinces_pending_altitude_changes;
 
 	std::vector<TectonicPlate*> tectonic_plates; 
 	std::vector<Vector2*> currentPlateCollisions;
@@ -272,8 +276,8 @@ private:
 	bool color_province_blending;
 
 	int arability_max;
-	int province_max_altitude;
-	int province_max_depth;
+	int province_highest_altitude;
+	int province_deepest_depth;
 
 	int province_id;
 

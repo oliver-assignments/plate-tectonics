@@ -103,8 +103,8 @@ void Game::InitializeGame()
 	provinces_drawn = true;
 	draw_every_hour = true;
 
-	province_max_altitude = 1000;
-	province_max_depth = 10;
+	province_highest_altitude = 1000;
+	province_deepest_depth = 10;
 
 	//Setuping up our values
 	hours_in_day = 24;
@@ -279,21 +279,6 @@ void Game::CreateGrassland()
 
 			}
 		}
-
-		/*
-		for (int w = 0; w < 10; w++)
-		{
-		int smallerRadius = ((rand()%(radius)));
-
-		int location_x = cluster_origin_province_x + (-(radius*1)+(rand()%(radius*2)));
-		int location_y = cluster_origin_province_y + (-(radius*1)+(rand()%(radius*2)));
-
-		std::vector<Province*> grassland_smaller_blob = GetDiamondOfProvinces(location_x, location_y, smallerRadius);
-		for (int p = 0; p < grassland_smaller_blob.size(); p++)
-		{
-		grassland_smaller_blob[p]->SetBiome(GRASSLAND);
-		}
-		}*/
 	}
 };
 void Game::CreateWater()
@@ -325,18 +310,7 @@ void Game::ResolveAllWater()
 
 	}while(province_water_unresolved.size()>0);
 
-	//Fixing water depth
-	province_max_depth=0;
-	for(std::vector<std::vector<Province*>>::size_type y = 0; y < provinces_num_rows; y++) 
-	{
-		for(std::vector<Province*>::size_type x = 0; x < provinces_num_columns; x++) 
-		{
-			Province* province = provinces[y][x];
-
-			if(province_max_depth<province->water_depth)
-				province_max_depth = province->water_depth;
-		}
-	}
+	UpdateDeepestWater();
 };
 void Game::ResolveWaterInProvince(Province* prov)
 {
@@ -387,9 +361,9 @@ void Game::ResolveWaterInProvince(Province* prov)
 						prov->water_depth = 0;
 					}
 
-					if(prov->water_depth>province_max_depth)
+					if(prov->water_depth>province_deepest_depth)
 					{
-						province_max_depth = prov->water_depth;
+						province_deepest_depth = prov->water_depth;
 					}
 
 
@@ -417,22 +391,28 @@ void Game::ResolveWaterInProvince(Province* prov)
 };
 void Game::CreateTectonicPlates()
 {
+	int provinces_without_plate = provinces_num_rows *provinces_num_columns;
+
 	for (int y = 0; y < provinces_num_rows; y++)
 	{
-		std::vector<bool> row;
+		std::vector<bool> row_of_taken_provinces;
+		provinces_has_plate.push_back(row_of_taken_provinces);
 
-		provinces_has_plate.push_back(row);
+		std::vector<int> row_of_altitude_changes;
+		provinces_pending_altitude_changes.push_back(row_of_altitude_changes);
+
 		for (int x = 0; x < provinces_num_columns; x++)
 		{
 			provinces_has_plate[y].push_back(false);
+			provinces_pending_altitude_changes[y].push_back(0);
 		}
 	}
 
-	int radius = 20;
+	int radius = 30;
 	int provinces_scanned =0;
 
 	//Creating every plate
-	while(true)
+	while(provinces_without_plate>0)
 	{
 		TectonicPlate* tectonic_plate = new TectonicPlate();
 
@@ -453,7 +433,7 @@ void Game::CreateTectonicPlates()
 		}
 
 		//Creating # of smaller diamonds near our center
-		for (int q = 0; q < 30; q++)
+		for (int q = 0; q < 17; q++)
 		{
 			//Wrap the x
 			int piece_origin_x = cluster_origin_province_x - (radius/2) + rand()%(radius);
@@ -470,7 +450,7 @@ void Game::CreateTectonicPlates()
 				continue;
 
 			//A mildy random piece size
-			int piece_radius = 3+(rand()%2);
+			int piece_radius = 10+(rand()%5);
 
 			//The coordinates of the piece
 			std::vector<Province*> piece = GetDiamondOfProvinces(piece_origin_x,piece_origin_y,piece_radius,false,true,true);
@@ -483,7 +463,9 @@ void Game::CreateTectonicPlates()
 					//Add it to our plate!
 					tectonic_plate->provinces_in_plate.push_back(new Vector2(piece[m]->province_x,piece[m]->province_y));
 
+					//A province has been taken
 					provinces_has_plate[piece[m]->province_y][piece[m]->province_x] = true;
+					provinces_without_plate--;
 
 					//Draw what we have taken!
 					if(provinces_scanned == 50)
@@ -496,21 +478,15 @@ void Game::CreateTectonicPlates()
 			}
 		}
 		tectonic_plates.push_back(tectonic_plate);
-
-		int province_count = provinces_num_rows *provinces_num_columns;
-		for (int y = 0; y < provinces_num_rows; y++)
-		{
-			for (int x = 0; x < provinces_num_columns; x++)
-			{
-				if(provinces_has_plate[y][x] == true)
-				{
-					province_count--;
-				}
-			}
-		}
-		if(province_count==0)
-			break;
 	}
+
+	//currentIngameState = TERRAIN;
+	for (int i = 0; i < 15; i++)
+	{
+		RunTectonics();
+	}
+
+
 };
 void Game::CreateForests()
 {
@@ -1275,14 +1251,96 @@ void Game::TakeInput()
 	old_keyboard_state = new_keyboard_state;
 };
 
+void Game::UpdateDeepestWater()
+{
+	province_deepest_depth=0;
+	for(std::vector<std::vector<Province*>>::size_type y = 0; y < provinces_num_rows; y++) 
+	{
+		for(std::vector<Province*>::size_type x = 0; x < provinces_num_columns; x++) 
+		{
+			Province* province = provinces[y][x];
+
+			if(province_deepest_depth<province->water_depth)
+				province_deepest_depth = province->water_depth;
+		}
+	}
+};
+void Game::UpdateHighestMountain()
+{
+	province_highest_altitude = 0;
+
+	for(std::vector<std::vector<Province*>>::size_type y = 0; y < provinces_num_rows; y++) 
+	{
+		for(std::vector<Province*>::size_type x = 0; x < provinces_num_columns; x++) 
+		{
+			Province* province = provinces[y][x];
+
+			if(province_highest_altitude<province->getLandAndWaterHeight())
+				province_highest_altitude =province->getLandAndWaterHeight();
+		}
+	}
+};
+
 void Game::RunTectonics()
 {
 	current_year+=10000;
 
-	for (int p = 0; p < tectonic_plates.size(); p++)
+	for (int t = 0; t < tectonic_plates.size(); t++)
 	{
-		tectonic_plates[p]->Move();
+		int x_change = -1 + rand()%3;
+		int y_change = -1 + rand()%3;
+
+		std::vector<Vector2*> new_plate;
+
+		for (int p = 0; p < tectonic_plates[t]->provinces_in_plate.size(); p++)
+		{
+			Province* province = provinces[tectonic_plates[t]->provinces_in_plate[p]->y][tectonic_plates[t]->provinces_in_plate[p]->x];
+
+			int altitude_change = province->altitude;
+
+			//Take altitude from where you were and move it to new location
+			provinces_pending_altitude_changes[tectonic_plates[t]->provinces_in_plate[p]->y][tectonic_plates[t]->provinces_in_plate[p]->x]-=altitude_change;
+
+			Vector2* new_province_position = new Vector2(tectonic_plates[t]->provinces_in_plate[p]->x+x_change,tectonic_plates[t]->provinces_in_plate[p]->y+y_change);
+			WrapCoordinates(new_province_position,true,false);
+			if(new_province_position->x>=0 && new_province_position->y>= 0 && new_province_position->x<provinces_num_columns && new_province_position->y < provinces_num_rows)
+			{
+				provinces_pending_altitude_changes[new_province_position->y][new_province_position->x]+=altitude_change;
+				new_plate.push_back(new_province_position);
+			}
+		}
+
+		tectonic_plates[t]->provinces_in_plate.clear();
+		for (int i = 0; i < new_plate.size(); i++)
+		{
+			tectonic_plates[t]->provinces_in_plate.push_back(new_plate[i]);
+		}
 	}
+
+	//Applying height changes
+	for (int y= 0; y < provinces_num_rows; y++)
+	{
+		for (int x= 0; x < provinces_num_columns; x++)
+		{
+			provinces[y][x]->altitude+=provinces_pending_altitude_changes[y][x];
+			province_water_unresolved.push_back(provinces[y][x]);
+		}
+	}
+
+	ResolveAllWater();
+
+	for (int y= 0; y < provinces_num_rows; y++)
+	{
+		for (int x= 0; x < provinces_num_columns; x++)
+		{
+			if(provinces[y][x]->water_depth==0)
+			{
+				provinces[y][x]->biome = GRASSLAND;
+			}
+		}
+	}
+
+	UpdateHighestMountain();
 
 	//Resolve Collisions
 
@@ -1980,8 +2038,6 @@ void Game::UpdatePersonPositionToProvince(Person* person)
 
 void Game::Draw()
 {
-
-
 	DrawProvinces();
 
 	DrawRivers();
@@ -2059,9 +2115,9 @@ void Game::DrawProvinces()
 					//Land
 					for (int c = 0; c < 3; c++)
 					{
-						if(province->altitude <=province_max_altitude)
+						if(province->altitude <=province_highest_altitude)
 						{
-							float percentage = ((float)color[c]/2) * ((float)province->altitude/(float)province_max_altitude);
+							float percentage = ((float)color[c]/2) * ((float)province->altitude/(float)province_highest_altitude);
 							color[c] = (color[c]*0.5) + percentage;
 						}
 						else
@@ -2075,7 +2131,7 @@ void Game::DrawProvinces()
 					//Water
 					for (int c = 0; c < 3; c++)
 					{
-						float depth = (float)province->water_depth/(float)province_max_depth;
+						float depth = (float)province->water_depth/(float)province_deepest_depth;
 						if(depth >1)
 							depth = 1;
 						color[c] = ((float)color[c]) - (((float)color[c]/2) * depth);
@@ -2774,6 +2830,55 @@ void Game::FreeMemory()
 		for(std::vector<Province*>::size_type x = 0; x != provinces[i].size(); x++) 
 		{
 			delete provinces[i][x];
+		}
+	}
+};
+
+void Game::WrapCoordinates(Vector2* myCoordinate, bool horizontal_wrap, bool vertical_wrap)
+{
+	if(horizontal_wrap)
+	{
+		while(myCoordinate->x <0)
+		{
+			myCoordinate->x += provinces_num_columns;
+		}
+		while(myCoordinate->x >=provinces_num_columns)
+		{
+			myCoordinate->x -= provinces_num_columns;
+		}
+	}
+	else
+	{
+		if(myCoordinate->x <0)
+		{
+			myCoordinate->x =0;
+		}
+		if(myCoordinate->x >=provinces_num_columns)
+		{
+			myCoordinate->x = provinces_num_columns;
+		}
+	}
+
+
+	if(vertical_wrap)
+	{
+		while(myCoordinate->y <0)
+		{
+			myCoordinate->y += provinces_num_rows;
+		}
+		while(myCoordinate->y >=provinces_num_rows)
+		{
+			myCoordinate->y -= provinces_num_rows;
+		}
+	}
+	else{
+		if(myCoordinate->y <0)
+		{
+			myCoordinate->y =0;
+		}
+		if(myCoordinate->y >=provinces_num_rows)
+		{
+			myCoordinate->y = provinces_num_rows;
 		}
 	}
 };
