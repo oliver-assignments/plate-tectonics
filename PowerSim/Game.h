@@ -124,6 +124,7 @@ public:
 
 	void CreateProvinces();
 	void CreateWater();
+	void ResolveAllWater();
 	void ResolveWaterInProvince(Province* prov);
 	void CreateGrassland();
 	void CreateForests();
@@ -163,7 +164,7 @@ public:
 	void Game::MoveToCoordinates(Person* person, int x,int y);
 
 	std::vector<Province*> Game::GetSquareOfProvinces(int province_x, int province_y, int radius,bool vertical_wrap,bool horizontal_wrap,bool doGetCenter);
-	std::vector<Province*> GetBlobOfProvinces(int x, int y, int radius,bool vertical_wrap,bool horizontal_wrap,bool doGetCenter);
+	std::vector<Province*> GetDiamondOfProvinces(int x, int y, int radius,bool vertical_wrap,bool horizontal_wrap,bool doGetCenter);
 	std::vector<Vector2*> GetBlobOfCoordinates(int province_x, int province_y, int radius);
 	void GetInLineForFood(int x,int y,Person* myPerson);
 	void DivvyUpFood();
@@ -240,18 +241,15 @@ private:
 	int current_year;
 
 	//Tectonic Plates
-	std::vector<TectonicPlate*> listOfTectonicPlates; 
+	std::vector<std::vector<bool>> provinces_has_plate;
+
+	std::vector<TectonicPlate*> tectonic_plates; 
 	std::vector<Vector2*> currentPlateCollisions;
 	std::vector<Vector2*> oldPlateCollisions;
 
 	//Provinces
 	bool province_jiggle;
 
-	//Water Resolution
-	std::vector<Province*> province_water_unresolved;
-	int times_drawn;
-	int number_times_resolved;
-	int highest_unresolved;
 	std::vector<std::vector<Province*>> provinces;
 	std::vector<Vector2*> province_vertices;
 	std::vector<Province*> provinces_with_hungry_people;
@@ -261,10 +259,16 @@ private:
 	int provinces_num_columns;
 	int provinces_num_rows;
 
+	//Water Resolution
+	std::vector<Province*> province_water_unresolved;
+	int times_drawn;
+
 	int province_jiggle_width;
 	int province_jiggle_height;
 
 	bool provinces_drawn;
+	bool province_borders_drawn;
+	bool province_height_drawn;
 	bool color_province_blending;
 
 	int arability_max;

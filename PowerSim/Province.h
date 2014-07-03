@@ -40,7 +40,7 @@ public:
 	{
 		return altitude+ water_depth;
 	}
-
+	
 	Vector2* p0;
 	Vector2* p1;
 	Vector2* p2;
@@ -50,7 +50,7 @@ public:
 	int altitude;//from deepest depths
 	int distance_from_equator;//Used for climates
 	int arability;
-	
+
 	Biome biome;
 
 	int food_in_province;
