@@ -56,7 +56,7 @@ void Game::Initialize()
 	InitializeAllegro();
 	LoadContent();
 
-	InitializeGame();
+	InitializeVariables();
 
 	Update();
 };
@@ -86,7 +86,7 @@ void Game::InitializeAllegro()
 	al_reserve_samples(10);
 };
 
-void Game::InitializeGame()
+void Game::InitializeVariables()
 {	
 	province_width = 15;
 	province_height = 10;
@@ -150,6 +150,12 @@ void Game::CreateWorld()
 
 	currentIngameState = PLATE_TECTONICS;
 	CreateTectonicPlates();
+
+	currentIngameState = TERRAIN;
+	for (int i = 0; i < 25; i++)
+	{
+		RunTectonics();
+	}
 
 	//currentIngameState = HUMAN;
 	CreatePeople(10,100,75);
@@ -261,8 +267,8 @@ void Game::CreateGrassland()
 {
 	for (int f = 0; f <20; f++)
 	{
-		int cluster_origin_province_x = (provinces_num_columns/2)+(rand()%50)-25;
-		int cluster_origin_province_y = (provinces_num_rows/2)+(rand()%50)-25;
+		int cluster_origin_province_x = (provinces_num_columns/2)+(rand()%30)-15;
+		int cluster_origin_province_y = (provinces_num_rows/2)+(rand()%60)-30;
 
 		//int radius = 10+rand()%5;
 		int radius  = 4;
@@ -303,12 +309,11 @@ void Game::CreateWater()
 };
 void Game::ResolveAllWater()
 {
-	do
+	while(province_water_unresolved.size()>0)
 	{
 		ResolveWaterInProvince(province_water_unresolved[province_water_unresolved.size()-1]);
 		province_water_unresolved.erase(province_water_unresolved.end()-1);
-
-	}while(province_water_unresolved.size()>0);
+	}
 
 	UpdateDeepestWater();
 };
@@ -392,7 +397,9 @@ void Game::ResolveWaterInProvince(Province* prov)
 void Game::CreateTectonicPlates()
 {
 	int provinces_without_plate = provinces_num_rows *provinces_num_columns;
+	int plate_count = 0;
 
+	//Initializing the grid for tectonic plates
 	for (int y = 0; y < provinces_num_rows; y++)
 	{
 		std::vector<bool> row_of_taken_provinces;
@@ -401,10 +408,14 @@ void Game::CreateTectonicPlates()
 		std::vector<int> row_of_altitude_changes;
 		provinces_pending_altitude_changes.push_back(row_of_altitude_changes);
 
+		std::vector<std::vector<int>> row_of_list_of_plates_on_province;
+		plates_on_province.push_back(row_of_list_of_plates_on_province);
+
 		for (int x = 0; x < provinces_num_columns; x++)
 		{
 			provinces_has_plate[y].push_back(false);
 			provinces_pending_altitude_changes[y].push_back(0);
+			plates_on_province[y].push_back(*new std::vector<int>);
 		}
 	}
 
@@ -415,6 +426,8 @@ void Game::CreateTectonicPlates()
 	while(provinces_without_plate>0)
 	{
 		TectonicPlate* tectonic_plate = new TectonicPlate();
+		tectonic_plate->plate_number = plate_count;
+		plate_count++;
 
 		//Finding a good blob origin that isnt already taken
 		int cluster_origin_province_x=rand()%provinces_num_columns;//-1;
@@ -471,7 +484,7 @@ void Game::CreateTectonicPlates()
 					if(provinces_scanned == 50)
 					{
 						Draw();
-						provinces_scanned =0;
+						provinces_scanned = 0;
 					}
 					provinces_scanned++;
 				}
@@ -480,13 +493,65 @@ void Game::CreateTectonicPlates()
 		tectonic_plates.push_back(tectonic_plate);
 	}
 
-	//currentIngameState = TERRAIN;
-	for (int i = 0; i < 15; i++)
-	{
-		RunTectonics();
-	}
+	Draw();
 
+	////If a plate is too small we mesh it with other plates
+	//for (int t = 0; t < tectonic_plates.size(); t++)
+	//{
+	//	if(tectonic_plates[t]->provinces_in_plate.size() < 10 && tectonic_plates[t]->provinces_in_plate.size() != 0)
+	//	{
+	//		for (int p = 0; p < tectonic_plates[t]->provinces_in_plate.size(); p++)
+	//		{
+	//			//All the neighboring provinces we could give this peice to
+	//			std::vector<Province*> neighboring = GetSquareOfProvinces(tectonic_plates[t]->provinces_in_plate[p]->x,
+	//				tectonic_plates[t]->provinces_in_plate[p]->y,
+	//				1, false,true,false);
 
+	//			//We try this neighbor
+	//			int attempted_neighbor_index= NULL;
+	//			while(attempted_neighbor_index==NULL)
+	//			{
+	//				int attempted_index= rand()%neighboring.size();
+	//				std::vector<int> plates_on_this_province = plates_on_province[neighboring[attempted_neighbor_index]->province_y]
+	//				[neighboring[attempted_neighbor_index]->province_x];
+
+	//				if(plates_on_this_province.size() >1)
+	//				{
+	//					attempted_neighbor_index = attempted_index;
+	//				}
+	//				else if(plates_on_this_province.size() ==1)
+	//				{
+	//					if(plates_on_this_province[0] != t)
+	//					{
+	//						attempted_neighbor_index = attempted_index;
+	//					}
+	//				}
+	//			}
+
+	//			//The plates on the neighboring province
+	//			std::vector<int> plates_on_this_province = plates_on_province[neighboring[attempted_neighbor_index]->province_y]
+	//			[neighboring[attempted_neighbor_index]->province_x];
+
+	//			//Add this province coordinate to our neighbors list
+	//			int recipient_plate = -9999;
+	//			while(recipient_plate == -9999)
+	//			{
+	//				int attempted_index = rand()%plates_on_this_province.size();
+	//				if(attempted_index!=t)
+	//				{
+	//					recipient_plate = attempted_index;
+	//				}
+	//			}
+
+	//			tectonic_plates[recipient_plate]->provinces_in_plate.push_back(
+	//				new Vector2(tectonic_plates[t]->provinces_in_plate[p]->x,
+	//				tectonic_plates[t]->provinces_in_plate[p]->y));
+	//			Draw();
+	//		}
+	//		//Effectively delte this plate
+	//		tectonic_plates[t]->provinces_in_plate.clear();
+	//	}
+	//}
 };
 void Game::CreateForests()
 {
@@ -1285,49 +1350,126 @@ void Game::RunTectonics()
 {
 	current_year+=10000;
 
+	//Clear our tect plate lists
+	for (int y = 0; y < provinces_num_rows; y++)
+	{
+		for (int x = 0; x < provinces_num_columns; x++)
+		{
+			plates_on_province[y][x].clear();
+		}
+	}
+
+	//Moving the plates, not we only make a new array of the supposed positons we dont ACTUALYL move them
 	for (int t = 0; t < tectonic_plates.size(); t++)
 	{
-		int x_change = -1 + rand()%3;
-		int y_change = -1 + rand()%3;
-
-		std::vector<Vector2*> new_plate;
+		//If it isn't moving get it a new direction
+		/*if(tectonic_plates[t]->x_velocity == -9999)
+		{*/
+			tectonic_plates[t]->x_velocity = -1 + rand()%3;
+			tectonic_plates[t]->y_velocity = -1 + rand()%3;
+		//}
 
 		for (int p = 0; p < tectonic_plates[t]->provinces_in_plate.size(); p++)
 		{
 			Province* province = provinces[tectonic_plates[t]->provinces_in_plate[p]->y][tectonic_plates[t]->provinces_in_plate[p]->x];
 
-			int altitude_change = province->altitude;
+			Vector2* new_province_position = new Vector2(tectonic_plates[t]->provinces_in_plate[p]->x+tectonic_plates[t]->x_velocity,
+				tectonic_plates[t]->provinces_in_plate[p]->y+tectonic_plates[t]->y_velocity);
 
-			//Take altitude from where you were and move it to new location
-			provinces_pending_altitude_changes[tectonic_plates[t]->provinces_in_plate[p]->y][tectonic_plates[t]->provinces_in_plate[p]->x]-=altitude_change;
-
-			Vector2* new_province_position = new Vector2(tectonic_plates[t]->provinces_in_plate[p]->x+x_change,tectonic_plates[t]->provinces_in_plate[p]->y+y_change);
 			WrapCoordinates(new_province_position,true,false);
-			if(new_province_position->x>=0 && new_province_position->y>= 0 && new_province_position->x<provinces_num_columns && new_province_position->y < provinces_num_rows)
-			{
-				provinces_pending_altitude_changes[new_province_position->y][new_province_position->x]+=altitude_change;
-				new_plate.push_back(new_province_position);
-			}
-		}
 
-		tectonic_plates[t]->provinces_in_plate.clear();
-		for (int i = 0; i < new_plate.size(); i++)
-		{
-			tectonic_plates[t]->provinces_in_plate.push_back(new_plate[i]);
+			plates_on_province[new_province_position->y][new_province_position->x].push_back(tectonic_plates[t]->plate_number);
 		}
 	}
 
-	//Applying height changes
-	for (int y= 0; y < provinces_num_rows; y++)
+	//Conflcit resolve
+	for (int y = 0; y < provinces_num_rows; y++)
 	{
-		for (int x= 0; x < provinces_num_columns; x++)
+		for (int x = 0; x < provinces_num_columns; x++)
 		{
-			provinces[y][x]->altitude+=provinces_pending_altitude_changes[y][x];
+			std::vector<int> tectonic_plate_conflicts = plates_on_province[y][x];
+
+			if(tectonic_plate_conflicts.size() >1)
+			{
+				std::vector<Province*> province_conflicts;
+
+				//Pulling the old provinces by backtracking so we can compare
+				for (int c = 0; c < tectonic_plate_conflicts.size(); c++)
+				{
+					Vector2 old_position (x-tectonic_plates[tectonic_plate_conflicts[c]]->x_velocity,
+						y-tectonic_plates[tectonic_plate_conflicts[c]]->y_velocity);
+					WrapCoordinates(&old_position,true,false);
+
+					Province* old_plate_province_pos = provinces[old_position.y][old_position.x];
+
+					province_conflicts.push_back(old_plate_province_pos);
+				}
+
+				int highest_priority_value = INT_MIN;
+				int highest_value_index= - 9990;
+
+				for (int c = 0; c < province_conflicts.size(); c++)
+				{
+					//Add the alt and remove the water of the province
+					int height = province_conflicts[c]->altitude - province_conflicts[c]->water_depth;
+
+					//And its surroundings
+					std::vector<Province*> neighbors = GetSquareOfProvinces(province_conflicts[c]->province_y,province_conflicts[c]->province_x,1,false,true,false);
+					for (int n = 0; n < neighbors.size(); n++)
+					{
+						height += neighbors[n]->altitude - neighbors[n]->water_depth;
+					}
+					if(height>= highest_priority_value)
+					{
+						highest_priority_value = height;
+						highest_value_index = tectonic_plate_conflicts[c];
+					}
+				}
+
+				//Highest one doesnt get deleted
+				plates_on_province[y][x].clear();
+				plates_on_province[y][x].push_back(highest_value_index);
+			}
+			if(plates_on_province[y][x].size() !=0)
+			{
+				//Now move the altitude from the chosen plate
+				Vector2 old_position (
+					x - tectonic_plates[plates_on_province[y][x][0]]->x_velocity,
+					y - tectonic_plates[plates_on_province[y][x][0]]->y_velocity);
+				WrapCoordinates(&old_position,true,false);
+
+				Province* previous_province_position = provinces[old_position.y][old_position.x];
+
+				provinces[y][x]->altitude+=previous_province_position->altitude;
+				provinces[old_position.y][old_position.x]->altitude= 0;
+			}
+		}
+	}
+
+	//Fill in teh gaps!
+
+	//Update the plate with its new provinces!
+	//First clear them
+	for (int t = 0; t < tectonic_plates.size(); t++)
+	{
+		tectonic_plates[t]->provinces_in_plate.clear();
+	}
+
+	//Now add the new provinces
+	for (int x = 0; x < provinces_num_columns; x++)
+	{
+		for (int y = 0; y < provinces_num_rows; y++)
+		{
+			if(plates_on_province[y][x].size()>0)
+				tectonic_plates[plates_on_province[y][x][0]]->provinces_in_plate.push_back(new Vector2(x,y));
 			province_water_unresolved.push_back(provinces[y][x]);
 		}
 	}
 
+	//Now that the altitude has changed we should update the water
+	
 	ResolveAllWater();
+	
 
 	for (int y= 0; y < provinces_num_rows; y++)
 	{
@@ -1341,6 +1483,8 @@ void Game::RunTectonics()
 	}
 
 	UpdateHighestMountain();
+
+	Draw();
 
 	//Resolve Collisions
 
@@ -2174,11 +2318,11 @@ void Game::DrawProvinces()
 				for(std::vector<Province*>::size_type x = 0; x < provinces_num_columns; x++) 
 				{
 					Province* province = provinces[y][x];
-					if(province->water_depth!=0){
+					/*if(province->water_depth!=0){*/
 						std::string string_date = std::to_string(province->getLandAndWaterHeight());
 						const char * date = string_date.c_str();
 						al_draw_text(arial8,al_map_rgb(color_text[0],color_text[1],color_text[1]), province->p0->x, province->p0->y, 0, date);
-					}
+					//}
 				}
 			}
 		}
@@ -2855,7 +2999,7 @@ void Game::WrapCoordinates(Vector2* myCoordinate, bool horizontal_wrap, bool ver
 		}
 		if(myCoordinate->x >=provinces_num_columns)
 		{
-			myCoordinate->x = provinces_num_columns;
+			myCoordinate->x -= provinces_num_columns;
 		}
 	}
 
@@ -2878,7 +3022,7 @@ void Game::WrapCoordinates(Vector2* myCoordinate, bool horizontal_wrap, bool ver
 		}
 		if(myCoordinate->y >=provinces_num_rows)
 		{
-			myCoordinate->y = provinces_num_rows;
+			myCoordinate->y -= provinces_num_rows;
 		}
 	}
 };

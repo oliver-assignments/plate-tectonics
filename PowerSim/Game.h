@@ -117,7 +117,7 @@ public:
 	Game();
 	void Initialize();
 	void InitializeAllegro();
-	void InitializeGame();
+	void InitializeVariables();
 	void CreateWorld();
 
 	std::string CreateName(int myNumberLetters);
@@ -244,7 +244,9 @@ private:
 	int current_year;
 
 	//Tectonic Plates
+	int plate_count;
 	std::vector<std::vector<bool>> provinces_has_plate;
+	std::vector<std::vector<std::vector<int>>> plates_on_province;
 	std::vector<std::vector<int>> provinces_pending_altitude_changes;
 
 	std::vector<TectonicPlate*> tectonic_plates; 

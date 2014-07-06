@@ -7,11 +7,20 @@ class Province;
 class TectonicPlate
 {
 public:
-	TectonicPlate(){};
+	TectonicPlate()
+	{
+		x_velocity = -9999;
+		y_velocity = -9999;
+
+		plate_number = -9999;
+	};
 	
 	std::vector<Vector2*> provinces_in_plate;
-	double x_velocity;
-	double y_velocity;
+	std::vector<Vector2*> new_plate;
+	int x_velocity;
+	int y_velocity;
+
+	int plate_number;
 
 	void Move()
 	{
