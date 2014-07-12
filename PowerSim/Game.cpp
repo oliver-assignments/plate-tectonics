@@ -96,7 +96,9 @@ void Game::InitializeVariables()
 
 	province_jiggle = false;
 	province_borders_drawn = false;
-	province_height_drawn = false;
+	province_height_drawn = true;
+
+	total_water = 0;
 
 	ui_state = POWER;
 	resources_drawn = true;
@@ -147,23 +149,24 @@ void Game::CreateWorld()
 	currentIngameState = TERRAIN;
 	CreateGrassland();
 	CreateWater();
+	Draw();
 
-	currentIngameState = PLATE_TECTONICS;
-	CreateTectonicPlates();
+	//currentIngameState = PLATE_TECTONICS;
+	//CreateTectonicPlates();
 
-	currentIngameState = PLATE_TECTONICS;
-	for (int i = 0; i < 50; i++)
-	{
-		RunTectonics();
-	}
+	//currentIngameState = TERRAIN;
+	//for (int i = 0; i < 50; i++)
+	//{
+	//	RunTectonics();
+	//}
 
-	//currentIngameState = HUMAN;
-	CreatePeople(10,100,75);
+	////currentIngameState = HUMAN;
+	//CreatePeople(10,100,75);
 
-	generation_youngest=1;
-	power_highest_person = NULL;
-	strength_highest_person = NULL;
-	intelligence_highest_person = NULL;
+	//generation_youngest=1;
+	//power_highest_person = NULL;
+	//strength_highest_person = NULL;
+	//intelligence_highest_person = NULL;
 }
 
 void Game::CreateProvinces()
@@ -265,19 +268,20 @@ void Game::CreateProvinces()
 
 void Game::CreateGrassland()
 {
-	for (int f = 0; f <20; f++)
+	for (int f = 0; f <3; f++)
 	{
 		int cluster_origin_province_x = (provinces_num_columns/2)+(rand()%30)-15;
 		int cluster_origin_province_y = (provinces_num_rows/2)+(rand()%60)-30;
 
-		//int radius = 10+rand()%5;
-		int radius  = 4;
+		int radius = 7+rand()%5;
 
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 15; i++)
 		{
-			std::vector<Province*> grassland_blob = GetDiamondOfProvinces(cluster_origin_province_x - (radius/2*3) + (rand()%(radius*3)),
+			std::vector<Province*> grassland_blob = GetDiamondOfProvinces(
+				cluster_origin_province_x - (radius/2*3) + (rand()%(radius*3)),
 				cluster_origin_province_y - (radius/2*3) + (rand()%(radius*3)), 
-				radius - 3 + (rand()%6),false,true,true);
+				radius - 3 + (rand()%6),true);
+
 			for (int p = 0; p < grassland_blob.size(); p++)
 			{	
 				grassland_blob[p]->altitude += 100;
@@ -289,7 +293,7 @@ void Game::CreateGrassland()
 };
 void Game::CreateWater()
 {
-	for (int w = 0; w < 5000; w++)
+	for (int w = 0; w < 15; w++)
 	{
 		Province* prov = NULL;
 		while(prov == NULL)
@@ -301,12 +305,20 @@ void Game::CreateWater()
 				prov = provinces[y][x];
 			}
 		}
-		prov->water_depth +=100;
+		prov->water_depth +=1000;
+		total_water += prov->water_depth;
 		prov->biome = WATER;
 		province_water_unresolved.push_back(prov);
 	}
 	ResolveAllWater();
-	Draw();
+	for (int i = 0; i < 1; i++){
+		for (int x = 0; x < provinces_num_columns; x++)
+			for (int y = 0; y < provinces_num_rows; y++)
+				if(provinces[y][x]->water_depth>0)
+					province_water_unresolved.push_back(provinces[y][x]);
+		ResolveAllWater();
+		Draw();
+	}
 };
 void Game::ResolveAllWater()
 {
@@ -321,7 +333,7 @@ void Game::ResolveAllWater()
 void Game::ResolveWaterInProvince(Province* prov)
 {
 	//The province above, to the right, down, and left of our prov BUT NOT the prov itself
-	std::vector<Province*> neighboring_provinces = GetSquareOfProvinces(prov->province_x,prov->province_y,1,false,true,false);
+	std::vector<Province*> neighboring_provinces = GetSquareOfProvinces(prov->province_x,prov->province_y,1,false);
 
 	bool done = false;
 	int provinces_checked = 0;
@@ -355,7 +367,10 @@ void Game::ResolveWaterInProvince(Province* prov)
 				if(prov->getLandAndWaterHeight() != neighbor->getLandAndWaterHeight()){
 					if(prov->water_depth>=(steepest_slope/2))
 					{
-						prov->water_depth-=steepest_slope/2;
+						total_water -= steepest_slope;
+						total_water += (steepest_slope/2) + (steepest_slope/2) + (steepest_slope%2);
+
+						prov->water_depth-= (steepest_slope/2) + (steepest_slope%2);
 
 						neighbor->biome = WATER;
 						neighbor->water_depth+=steepest_slope/2;
@@ -467,7 +482,7 @@ void Game::CreateTectonicPlates()
 			int piece_radius = 10+(rand()%5);
 
 			//The coordinates of the piece
-			std::vector<Province*> piece = GetDiamondOfProvinces(piece_origin_x,piece_origin_y,piece_radius,false,true,true);
+			std::vector<Province*> piece = GetDiamondOfProvinces(piece_origin_x,piece_origin_y,piece_radius,true);
 
 			//Making sure this province is not taken by another plate or itself
 			for (int m = 0; m < piece.size(); m++)
@@ -565,7 +580,7 @@ void Game::CreateForests()
 		{
 			std::vector<Province*> forest_blob = GetDiamondOfProvinces(cluster_origin_province_x + - 3 + rand()%6, 
 				cluster_origin_province_y+ - 3 + rand()%6,
-				1+rand()%3,false,true,true);
+				1+rand()%3,true);
 			for (int p = 0; p < forest_blob.size(); p++)
 			{
 				if(forest_blob[p]->biome!=WATER)
@@ -583,7 +598,7 @@ void Game::CreateDeserts()
 		int cluster_origin_province_x = rand()%provinces_num_columns;
 		int cluster_origin_province_y = ((provinces_num_rows/5)*2) + rand()%(provinces_num_rows/5);
 
-		std::vector<Province*> desert_blob = GetDiamondOfProvinces(cluster_origin_province_x, cluster_origin_province_y, 2+rand()%3,false,true,true);
+		std::vector<Province*> desert_blob = GetDiamondOfProvinces(cluster_origin_province_x, cluster_origin_province_y, 2+rand()%3,true);
 		for (int p = 0; p < desert_blob.size(); p++)
 		{
 			if(desert_blob[p]->biome!=WATER)
@@ -631,7 +646,7 @@ void Game::CreateRivers()
 
 				while(old_prov == current_prov)
 				{
-					std::vector<Province*> surrounding = GetDiamondOfProvinces(current_prov->province_x,current_prov->province_y,1,false,true,true);
+					std::vector<Province*> surrounding = GetDiamondOfProvinces(current_prov->province_x,current_prov->province_y,1,true);
 
 					int next_prov = rand()%4;
 					switch (next_prov)
@@ -793,7 +808,7 @@ std::string Game::CreateName(int myNumberLetters)
 };
 
 //This wraps by x but not y
-std::vector<Province*> Game::GetSquareOfProvinces(int province_x, int province_y, int radius,bool vertical_wrap,bool horizontal_wrap,bool doGetCenter)
+std::vector<Province*> Game::GetSquareOfProvinces(int province_x, int province_y, int radius,bool doGetCenter)
 {
 	std::vector<Province*> square;
 
@@ -811,50 +826,17 @@ std::vector<Province*> Game::GetSquareOfProvinces(int province_x, int province_y
 				int wrapped_x = x;
 				int wrapped_y = y;
 
-				bool valid = true;
+				WrapCoordinates(&wrapped_x,&wrapped_y);
 
-				if(horizontal_wrap)
-				{
-					if(wrapped_x <0)
-						wrapped_x+=provinces_num_columns;
-
-					if(wrapped_x>=provinces_num_columns)
-						wrapped_x-=provinces_num_columns;
-				}
-				else
-				{
-					if(wrapped_x <0 || wrapped_x>=provinces_num_columns)
-						valid = false;
-				}
-				if(vertical_wrap)
-				{
-					if(wrapped_y <0)
-						wrapped_y+=provinces_num_rows;
-
-					if(wrapped_y>=provinces_num_rows)
-						wrapped_y-=provinces_num_rows;
-				}
-				else
-				{
-					if(wrapped_y <0 || wrapped_y>=provinces_num_rows)
-						valid = false;
-				}
-				if(valid)
-				{
-					if(wrapped_y >=0 && wrapped_y<provinces_num_rows && wrapped_x >=0 && wrapped_x<provinces_num_columns)
-						square.push_back(provinces[wrapped_y][wrapped_x]);
-				}
+				square.push_back(provinces[wrapped_y][wrapped_x]);
 			}
 		}
 	}
+
 	return square;
 };
-std::vector<Province*> Game::GetDiamondOfProvinces(int province_x, int province_y, int radius,bool vertical_wrap,bool horizontal_wrap, bool doGetCenter)
+std::vector<Province*> Game::GetDiamondOfProvinces(int province_x, int province_y, int radius, bool doGetCenter)
 {
-	//								//
-	//ADDS THE + SIGN MORE THAN ONCE//
-	//								//
-
 	std::vector<Province*> blob;
 
 	//Center
@@ -866,49 +848,10 @@ std::vector<Province*> Game::GetDiamondOfProvinces(int province_x, int province_
 		}
 	}
 
-	//Axis
-
-
-	if(province_y-1 >=0 && province_y-1 < provinces_num_rows)
-	{
-		int wrapped_x = province_x;
-		if(province_x <0){wrapped_x+=provinces_num_columns;}
-		if(province_x >= provinces_num_columns){wrapped_x-=provinces_num_columns;}
-
-		blob.push_back(provinces[province_y-1][wrapped_x]);
-	}
-	if(province_y >=0 && province_y < provinces_num_rows)
-	{ 
-		int wrapped_x = province_x+1;
-		if(province_x+1 <0){wrapped_x+=provinces_num_columns;}
-		if(province_x+1 >= provinces_num_columns){wrapped_x-=provinces_num_columns;}
-
-		blob.push_back(provinces[province_y][wrapped_x]);
-	}
-	if(province_y+1 >=0 && province_y+1 < provinces_num_rows)
-	{
-		int wrapped_x = province_x;
-		if(province_x <0){wrapped_x+=provinces_num_columns;}
-		if(province_x >= provinces_num_columns){wrapped_x-=provinces_num_columns;}
-
-		blob.push_back(provinces[province_y+1][wrapped_x]);
-	}
-	if(province_y >=0 && province_y < provinces_num_rows)
-	{ 
-		int wrapped_x = province_x-1;
-		if(province_x-1 <0){wrapped_x+=provinces_num_columns;}
-		if(province_x-1 >= provinces_num_columns){wrapped_x-=provinces_num_columns;}
-
-		blob.push_back(provinces[province_y][wrapped_x]);
-	}
-
-
-
-
 	//Making circles
 	int location_x = 0;
 	int location_y = 0;
-	for (int r = radius; r > 1; r--)
+	for (int r = radius; r > 0; r--)
 	{
 		location_x = province_x;
 		location_y = province_y-r;
@@ -917,57 +860,58 @@ std::vector<Province*> Game::GetDiamondOfProvinces(int province_x, int province_
 		{
 			location_x++;
 			location_y++;
-			if(location_y >=0 && location_y < provinces_num_rows)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=provinces_num_columns;}
-				if(location_x >= provinces_num_columns){wrapped_location-=provinces_num_columns;}
 
-				blob.push_back(provinces[location_y][wrapped_location]);
-			}
+			int wrapped_location_x = location_x;
+			int wrapped_location_y = location_y;
+
+
+
+			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
+
+			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
 		}
+
 		while(location_x != province_x)
 		{
 			location_x--;
 			location_y++;
-			if(location_y >=0 && location_y < provinces_num_rows)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=provinces_num_columns;}
-				if(location_x >= provinces_num_columns){wrapped_location-=provinces_num_columns;}
 
-				blob.push_back(provinces[location_y][wrapped_location]);
-			}
+			int wrapped_location_x = location_x;
+			int wrapped_location_y = location_y;
+
+			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
+
+			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
 		}
+
 		while(location_x != province_x-r)
 		{
 			location_x--;
 			location_y--;
-			if(location_y >=0 && location_y < provinces_num_rows)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=provinces_num_columns;}
-				if(location_x >= provinces_num_columns){wrapped_location-=provinces_num_columns;}
 
-				blob.push_back(provinces[location_y][wrapped_location]);
-			}
+			int wrapped_location_x = location_x;
+			int wrapped_location_y = location_y;
+
+			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
+
+			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
 		}
+
 		while(location_y != province_y-r)
 		{
 			location_x++;
 			location_y--;
-			if(location_y >=0 && location_y < provinces_num_rows)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=provinces_num_columns;}
-				if(location_x >= provinces_num_columns){wrapped_location-=provinces_num_columns;}
-				blob.push_back(provinces[location_y][wrapped_location]);
-			}
+
+			int wrapped_location_x = location_x;
+			int wrapped_location_y = location_y;
+
+			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
+
+			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
 		}
 	}
 
 	return blob;
-
 };
 std::vector<Vector2*> Game::GetBlobOfCoordinates(int province_x, int province_y, int radius)
 {
@@ -1366,8 +1310,8 @@ void Game::RunTectonics()
 		//If it isn't moving get it a new direction
 		if(tectonic_plates[t]->x_velocity == -9999)
 		{
-		tectonic_plates[t]->x_velocity = -1 + rand()%3;
-		tectonic_plates[t]->y_velocity = -1 + rand()%3;
+			tectonic_plates[t]->x_velocity = -1 + rand()%3;
+			tectonic_plates[t]->y_velocity = -1 + rand()%3;
 		}
 
 
@@ -1378,7 +1322,7 @@ void Game::RunTectonics()
 			Vector2* new_province_position = new Vector2(tectonic_plates[t]->provinces_in_plate[p]->x+tectonic_plates[t]->x_velocity,
 				tectonic_plates[t]->provinces_in_plate[p]->y+tectonic_plates[t]->y_velocity);
 
-			WrapCoordinates(new_province_position,true,false);
+			WrapCoordinates(new_province_position);
 
 			if(new_province_position->x!=INT_MIN)
 			{
@@ -1405,7 +1349,7 @@ void Game::RunTectonics()
 				{
 					Vector2* old_position = new Vector2(x-tectonic_plates[tectonic_plate_conflicts[c]]->x_velocity,
 						y-tectonic_plates[tectonic_plate_conflicts[c]]->y_velocity);
-					WrapCoordinates(old_position,true,false);
+					WrapCoordinates(old_position);
 
 					if(old_position->x !=INT_MIN)
 					{
@@ -1464,7 +1408,7 @@ void Game::RunTectonics()
 				Vector2* old_position =new Vector2(
 					x - tectonic_plates[plates_on_province[y][x][0]]->x_velocity,
 					y - tectonic_plates[plates_on_province[y][x][0]]->y_velocity);
-				WrapCoordinates(old_position,true,false);
+				WrapCoordinates(old_position);
 
 				if(old_position->x!=INT_MIN)
 				{
@@ -1506,7 +1450,7 @@ void Game::RunTectonics()
 				bool no_nearby_plates = true;
 
 				//Cylcing through neighbors
-				std::vector<Province*> neighbors = GetDiamondOfProvinces(x,y,1,false,true,false);
+				std::vector<Province*> neighbors = GetDiamondOfProvinces(x,y,1,false);
 				for (int p = 0; p < neighbors.size(); p++)
 				{
 					Province* prov = neighbors[p];
@@ -2286,8 +2230,7 @@ void Game::Draw()
 
 	DrawHouses();
 
-	DrawDate();
-
+	DrawData();
 
 	al_flip_display();
 	al_clear_to_color(al_map_rgb(0,0,0));
@@ -3036,11 +2979,15 @@ void Game::DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char
 	al_draw_line(x,y+1,x,y-4,al_map_rgb(0,0,0),1);//Shadow
 	al_draw_line(x,y-1,x,y-5,al_map_rgb(r,g,b),3);//Actual
 };
-void Game::DrawDate()
+void Game::DrawData()
 {
 	std::string string_date = "Year: " + std::to_string(current_year) + " Day: " + std::to_string(current_day) + " Hour: " + std::to_string(current_hour);
 	const char * date = string_date.c_str();
 	al_draw_text(arial16,al_map_rgb(color_text[0],color_text[1],color_text[1]), (screen_game_width/2)-80, 0, 0, date);
+
+	std::string string_water = "Water: " + std::to_string(total_water);
+	const char * water = string_water.c_str();
+	al_draw_text(arial16,al_map_rgb(color_text[0],color_text[1],color_text[1]), (screen_game_width/2)-80, 20, 0, water);
 };
 void Game::DrawPopulation()
 {
@@ -3074,55 +3021,55 @@ void Game::FreeMemory()
 	}
 };
 
-void Game::WrapCoordinates(Vector2* myCoordinate, bool horizontal_wrap, bool vertical_wrap)
+void Game::WrapCoordinates(Vector2* myCoordinate)
 {
-	if(horizontal_wrap)
+	while(myCoordinate->x <0)
 	{
-		while(myCoordinate->x <0)
-		{
-			myCoordinate->x += provinces_num_columns;
-		}
-		while(myCoordinate->x >=provinces_num_columns)
-		{
-			myCoordinate->x -= provinces_num_columns;
-		}
+		myCoordinate->x += provinces_num_columns;
 	}
-	else
+	while(myCoordinate->x >=provinces_num_columns)
 	{
-		if(myCoordinate->x <0)
-		{
-			myCoordinate->x = INT_MIN;
-			return;
-		}
-		if(myCoordinate->x >=provinces_num_columns)
-		{
-			myCoordinate->x = INT_MIN;
-			return;
-		}
+		myCoordinate->x -= provinces_num_columns;
 	}
 
-
-	if(vertical_wrap)
+	if(myCoordinate->y <0)
 	{
-		while(myCoordinate->y <0)
-		{
-			myCoordinate->y += provinces_num_rows;
-		}
-		while(myCoordinate->y >=provinces_num_rows)
-		{
-			myCoordinate->y -= provinces_num_rows;
-		}
+		myCoordinate->x -= (myCoordinate->x-(provinces_num_columns/2))*2;
+		myCoordinate->y =abs(myCoordinate->y);
 	}
-	else{
-		if(myCoordinate->y <0)
-		{
-			myCoordinate->x = INT_MIN;
-			return;
-		}
+
+	if(myCoordinate->y >=provinces_num_rows)
+	{
+		myCoordinate->x -= (myCoordinate->x-(provinces_num_columns/2))*2;
+
 		if(myCoordinate->y >=provinces_num_rows)
+			myCoordinate->y -= myCoordinate->y - provinces_num_rows + myCoordinate->y - provinces_num_rows +1;
+	}
+
+};
+void Game::WrapCoordinates(int* myX,int* myY)
+{
+	while(*myX <0)
+	{
+		*myX += provinces_num_columns;
+	}
+	while(*myX >= provinces_num_columns)
+	{
+		*myX -= provinces_num_columns;
+	}
+
+	if(*myY <0)
+	{
+		*myX -= (*myX-(provinces_num_columns/2))*2;
+		if(*myY < 0)
 		{
-			myCoordinate->x = INT_MIN;
-			return;
+			*myY = abs(*myY) - 1;
 		}
+	}
+	if(*myY >=provinces_num_rows)
+	{
+		*myX -= (*myX-(provinces_num_columns/2))*2;
+		if(*myY >=provinces_num_rows)
+			*myY -= *myY - provinces_num_rows + *myY - provinces_num_rows+1;
 	}
 };

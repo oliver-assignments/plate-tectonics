@@ -166,9 +166,10 @@ public:
 	void MoveRandomDirection(Person* person);
 	void Game::MoveToCoordinates(Person* person, int x,int y);
 
-	std::vector<Province*> Game::GetSquareOfProvinces(int province_x, int province_y, int radius,bool vertical_wrap,bool horizontal_wrap,bool doGetCenter);
-	std::vector<Province*> GetDiamondOfProvinces(int x, int y, int radius,bool vertical_wrap,bool horizontal_wrap,bool doGetCenter);
+	std::vector<Province*> GetSquareOfProvinces(int province_x, int province_y, int radius, bool doGetCenter);
+	std::vector<Province*> GetDiamondOfProvinces(int province_x, int province_y, int radius, bool doGetCenter);
 	std::vector<Vector2*> GetBlobOfCoordinates(int province_x, int province_y, int radius);
+
 	void GetInLineForFood(int x,int y,Person* myPerson);
 	void DivvyUpFood();
 	void UpdateProvinceFood();
@@ -198,13 +199,14 @@ public:
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 
-	void DrawDate();
+	void DrawData();
 	void DrawPopulation();
 
 	//Unload
 	void FreeMemory();
 
-	void WrapCoordinates(Vector2* myCoordinate, bool horizontal_wrap, bool vertical_wrap);
+	void WrapCoordinates(Vector2* myCoordinate);
+	void WrapCoordinates(int* myX,int* myY);
 
 private:
 	//Management//
@@ -266,6 +268,7 @@ private:
 	int provinces_num_rows;
 
 	//Water Resolution
+	int total_water;
 	std::vector<Province*> province_water_unresolved;
 	int times_drawn;
 
