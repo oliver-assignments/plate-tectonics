@@ -96,7 +96,7 @@ void Game::InitializeVariables()
 
 	province_jiggle = false;
 	province_borders_drawn = false;
-	province_height_drawn = true;
+	province_height_drawn = false;
 
 	total_water = 0;
 
@@ -148,8 +148,10 @@ void Game::CreateWorld()
 
 	currentIngameState = TERRAIN;
 	CreateGrassland();
+	Draw();
 	CreateWater();
 	Draw();
+
 
 	//currentIngameState = PLATE_TECTONICS;
 	//CreateTectonicPlates();
@@ -163,10 +165,10 @@ void Game::CreateWorld()
 	////currentIngameState = HUMAN;
 	//CreatePeople(10,100,75);
 
-	//generation_youngest=1;
-	//power_highest_person = NULL;
-	//strength_highest_person = NULL;
-	//intelligence_highest_person = NULL;
+	generation_youngest=1;
+	power_highest_person = NULL;
+	strength_highest_person = NULL;
+	intelligence_highest_person = NULL;
 }
 
 void Game::CreateProvinces()
@@ -284,7 +286,7 @@ void Game::CreateGrassland()
 
 			for (int p = 0; p < grassland_blob.size(); p++)
 			{	
-				grassland_blob[p]->altitude += 100;
+				grassland_blob[p]->altitude += 100 + rand()%10;
 				grassland_blob[p]->biome = (GRASSLAND);
 
 			}
@@ -293,7 +295,7 @@ void Game::CreateGrassland()
 };
 void Game::CreateWater()
 {
-	for (int w = 0; w < 15; w++)
+	for (int w = 0; w < 40; w++)
 	{
 		Province* prov = NULL;
 		while(prov == NULL)
@@ -305,30 +307,40 @@ void Game::CreateWater()
 				prov = provinces[y][x];
 			}
 		}
-		prov->water_depth +=1000;
+		prov->water_depth +=10000;
 		total_water += prov->water_depth;
 		prov->biome = WATER;
 		province_water_unresolved.push_back(prov);
 	}
 	ResolveAllWater();
-	for (int i = 0; i < 1; i++){
-		for (int x = 0; x < provinces_num_columns; x++)
-			for (int y = 0; y < provinces_num_rows; y++)
-				if(provinces[y][x]->water_depth>0)
-					province_water_unresolved.push_back(provinces[y][x]);
+	/*for (int i = 0; i < 2000; i++)
+	{
+		total_water = 0;
+		for (int y= 0; y < provinces_num_rows; y++)
+		{
+			for (int x= 0; x < provinces_num_columns; x++)
+			{
+				total_water+= provinces[y][x]->water_depth;
+				province_water_unresolved.push_back(provinces[y][x]);
+			}
+		}
 		ResolveAllWater();
 		Draw();
-	}
+	}*/
+
+
 };
 void Game::ResolveAllWater()
 {
+	ResolveWaterInProvince(province_water_unresolved[0]);
 	while(province_water_unresolved.size()>0)
 	{
 		ResolveWaterInProvince(province_water_unresolved[province_water_unresolved.size()-1]);
+		auto prov = province_water_unresolved.end()-1;
 		province_water_unresolved.erase(province_water_unresolved.end()-1);
 	}
 
-	UpdateDeepestWater();
+	//UpdateDeepestWater();
 };
 void Game::ResolveWaterInProvince(Province* prov)
 {
@@ -345,6 +357,7 @@ void Game::ResolveWaterInProvince(Province* prov)
 			int steepest_slope = 1;
 			int chosen_slope = 0;
 
+			//Finding out which neighbor has the steepest slope
 			for (int n = 0; n < neighboring_provinces.size(); n++)
 			{
 				int difference = prov->getLandAndWaterHeight() - neighboring_provinces[n]->getLandAndWaterHeight();
@@ -352,60 +365,50 @@ void Game::ResolveWaterInProvince(Province* prov)
 				{
 					chosen_slope = n;
 					steepest_slope = difference;
-
-					provinces_checked = 0;
-				}
-				else
-				{
-					provinces_checked++;
 				}
 			}
 
+			//Passing water to neighbor
 			if( steepest_slope >1)
 			{
 				Province* neighbor = provinces[neighboring_provinces[chosen_slope]->province_y][neighboring_provinces[chosen_slope]->province_x];
-				if(prov->getLandAndWaterHeight() != neighbor->getLandAndWaterHeight()){
-					if(prov->water_depth>=(steepest_slope/2))
-					{
-						total_water -= steepest_slope;
-						total_water += (steepest_slope/2) + (steepest_slope/2) + (steepest_slope%2);
 
-						prov->water_depth-= (steepest_slope/2) + (steepest_slope%2);
+				//Can we pass half our height difference
+				if(prov->water_depth>=(steepest_slope/2))
+				{
+					//Yes we can
+					prov->water_depth-= (steepest_slope/2) + (steepest_slope%2);
 
-						neighbor->biome = WATER;
-						neighbor->water_depth+=steepest_slope/2;
-					}
-					else
-					{
-						neighbor->water_depth+=prov->water_depth;
-						neighbor->biome = WATER;
-						prov->water_depth = 0;
-					}
-
-					if(prov->water_depth>province_deepest_depth)
-					{
-						province_deepest_depth = prov->water_depth;
-					}
-
-
-					if(times_drawn ==100000)
-					{
-						times_drawn =0;
-					}
-					if(times_drawn==0)
-						Draw();
-					times_drawn++;
-
-					province_water_unresolved.push_back(neighbor);
+					neighbor->biome = WATER;
+					neighbor->water_depth+=steepest_slope/2+ (steepest_slope%2);
 				}
+				else
+				{
+					//No we cant give enoguht to level them so we give all instead
+					neighbor->water_depth+=prov->water_depth;
+					neighbor->biome = WATER;
+					prov->water_depth = 0;
+				}
+
+				if(times_drawn ==100000)
+				{
+					times_drawn =0;
+				}
+				if(times_drawn==0)
+					Draw();
+				times_drawn++;
+
+				province_water_unresolved.push_back(neighbor);
 			}
 			else
 			{
+				//Every surrounding province has a difference of 1 or 0
 				done=true;
 			}
 		}
 		else
 		{
+			//We have 1 or 0 water units
 			done=true;
 		}
 	}
@@ -869,6 +872,8 @@ std::vector<Province*> Game::GetDiamondOfProvinces(int province_x, int province_
 			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
 
 			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
+
+
 		}
 
 		while(location_x != province_x)
@@ -882,6 +887,7 @@ std::vector<Province*> Game::GetDiamondOfProvinces(int province_x, int province_
 			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
 
 			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
+
 		}
 
 		while(location_x != province_x-r)
@@ -895,6 +901,8 @@ std::vector<Province*> Game::GetDiamondOfProvinces(int province_x, int province_
 			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
 
 			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
+
+
 		}
 
 		while(location_y != province_y-r)
@@ -3023,15 +3031,6 @@ void Game::FreeMemory()
 
 void Game::WrapCoordinates(Vector2* myCoordinate)
 {
-	while(myCoordinate->x <0)
-	{
-		myCoordinate->x += provinces_num_columns;
-	}
-	while(myCoordinate->x >=provinces_num_columns)
-	{
-		myCoordinate->x -= provinces_num_columns;
-	}
-
 	if(myCoordinate->y <0)
 	{
 		myCoordinate->x -= (myCoordinate->x-(provinces_num_columns/2))*2;
@@ -3045,19 +3044,18 @@ void Game::WrapCoordinates(Vector2* myCoordinate)
 		if(myCoordinate->y >=provinces_num_rows)
 			myCoordinate->y -= myCoordinate->y - provinces_num_rows + myCoordinate->y - provinces_num_rows +1;
 	}
+	while(myCoordinate->x <0)
+	{
+		myCoordinate->x += provinces_num_columns + myCoordinate->x;
+	}
+	while(myCoordinate->x >=provinces_num_columns)
+	{
+		myCoordinate->x -= provinces_num_columns;
+	}
 
 };
 void Game::WrapCoordinates(int* myX,int* myY)
 {
-	while(*myX <0)
-	{
-		*myX += provinces_num_columns;
-	}
-	while(*myX >= provinces_num_columns)
-	{
-		*myX -= provinces_num_columns;
-	}
-
 	if(*myY <0)
 	{
 		*myX -= (*myX-(provinces_num_columns/2))*2;
@@ -3071,5 +3069,13 @@ void Game::WrapCoordinates(int* myX,int* myY)
 		*myX -= (*myX-(provinces_num_columns/2))*2;
 		if(*myY >=provinces_num_rows)
 			*myY -= *myY - provinces_num_rows + *myY - provinces_num_rows+1;
+	}
+	while(*myX <0)
+	{
+		*myX = provinces_num_columns + *myX;
+	}
+	while(*myX >= provinces_num_columns)
+	{
+		*myX -= provinces_num_columns;
 	}
 };
