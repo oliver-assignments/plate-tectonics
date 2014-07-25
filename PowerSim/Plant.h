@@ -91,7 +91,4 @@ public:
 		return ((double)catalyst_hours-worked_hours)/yield;
 	};
 };
-
-
-
 #endif

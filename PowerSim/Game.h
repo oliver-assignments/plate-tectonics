@@ -149,6 +149,7 @@ public:
 	void Update();
 	void TakeInput();
 	void RunTectonics();
+	int CalculatePlateDensity(TectonicPlate* myPlate);
 	void RunHumans();
 	void ProcessPeople();
 
@@ -165,6 +166,8 @@ public:
 	void SeekInteraction(Person* person);
 	void MoveRandomDirection(Person* person);
 	void Game::MoveToCoordinates(Person* person, int x,int y);
+
+	void Erode();
 
 	std::vector<Province*> GetSquareOfProvinces(int province_x, int province_y, int radius, bool doGetCenter);
 	std::vector<Province*> GetDiamondOfProvinces(int province_x, int province_y, int radius, bool doGetCenter);
@@ -250,6 +253,7 @@ private:
 	std::vector<std::vector<bool>> provinces_has_plate;
 	std::vector<std::vector<std::vector<int>>> plates_on_province;
 	std::vector<std::vector<int>> provinces_pending_altitude_changes;
+	std::vector<std::vector<int>> asthenosphere_heat_map;
 
 	std::vector<TectonicPlate*> tectonic_plates; 
 	std::vector<Vector2*> currentPlateCollisions;
@@ -269,6 +273,7 @@ private:
 
 	//Water Resolution
 	int total_water;
+	int total_land;
 	std::vector<Province*> province_water_unresolved;
 	int times_drawn;
 
