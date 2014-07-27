@@ -1222,7 +1222,7 @@ void Game::RunTectonics()
 	//Advancing time
 	current_year+=10000;
 
-	//Changing the look
+	//Changing what we are viewing, plate or land
 	if(currentIngameState == PLATE_TECTONICS)
 	{
 		currentIngameState = TERRAIN;
@@ -1296,40 +1296,16 @@ void Game::RunTectonics()
 					province_conflicts.push_back(old_plate_province_pos);
 				}
 
-				int highest_priority_value = INT_MIN;
+				int highest_density = INT_MIN;
 				int highest_value_index= - 9990;
 
 				for (int c = 0; c < province_conflicts.size(); c++)
 				{
-					////Height Calculation
-					//int height = province_conflicts[c]->altitude - (province_conflicts[c]->water_depth*10);
-
-					////And its surroundings
-					//std::vector<Province*> neighbors = GetSquareOfProvinces(province_conflicts[c]->province_y,province_conflicts[c]->province_x,1,false);
-					//for (int n = 0; n < neighbors.size(); n++)
-					//{
-					//	for (int i = 0; i < plates_on_province[neighbors[n]->province_y][neighbors[n]->province_x].size(); i++)
-					//	{
-					//		if(plates_on_province[neighbors[n]->province_y][neighbors[n]->province_x][i] == c)
-					//		{
-					//			height += neighbors[n]->altitude - (neighbors[n]->water_depth*10);
-					//			break;
-					//		}
-					//	}
-					//}
-					int height = CalculatePlateDensity(tectonic_plates[c]);
-
-					//Add the alt and remove the water of the province
-					int wrapped_x = x-tectonic_plates[tectonic_plate_conflicts[c]]->x_velocity;
-					int wrapped_y = y-tectonic_plates[tectonic_plate_conflicts[c]]->y_velocity;
-					WrapCoordinates(&wrapped_x,&wrapped_y);
-					provinces_pending_altitude_changes[wrapped_y][wrapped_x]-= provinces[wrapped_y][wrapped_x]->altitude;
-
-					////Get the average coolness
-
-					if(height>= highest_priority_value)
+					//Determining which plate will not get subducted and destroyed
+					int plate_density = CalculatePlateDensity(tectonic_plates[c]);
+					if(plate_density >= highest_density)
 					{
-						highest_priority_value = height;
+						highest_density = plate_density;
 						highest_value_index = tectonic_plate_conflicts[c];
 					}
 				}
@@ -1497,7 +1473,6 @@ int Game::CalculatePlateDensity(TectonicPlate* myPlate)
 
 	return total_landmass/total_water;
 };
-
 
 void Game::RunHumans()
 {
