@@ -88,7 +88,7 @@ void Game::InitializeAllegro()
 
 void Game::InitializeVariables()
 {	
-	province_width = 15;
+	province_width = 10;
 	province_height = 10;
 
 	province_jiggle_width = (int)(province_width*0.8);
@@ -140,6 +140,11 @@ void Game::InitializeVariables()
 	house_id = 0;
 	province_id=0;
 
+	generation_youngest=1;
+	power_highest_person = NULL;
+	strength_highest_person = NULL;
+	intelligence_highest_person = NULL;
+
 	CreateWorld();
 };
 
@@ -147,43 +152,24 @@ void Game::CreateWorld()
 {
 	CreateProvinces();
 
-	currentIngameState = TERRAIN;
+	currentMapMode = TERRAIN;
 	CreateGrassland();
 	Draw();
 	CreateWater();
 	Draw();
+	/*FlushWater(150);
+	Draw();*/
 
-
-	currentIngameState = PLATE_TECTONICS;
+	currentMapMode = PLATE_TECTONICS;
 	CreateTectonicPlates();
 
-	//currentIngameState = TERRAIN;
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 30; i++)
 	{
 		RunTectonics();
 	}
-	for (int i = 0; i < 5; i++)
-	{
-		for (int i = 0; i < 10; i++)
-		{
-			for (int x = 0; x < provinces_num_columns; x++)
-			{
-				for (int y = 0; y < provinces_num_rows; y++)
-				{
-					if(provinces[y][x]->water_depth>0)
-						province_water_unresolved.push_back(provinces[y][x]);
-				}
-			}
-			ResolveAllWater();
-		}
-	}
-	////currentIngameState = HUMAN;
-	//CreatePeople(10,100,75);
 
-	generation_youngest=1;
-	power_highest_person = NULL;
-	strength_highest_person = NULL;
-	intelligence_highest_person = NULL;
+	//currentMapMode = HUMAN;
+	CreatePeople(10,100,75);
 }
 
 void Game::CreateProvinces()
@@ -285,19 +271,32 @@ void Game::CreateProvinces()
 
 void Game::CreateGrassland()
 {
-	for (int f = 0; f <3; f++)
+	for (int f = 0; f <5; f++)
 	{
-		int cluster_origin_province_x = (provinces_num_columns/2)+(rand()%30)-15;
-		int cluster_origin_province_y = (provinces_num_rows/2)+(rand()%60)-30;
+		//Center_of_continent
+		int cluster_origin_province_x=0;
+		int cluster_origin_province_y=0;
+		while(cluster_origin_province_x ==0 ||cluster_origin_province_y ==0)
+		{
+			int attempted_x = (provinces_num_columns/2)+(rand()%(provinces_num_columns/3))-(provinces_num_columns/6);
+			int attempted_y = (provinces_num_rows/2)+(rand()%(provinces_num_rows/2))-(provinces_num_rows/4);
 
-		int radius = 7+rand()%5;
+			if(provinces[attempted_y][attempted_x]->biome!=GRASSLAND)
+			{
+				cluster_origin_province_x=attempted_x;
+				cluster_origin_province_y=attempted_y;
+			}
+		}
+		//How far we venture from the continent to place a blob
+		int radius = ((provinces_num_columns+provinces_num_rows)/2)/8;
 
 		for (int i = 0; i < 15; i++)
 		{
 			std::vector<Province*> grassland_blob = GetDiamondOfProvinces(
-				cluster_origin_province_x - (radius/2*3) + (rand()%(radius*3)),
-				cluster_origin_province_y - (radius/2*3) + (rand()%(radius*3)), 
-				radius - 3 + (rand()%6),true);
+				cluster_origin_province_x - (radius/2) + (rand()%(radius)),
+				cluster_origin_province_y - (radius/2) + (rand()%(radius)), 
+				radius/((rand()%3)+1),
+				true);
 
 			for (int p = 0; p < grassland_blob.size(); p++)
 			{	
@@ -309,7 +308,8 @@ void Game::CreateGrassland()
 };
 void Game::CreateWater()
 {
-	for (int w = 0; w < 40; w++)
+	int amount_water_needed = provinces_num_columns*provinces_num_rows*100;
+	for (int w = 0; w < 100; w++)
 	{
 		Province* prov = NULL;
 		while(prov == NULL)
@@ -321,7 +321,7 @@ void Game::CreateWater()
 				prov = provinces[y][x];
 			}
 		}
-		prov->water_depth +=10000;
+		prov->water_depth +=amount_water_needed/80;
 		prov->biome = WATER;
 		province_water_unresolved.push_back(prov);
 	}
@@ -356,7 +356,7 @@ void Game::CreateTectonicPlates()
 		}
 	}
 
-	int radius = 40;
+	int radius = ((provinces_num_columns+provinces_num_rows)/2)/4;
 	int provinces_scanned =0;
 
 	//Creating every plate
@@ -367,8 +367,9 @@ void Game::CreateTectonicPlates()
 		plate_count++;
 
 		//Finding a good blob origin that isnt already taken
-		int cluster_origin_province_x=rand()%provinces_num_columns;//-1;
-		int cluster_origin_province_y=rand()%provinces_num_rows;//-1;
+		int cluster_origin_province_x=rand()%provinces_num_columns;
+		int cluster_origin_province_y=rand()%provinces_num_rows;
+
 		while(cluster_origin_province_x==-1 && cluster_origin_province_y==-1)
 		{
 			int attempted_x = rand()%provinces_num_columns;
@@ -383,24 +384,24 @@ void Game::CreateTectonicPlates()
 		}
 
 		//Creating # of smaller diamonds near our center
-		for (int q = 0; q < 30; q++)
+		for (int q = 0; q < 60; q++)
 		{
 			//Wrap the x
-			int piece_origin_x = cluster_origin_province_x - (radius/2) + rand()%(radius);
+			int piece_origin_x = cluster_origin_province_x - (radius) + (rand()%(radius*2));
 			if(piece_origin_x<0)
 				piece_origin_x+=provinces_num_columns;
 			if(piece_origin_x>=provinces_num_columns)
 				piece_origin_x-=provinces_num_columns;
 
 			//But not the y
-			int piece_origin_y = cluster_origin_province_y - (radius/2) + rand()%(radius);
+			int piece_origin_y = cluster_origin_province_y - (radius/2) + (rand()%radius);
 			if(piece_origin_y<0)
 				continue;
 			if(piece_origin_y>=provinces_num_rows)
 				continue;
 
 			//A mildy random piece size
-			int piece_radius = 10+(rand()%5);
+			int piece_radius = (radius/4) -(radius/15/2) + (rand()%(radius/15));
 
 			//The coordinates of the piece
 			std::vector<Province*> piece = GetDiamondOfProvinces(piece_origin_x,piece_origin_y,piece_radius,true);
@@ -490,58 +491,6 @@ void Game::CreateTectonicPlates()
 	}
 	}*/
 };
-void Game::CreateForests()
-{
-	for (int f = 0; f < 50; f++)
-	{
-		int cluster_origin_province_x = rand()%provinces_num_columns;
-		int cluster_origin_province_y = rand()%provinces_num_rows;
-
-		for (int i = 0; i < 3; i++)
-		{
-			std::vector<Province*> forest_blob = GetDiamondOfProvinces(cluster_origin_province_x + - 3 + rand()%6, 
-				cluster_origin_province_y+ - 3 + rand()%6,
-				1+rand()%3,true);
-			for (int p = 0; p < forest_blob.size(); p++)
-			{
-				if(forest_blob[p]->biome!=WATER)
-				{
-					forest_blob[p]->biome = FOREST;
-				}
-			}
-		}
-	}
-};
-void Game::CreateDeserts()
-{
-	for (int f = 0; f < 15; f++)
-	{
-		int cluster_origin_province_x = rand()%provinces_num_columns;
-		int cluster_origin_province_y = ((provinces_num_rows/5)*2) + rand()%(provinces_num_rows/5);
-
-		std::vector<Province*> desert_blob = GetDiamondOfProvinces(cluster_origin_province_x, cluster_origin_province_y, 2+rand()%3,true);
-		for (int p = 0; p < desert_blob.size(); p++)
-		{
-			if(desert_blob[p]->biome!=WATER)
-			{
-				desert_blob[p]->biome = DESERT;
-			}
-		}
-	}
-};
-void Game::CreateEquator()
-{
-	for (int y = (provinces_num_rows/2)-1; y <= (provinces_num_rows/2)+1; y++)
-	{
-		for (int x = 0; x < provinces_num_columns; x++)
-		{
-			if(provinces[y][x]->biome!=WATER)
-			{
-				provinces[y][x]->biome = JUNGLE;
-			}
-		}
-	}
-};
 void Game::CreateRivers()
 {
 	int number_of_rivers = 0;
@@ -615,22 +564,6 @@ void Game::CreateRivers()
 	}
 };
 
-void Game::CreateResources(int myNumber)
-{
-	for (int i = 0; i < myNumber; i++)
-	{
-		int resource_province_x = rand()%provinces_num_columns;
-		int resource_province_y = rand()%provinces_num_rows;
-
-		//Province location
-		resources.push_back(new Resource(resource_province_x,resource_province_y,
-			provinces[resource_province_y][resource_province_x]->getCenter().x -5 + rand()%10,
-			provinces[resource_province_y][resource_province_x]->getCenter().y -5 + rand()%10,10,5));
-
-		//Random location
-		//resources.push_back(new Resource(100+(rand()%(screen_game_width-200)),100+(rand()%(screen_height-200)),10));
-	}
-};
 void Game::CreatePlants()
 {
 	for (int i = 0; i < 10; i++)
@@ -1223,14 +1156,14 @@ void Game::RunTectonics()
 	current_year+=10000;
 
 	//Changing what we are viewing, plate or land
-	if(currentIngameState == PLATE_TECTONICS)
+	if(currentMapMode == PLATE_TECTONICS)
 	{
-		currentIngameState = TERRAIN;
+		currentMapMode = TERRAIN;
 		screen_game_width = screen_width;// - 250;
 	}
 	else
 	{
-		currentIngameState = PLATE_TECTONICS;
+		currentMapMode = PLATE_TECTONICS;
 		screen_game_width = screen_width - 250;
 	}
 
@@ -1322,16 +1255,11 @@ void Game::RunTectonics()
 					y - tectonic_plates[plates_on_province[y][x][0]]->y_velocity);
 				WrapCoordinates(old_position);
 
-				if(old_position->x!=INT_MIN)
-				{
-					Province* previous_province_position = provinces[old_position->y][old_position->x];
+				Province* previous_province_position = provinces[old_position->y][old_position->x];
 
-					provinces_pending_altitude_changes[y][x]+=previous_province_position->altitude;
-					provinces_pending_altitude_changes[old_position->y][old_position->x]-=provinces[old_position->y][old_position->x]->altitude;
+				provinces_pending_altitude_changes[y][x]+=previous_province_position->altitude;
 
-					/*provinces[y][x]->water_depth+=previous_province_position->water_depth;
-					provinces[old_position->y][old_position->x]->water_depth= 0;*/
-				}
+				provinces_pending_altitude_changes[old_position->y][old_position->x]-= previous_province_position->altitude;
 				delete(old_position);
 			}
 		}
@@ -1524,7 +1452,7 @@ void Game::ResolveAllWater()
 void Game::ResolveWaterInProvince(Province* prov)
 {
 	//The province above, to the right, down, and left of our prov BUT NOT the prov itself
-	std::vector<Province*> neighboring_provinces = GetSquareOfProvinces(prov->province_x,prov->province_y,1,false);
+	std::vector<Province*> neighboring_provinces = GetSquareOfProvinces(prov->province_x,prov->province_y,2,false);
 
 	bool done = false;
 	int provinces_checked = 0;
@@ -1574,7 +1502,10 @@ void Game::ResolveWaterInProvince(Province* prov)
 					times_drawn =0;
 				}
 				if(times_drawn==0)
+				{
+					UpdateDeepestWater();
 					Draw();
+				}
 				times_drawn++;
 
 				province_water_unresolved.push_back(neighbor);
@@ -1590,6 +1521,20 @@ void Game::ResolveWaterInProvince(Province* prov)
 			//We have 1 or 0 water units
 			done=true;
 		}
+	}
+};
+void Game::FlushWater(int number_times)
+{
+	for (int i = 0; i < number_times; i++)
+	{
+		for (int x = 0; x < provinces_num_columns; x++)
+		{
+			for (int y = 0; y < provinces_num_rows; y++)
+			{
+				province_water_unresolved.push_back(provinces[y][x]);
+			}
+		}
+		ResolveAllWater();
 	}
 };
 
@@ -2264,7 +2209,7 @@ void Game::Draw()
 
 void Game::DrawProvinces()
 {
-	switch (currentIngameState)
+	switch (currentMapMode)
 	{
 	case TERRAIN:
 		for(std::vector<std::vector<Province*>>::size_type y = 0; y < provinces_num_rows; y++) 

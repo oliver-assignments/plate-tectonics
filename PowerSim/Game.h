@@ -102,7 +102,7 @@ enum GameState
 {
 	Menu, Ingame
 };
-enum IngameState
+enum MapMode
 {
 	TERRAIN, 
 	PLATE_TECTONICS, 
@@ -124,20 +124,18 @@ public:
 
 	void CreateProvinces();
 	void CreateWater();
+	
 	void ResolveAllWater();
 	void ResolveWaterInProvince(Province* prov);
+	void FlushWater(int number_times);
+
 	void CreateGrassland();
-	void CreateForests();
-	void CreateDeserts();
-	void CreateEquator();
 	void CreateRivers();
 
 	void CreateTectonicPlates();
 
 	void CreatePlants();
 	void CreateAnimals();
-
-	void CreateResources(int myNumber);
 
 	void CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius);
 
@@ -217,7 +215,7 @@ private:
 	boolean done;
 
 	GameState currentGameState;
-	IngameState currentIngameState;
+	MapMode currentMapMode;
 
 	double FPS;
 	double total_frames;
