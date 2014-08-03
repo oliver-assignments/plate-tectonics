@@ -75,9 +75,9 @@
     <ClInclude Include="Person.h" />
     <ClInclude Include="Province.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="settings_manager.h" />
     <ClInclude Include="TectonicPlate.h" />
     <ClInclude Include="utility.h" />
-    <ClInclude Include="Vector2.h" />
     <ClInclude Include="context.h" />
   </ItemGroup>
   <ItemGroup>

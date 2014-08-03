@@ -1,6 +1,8 @@
 #ifndef Resource_H
 #define Resource_H
 
+#include "utility.h"
+
 class Resource
 {
 public:

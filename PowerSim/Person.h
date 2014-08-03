@@ -1,6 +1,6 @@
 #ifndef Person_H
 #define Person_H
-
+#include "utility.h"
 #include "House.h"
 
 enum Occupation

@@ -1,9 +1,7 @@
-province_width = 10
-province_height = 10
-
-province_jiggle = false
-province_borders_drawn = false
-province_height_drawn = false
-
-hunger_death_level = 100
-hunger_seek_level = 50
+province_width=10
+province_height=10
+province_jiggle=false
+province_borders_drawn=false
+province_height_drawn=false
+hunger_death_level=100
+hunger_seek_level=50

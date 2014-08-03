@@ -1,10 +1,9 @@
 #ifndef House_H
 #define House_H
-
+#include "utility.h"
 class Person;
 
-namespace ws_global
-{
+
 	class House
 	{
 	public:
@@ -34,5 +33,5 @@ namespace ws_global
 		int food_stored;
 		int date_last_visited;
 	};
-}
+
 #endif

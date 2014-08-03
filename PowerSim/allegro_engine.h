@@ -11,7 +11,8 @@
 #include <allegro5\allegro_acodec.h>
 #include <allegro5\allegro_primitives.h>
 
-static class AllegroEngine
+
+class AllegroEngine
 {
 public:
 	static void InitializeAllegro()
@@ -34,6 +35,7 @@ public:
 		al_reserve_samples(10);
 	};
 
+	//Creates the screen
 	static void InitializeScreen(int myScreenWidth, int myScreenHeight)
 	{
 		//Creating screen
@@ -78,12 +80,12 @@ public:
 		std::string date = myCurrentYear+"/"+myCurrentMonth;
 		date += "/" + myCurrentDay;
 
-		strcpy(filename, myWorldName);
+		//strcpy(filename, myWorldName);
 
 		for(; *filename != '.' && *filename != 0; ++filename);
 		*filename = ':';
 
-		strcpy(filename++, date.c_str());
+		//strcpy(filename++, date.c_str());
 
 
 		//Setting up file specificiations
@@ -107,5 +109,6 @@ public:
 private:
 	static ALLEGRO_DISPLAY* main_display;
 };
+
 
 #endif

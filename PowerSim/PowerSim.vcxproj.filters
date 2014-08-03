@@ -51,9 +51,6 @@
     <ClInclude Include="TectonicPlate.h">
       <Filter>Header Files\Global</Filter>
     </ClInclude>
-    <ClInclude Include="Vector2.h">
-      <Filter>Header Files\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="Animal.h">
       <Filter>Header Files\Global</Filter>
     </ClInclude>
@@ -67,6 +64,9 @@
       <Filter>Header Files\Modes</Filter>
     </ClInclude>
     <ClInclude Include="allegro_engine.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="settings_manager.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
   </ItemGroup>

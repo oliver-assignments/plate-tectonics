@@ -2,7 +2,7 @@
 #define Tectonic_Plate_H
 
 class Province;
-#include <vector>
+#include "utility.h"
 
 class TectonicPlate
 {
