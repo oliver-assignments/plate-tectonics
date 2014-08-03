@@ -3,34 +3,36 @@
 
 class Person;
 
-class House
+namespace ws_global
 {
-public:
-	House(int myId,Person* myOwner,int myProvinceX,int myProvinceY,int myX,int myY)
+	class House
 	{
-		id = myId;
-		owner = myOwner;
+	public:
+		House(int myId,Person* myOwner,int myProvinceX,int myProvinceY,int myX,int myY)
+		{
+			id = myId;
+			owner = myOwner;
 
-		province_x = myProvinceX;
-		province_y = myProvinceY;
-		position_x = myX;
-		position_y = myY;
+			province_x = myProvinceX;
+			province_y = myProvinceY;
+			position_x = myX;
+			position_y = myY;
 
-		abandoned = false;
+			abandoned = false;
+		};
+		int id;
+		Person* owner;
+
+		bool abandoned;
+
+		int position_x;
+		int position_y;
+
+		int province_x;
+		int province_y;
+
+		int food_stored;
+		int date_last_visited;
 	};
-	int id;
-	Person* owner;
-
-	bool abandoned;
-
-	int position_x;
-	int position_y;
-
-	int province_x;
-	int province_y;
-
-	int food_stored;
-	int date_last_visited;
-};
-
+}
 #endif

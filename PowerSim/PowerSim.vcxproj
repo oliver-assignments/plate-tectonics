@@ -66,8 +66,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="allegro_engine.h" />
     <ClInclude Include="Animal.h" />
-    <ClInclude Include="ColorContext.h" />
+    <ClInclude Include="menu.h" />
     <ClInclude Include="Plant.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="House.h" />
@@ -75,8 +76,9 @@
     <ClInclude Include="Province.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="TectonicPlate.h" />
-    <ClInclude Include="UIState.h" />
+    <ClInclude Include="utility.h" />
     <ClInclude Include="Vector2.h" />
+    <ClInclude Include="context.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />
