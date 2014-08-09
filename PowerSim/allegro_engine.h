@@ -35,6 +35,16 @@ public:
 		al_reserve_samples(10);
 	};
 
+	static void InitializeFonts()
+	{
+		arial24 = al_load_font("arial.ttf",24,0);
+		arial16 = al_load_font("arial.ttf",16,0);
+		arial12 = al_load_font("arial.ttf",12,0);
+		arial8 = al_load_font("arial.ttf",8,0);
+	};
+
+	static void DrawText(std::string myText,int myXDestination, int myYDestination, ALLEGRO_FONT* myFont, std::string myAlignment);
+
 	//Creates the screen
 	static void InitializeScreen(int myScreenWidth, int myScreenHeight)
 	{
@@ -108,6 +118,11 @@ public:
 
 private:
 	static ALLEGRO_DISPLAY* main_display;
+
+	static ALLEGRO_FONT* arial24;
+	static ALLEGRO_FONT* arial16;
+	static ALLEGRO_FONT* arial12;
+	static ALLEGRO_FONT* arial8;
 };
 
 

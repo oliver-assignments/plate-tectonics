@@ -68,21 +68,28 @@
   <ItemGroup>
     <ClInclude Include="allegro_engine.h" />
     <ClInclude Include="Animal.h" />
-    <ClInclude Include="menu.h" />
+    <ClInclude Include="animals.h" />
+    <ClInclude Include="people.h" />
     <ClInclude Include="Plant.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="Person.h" />
+    <ClInclude Include="plants.h" />
     <ClInclude Include="Province.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="settings_manager.h" />
+    <ClInclude Include="settings.h" />
+    <ClInclude Include="tectonic.h" />
     <ClInclude Include="TectonicPlate.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="context.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="context.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

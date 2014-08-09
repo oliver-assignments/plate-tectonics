@@ -31,7 +31,8 @@ public:
 						//Here's the value of our setting
 						for (int q = c++; q < line.length(); q++)
 						{
-							value+=line[q];
+							if(line[q]!=';')
+								value+=line[q];
 						}
 						break;
 					}

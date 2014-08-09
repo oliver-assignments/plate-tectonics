@@ -57,8 +57,7 @@ public:
 	std::vector<Person*> people_in_line;
 	std::unordered_map<int,Person*> people_on_province;
 	std::unordered_map<int,House*> homes_on_province;
-	std::unordered_map<std::string,Plant*> plants_on_province;
-
+	
 	int province_x,province_y;
 };
 

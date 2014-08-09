@@ -25,8 +25,17 @@
     <Filter Include="Header Files\Engine">
       <UniqueIdentifier>{b5715e7f-5dee-4824-9efa-2ea7d0db62bc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Modes">
+    <Filter Include="Header Files\Handlers">
       <UniqueIdentifier>{04505156-3000-47f5-95ba-08cfa6ddbb22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine">
+      <UniqueIdentifier>{8c20a762-f883-4270-b6ef-213d495fa82b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Global">
+      <UniqueIdentifier>{a45c6dc9-948e-42ec-8383-abf6ba7ec4e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Handlers">
+      <UniqueIdentifier>{07415758-4186-438d-a6a6-98717ace276f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -58,16 +67,25 @@
       <Filter>Header Files\Global</Filter>
     </ClInclude>
     <ClInclude Include="Game.h">
-      <Filter>Header Files\Modes</Filter>
-    </ClInclude>
-    <ClInclude Include="menu.h">
-      <Filter>Header Files\Modes</Filter>
+      <Filter>Header Files\Handlers</Filter>
     </ClInclude>
     <ClInclude Include="allegro_engine.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="settings_manager.h">
+    <ClInclude Include="settings.h">
       <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="tectonic.h">
+      <Filter>Header Files\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="plants.h">
+      <Filter>Header Files\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="people.h">
+      <Filter>Header Files\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="animals.h">
+      <Filter>Header Files\Handlers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -77,5 +95,13 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="context.cpp">
+      <Filter>Source Files\Global</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="config.txt">
+      <Filter>Header Files\Engine</Filter>
+    </Text>
   </ItemGroup>
 </Project>

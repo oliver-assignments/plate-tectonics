@@ -1,7 +1,97 @@
+//					//
+//					//
+//	CONFIGURATION	//
+//					//
+//					//
+
+//				 //
+//New Game Config//
+//				 //
+screen_width=1000
+screen_height=800
+
 province_width=10
 province_height=10
+
+//						 //
+//Picture Output Settings//
+//						 //
+
+
+
 province_jiggle=false
 province_borders_drawn=false
 province_height_drawn=false
+
+//								//
+//Things that change the outcome//
+//								//
+hours_in_day=24
+days_in_year=365
+
+//Human Variables
 hunger_death_level=100
 hunger_seek_level=50
+
+//		//
+//Colors//
+//		//
+
+color_text_r=100
+color_text_g=100
+color_text_b=100
+
+color_grassland_r=0
+color_grassland_g=255
+color_grassland_b=0
+
+color_water_r=0
+color_water_g=0
+color_water_b=255
+
+color_forest_r=0
+color_alpine_r=0
+color_desert_r=0
+color_jungle_r=0
+color_tundra_r=0
+
+color_occupation_farmer_r=0
+color_occupation_artisan_r=0
+
+color_power_r=255
+color_power_g=0
+color_power_b=0
+
+color_hunger_r=0
+color_hunger_g=0
+color_hunger_b=0
+
+color_intelligence_r=0
+color_intelligence_g=0
+color_intelligence_b=0
+
+color_strength_r=0
+color_strength_g=0
+color_strength_b=0
+
+//Foreignness
+color_foreign_north_r=0
+color_foreign_north_g=0
+color_foreign_north_b=0
+
+color_foreign_east_r=0
+color_foreign_east_g=0
+color_foreign_east_b=0
+
+color_foreign_south_r=0
+color_foreign_south_g=0
+color_foreign_south_b=0
+
+color_foreign_west_r=0
+color_foreign_west_g=0
+color_foreign_west_b=0
+
+//Generation
+color_generation_r=0
+color_generation_g=0
+color_generation_b=0
