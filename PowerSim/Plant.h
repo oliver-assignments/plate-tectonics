@@ -74,7 +74,7 @@ public:
 			worked_hours -= (catalyst_hours-worked_hours);
 		}
 
-		province_parent->food_in_province += yield;
+		//province_parent->food_in_province += yield;
 
 		//Germinate onto other provinces!!!
 	};

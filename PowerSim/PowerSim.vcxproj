@@ -84,9 +84,11 @@
     <ClInclude Include="context.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="allegro_engine.cpp" />
     <ClCompile Include="context.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="utility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="config.txt" />

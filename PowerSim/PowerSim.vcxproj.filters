@@ -37,6 +37,9 @@
     <Filter Include="Source Files\Handlers">
       <UniqueIdentifier>{07415758-4186-438d-a6a6-98717ace276f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Utility">
+      <UniqueIdentifier>{66c9a1ef-9c22-409a-8acd-82cbac52d3d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utility.h">
@@ -97,6 +100,12 @@
     </ClCompile>
     <ClCompile Include="context.cpp">
       <Filter>Source Files\Global</Filter>
+    </ClCompile>
+    <ClCompile Include="allegro_engine.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="utility.cpp">
+      <Filter>Source Files\Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

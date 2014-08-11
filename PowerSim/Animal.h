@@ -9,7 +9,6 @@ namespace ws_global
 	{
 	public:
 		Animal(bool myAngry,
-
 			int myTastiness, 
 			int myYield, 
 			std::vector<Biome> myBiomesAccepted, 

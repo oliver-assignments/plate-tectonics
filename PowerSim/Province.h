@@ -27,7 +27,7 @@ public:
 		p3 = myP3;
 		biome = DESERT;
 		water_depth = 0;
-		food_in_province=0;
+		//food_in_province=0;
 		altitude = 0;
 	};
 	int id;
@@ -49,14 +49,14 @@ public:
 	int water_depth;
 	int altitude;//from deepest depths
 	int distance_from_equator;//Used for climates
-	int arability;
+	//int arability;
 
 	Biome biome;
 
-	int food_in_province;
-	std::vector<Person*> people_in_line;
-	std::unordered_map<int,Person*> people_on_province;
-	std::unordered_map<int,House*> homes_on_province;
+	//int food_in_province;
+	//std::vector<Person*> people_in_line;
+	//std::unordered_map<int,Person*> people_on_province;
+	//std::unordered_map<int,House*> homes_on_province;
 	
 	int province_x,province_y;
 };

@@ -6,6 +6,11 @@ class Context;
 class AnimalHandler
 {
 public:
+	static void InitializeHandler(Context* myContext)
+	{
+		context=myContext;
+	};
+
 	static void CreateAnimals();
 
 	static void AdvanceAnimals();

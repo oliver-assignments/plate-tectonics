@@ -6,6 +6,12 @@ class Context;
 class TectonicHandler
 {
 public:
+
+	static void InitializeHandler(Context* myContext)
+	{
+		context=myContext;
+	};
+
 	static void CreateTectonicPlates();
 
 	static void Erode();
@@ -18,8 +24,18 @@ public:
 	 
 	static void AdvanceTectonics();
 	static int CalculatePlateDensity(TectonicPlate* myPlate);
-private:
+
 	static Context* context;
+
+	static int plate_count;
+	static std::vector<std::vector<bool>> has_plate;
+	static std::vector<std::vector<int>> pending_altitude_changes;
+
+	static std::vector<Vector2*> currentPlateCollisions;
+	static std::vector<Vector2*> oldPlateCollisions;
+
+	static::std::vector<Province*> unresolved_water;
+	
 };
 
 #endif

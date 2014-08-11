@@ -6,28 +6,28 @@
 
 int main()
 {
-	SettingsManager::LoadConfigFile();
+	srand(time(NULL));
+
+	Settings::LoadConfigFile();
 
 	AllegroEngine::InitializeAllegro();
-	AllegroEngine::InitializeScreen();
+
 	Game game;
+	
+	//Loading the game
+	if(atoi(Settings::GetSetting("create_new_game").c_str()))
+		game.CreateWorld();
+	else
+		//game.LoadWorld();
 
-	game->CreateWorld();
-
-	bool done= false;
-	float FPS=0;
-	float total_frames=0;
-	float previous_tick_timestamp =0;
-	float elapsed_time=0;
-	float old_time=0;
-
-	float dt = .05;
-	float accumulator = 0.0;
-
+	AllegroEngine::InitializeScreen(game.context->screen_width,game.context->screen_height);
+	
 	while(true)
 	{
-		game->Update();
+		game.Update();
 	}
+
+	AllegroEngine::FreeMemory();
 
 	return 0;
 }

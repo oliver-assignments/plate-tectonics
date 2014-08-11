@@ -4,20 +4,24 @@
 //					//
 //					//
 
+
 //				 //
 //New Game Config//
 //				 //
+
+create_new_game=1;
+
+//Max screen size is 1000x800
 screen_width=1000
 screen_height=800
 
 province_width=10
 province_height=10
 
-//						 //
-//Picture Output Settings//
-//						 //
-
-
+//				 //
+//Output Settings//
+//				 //
+picture_output_folder=C:\Users\TheNextGuy\Documents\GitHub\PowerSim\PowerSim\Output
 
 province_jiggle=false
 province_borders_drawn=false
@@ -36,7 +40,6 @@ hunger_seek_level=50
 //		//
 //Colors//
 //		//
-
 color_text_r=100
 color_text_g=100
 color_text_b=100

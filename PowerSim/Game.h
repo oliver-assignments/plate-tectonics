@@ -1,4 +1,7 @@
+#ifndef __WS_GAME__
+#define __WS_GAME__
 
+#include "settings.h"
 #include "allegro_engine.h"
 #include "utility.h"
 
@@ -88,8 +91,6 @@ human pop size
 So food can spread west and east easy, so can tech
 */
 
-// PERLYL noise
-
 enum MapMode
 {
 	TERRAIN, 
@@ -101,15 +102,14 @@ enum MapMode
 
 typedef enum 
 {
-	POWER,HUNGER,STRENGTH,INTELLIGENCE,FOREIGN,GENERATION,OCCUPATION
+	POWER,
+	HUNGER,
+	STRENGTH,INTELLIGENCE,
+	FOREIGN,
+	GENERATION,
+	OCCUPATION
 
 } CensusMode;
-
-typedef enum
-{
-	CURRENT, HISTORY
-
-} CensusContext;
 
 class Game
 {
@@ -120,15 +120,13 @@ public:
 
 	//Game();
 	void Initialize();
-	//void InitializeAllegro();
-	//void InitializeVariables();
-	Context* CreateWorld();
+	void InitializeVariables();
+	void ProcessSettings();
+	void CreateWorld();
 
 	void CreateProvinces();
 	void CreateContinents();
-	void CreateRivers();
-
-	void DefineColors();
+	//void CreateRivers();
 
 	//		//
 	//Update//
@@ -140,13 +138,15 @@ public:
 
 	//Draw
 	void Draw();
+
 	void DrawProvinces();
+	//void CalculateVertexColor(int x, int y, ALLEGRO_VERTEX* myVertices);
+	
 	//void DrawRivers();
 	void DrawPeople();
 	
-
+	//Drawing Homes
 	void DrawHouses();
-	//void CalculateVertexColor(int x, int y,ALLEGRO_VERTEX* myVertices);
 	void DrawHouse(int x, int y);
 	void DrawHamlet (int x, int y); 
 	void DrawVillage(int x, int y);
@@ -159,62 +159,16 @@ public:
 	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 
-	void DrawData();
-	void DrawPopulation();
+	Context* context;
+
 private:
-	//Management//
-	//			//
 
-	//												//
-	//	Consider making a game window and toolbar	//
-	//												//
-	int screen_game_width;
-	int screen_game_height;
-
-	//Game//
-	//	  //
-
-	//Life
-	int hours_in_day;
-	int days_in_year;
-
-	int current_hour;
-	int current_day;
-	int current_year;
-
-	//Tectonic Plates
-	int plate_count;
-	std::vector<std::vector<bool>> provinces_has_plate;
-	std::vector<std::vector<std::vector<int>>> plates_on_province;
-	std::vector<std::vector<int>> provinces_pending_altitude_changes;
-	std::vector<std::vector<int>> asthenosphere_heat_map;
-
-	std::vector<TectonicPlate*> tectonic_plates; 
-	std::vector<Vector2*> currentPlateCollisions;
-	std::vector<Vector2*> oldPlateCollisions;
-
-	//Provinces
-	bool province_jiggle;
-
-	std::vector<std::vector<Province*>> provinces;
 	std::vector<Vector2*> province_vertices;
-	std::vector<Province*> provinces_with_hungry_people;
-	std::vector<Vector2*> provinces_with_water;
-	int province_width;
-	int province_height;
-	int world_width;
-	int world_height;
-
-	//Water Resolution
-	int total_water;
-	int total_land;
-	std::vector<Province*> province_water_unresolved;
-	int times_drawn;
+	bool province_jiggle;
 
 	int province_jiggle_width;
 	int province_jiggle_height;
 
-	bool provinces_drawn;
 	bool province_borders_drawn;
 	bool province_height_drawn;
 
@@ -222,41 +176,12 @@ private:
 	int province_deepest_depth;
 
 	int province_id;
-
-	////Rivers
-	//std::vector<std::vector<Vector2*>> rivers_points;
-
-	//People
 	int player_id;
-
-	//Houses
 	int house_id;
 
-	//Color Relative poitns
-	int power_highest_historical;
-	int power_highest_current;
-	Person* power_highest_person;
-	CensusContext power_context;
-
-	int strength_highest_historical;
-	int strength_highest_current;
-	Person* strength_highest_person;
-	CensusContext strength_context;
-
-	int intelligence_highest_historical;
-	int intelligence_highest_current;
-	Person* intelligence_highest_person;
-	CensusContext intelligence_context;
-
-	int hunger_death_level;
-	int hunger_seek_level;
-
-	int foreign_max;
-
-	int generation_youngest;
-
 	//Definiting Colors
-	CensusMode ui_state;
+	CensusMode census_mode;
+	MapMode map_mode;
 
 	double color_base_value ;
 
@@ -289,3 +214,5 @@ private:
 
 	int color_generation[3];
 };
+
+#endif

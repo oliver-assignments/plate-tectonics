@@ -6,6 +6,10 @@ class Context;
 class PlantHandler
 {
 public:
+	static void InitializeHandler(Context* myContext)
+	{
+		context=myContext;
+	};
 	static void CreatePlants();
 
 	static void AdvancePlants(Context* myWorldContext);
