@@ -76,7 +76,6 @@
     <ClInclude Include="Person.h" />
     <ClInclude Include="plants.h" />
     <ClInclude Include="Province.h" />
-    <ClInclude Include="Resource.h" />
     <ClInclude Include="settings.h" />
     <ClInclude Include="tectonic.h" />
     <ClInclude Include="TectonicPlate.h" />
@@ -85,9 +84,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="allegro_engine.cpp" />
+    <ClCompile Include="animals.cpp" />
     <ClCompile Include="context.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="people.cpp" />
+    <ClCompile Include="plants.cpp" />
+    <ClCompile Include="settings.cpp" />
+    <ClCompile Include="tectonic.cpp" />
     <ClCompile Include="utility.cpp" />
   </ItemGroup>
   <ItemGroup>

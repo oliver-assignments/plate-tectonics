@@ -1,8 +1,9 @@
-#include "Game.h"
 #include "utility.h"
 
-#include "allegro_engine.h"
-#include "settings.h"
+class Settings;
+class AllegroEngine;
+
+#include "Game.h"
 
 int main()
 {

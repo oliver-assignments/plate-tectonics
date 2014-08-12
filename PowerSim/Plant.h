@@ -2,16 +2,6 @@
 #define Plant_H
 #include "utility.h"
 #include "Province.h"
-#include <vector>
-#include <thread>
-#include <stdlib.h> 
-#include <ctime>
-#include <mutex>
-#include <string>
-#include <algorithm>  
-#include <stdio.h>
-#include <tchar.h>
-#include <iostream>
 
 class Plant
 {

@@ -22,6 +22,8 @@ Functions for querying the worldstate are housed here.
 class Context
 {
 public:
+	~Context();
+
 	int screen_width;
 	int screen_height;
 

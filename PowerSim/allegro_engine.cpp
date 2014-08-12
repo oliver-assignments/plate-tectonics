@@ -1,5 +1,15 @@
 #include "allegro_engine.h"
 
+int AllegroEngine::screen_width;
+int AllegroEngine::screen_height;
+
+ALLEGRO_FONT* AllegroEngine::arial24;
+ALLEGRO_FONT* AllegroEngine::arial16;
+ALLEGRO_FONT* AllegroEngine::arial12;
+ALLEGRO_FONT* AllegroEngine::arial8;
+
+ALLEGRO_DISPLAY* AllegroEngine::main_display;
+
 void AllegroEngine::InitializeScreen(int myScreenWidth, int myScreenHeight)
 {
 	screen_width = myScreenWidth;
@@ -14,8 +24,8 @@ void AllegroEngine::InitializeScreen(int myScreenWidth, int myScreenHeight)
 };
 
 void AllegroEngine::DrawTextC(std::string myText,
-							 int myXDestination, int myYDestination, 
-							 ALLEGRO_FONT* myFont, std::string myAlignment)
+							  int myXDestination, int myYDestination, 
+							  ALLEGRO_FONT* myFont, std::string myAlignment)
 {
 	const char * converted_text = myText.c_str();
 	al_draw_text(myFont,al_map_rgb(100,100,100), myXDestination, myYDestination,0, converted_text);

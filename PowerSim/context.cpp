@@ -1,5 +1,30 @@
 #include "context.h"
 
+Context::~Context()
+{
+	for (int i = 0; i < tectonic_plates.size(); i++)
+	{
+		delete(tectonic_plates[i]);
+	}
+
+	for (int i = 0; i < people.size(); i++)
+	{
+		delete(people[i]);
+	}
+	for (int i = 0; i < houses.size(); i++)
+	{
+		delete(houses[i]);
+	}
+	for (int i = 0; i < plants.size(); i++)
+	{
+		delete(plants[i]);
+	}
+	for (int i = 0; i < animals.size(); i++)
+	{
+		delete(animals[i]);
+	}
+};
+
 std::vector<Province*> Context::GetSquareOfProvinces(int province_x, int province_y, int radius,bool doGetCenter)
 {
 	std::vector<Province*> square;

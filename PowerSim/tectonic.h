@@ -1,7 +1,13 @@
 #ifndef __WS_TECTONIC_HANDLER__
 #define __WS_TECTONIC_HANDLER__
 
-class Context;
+#include "TectonicPlate.h"
+#include "context.h"
+#include "Province.h"
+class Plant;
+class Person;
+class Home;
+class Animal;
 
 class TectonicHandler
 {
@@ -34,7 +40,7 @@ public:
 	static std::vector<Vector2*> currentPlateCollisions;
 	static std::vector<Vector2*> oldPlateCollisions;
 
-	static::std::vector<Province*> unresolved_water;
+	static std::vector<Province*> unresolved_water;
 	
 };
 

@@ -1,8 +1,9 @@
 #ifndef Tectonic_Plate_H
 #define Tectonic_Plate_H
 
-class Province;
 #include "utility.h"
+
+class Province;
 
 class TectonicPlate
 {
@@ -13,6 +14,17 @@ public:
 		y_velocity = -9999;
 
 		plate_number = -9999;
+	};
+	~TectonicPlate()
+	{
+		for (int i = 0; i < provinces_in_plate.size(); i++)
+		{
+			delete(provinces_in_plate[i]);
+		}
+		for (int i = 0; i < new_plate.size(); i++)
+		{
+			delete(new_plate[i]);
+		}
 	};
 	
 	std::vector<Vector2*> provinces_in_plate;

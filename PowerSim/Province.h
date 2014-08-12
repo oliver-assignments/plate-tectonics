@@ -1,8 +1,7 @@
 #ifndef Province_H
 #define Province_H
 
-#include "Vector2.h"
-#include <unordered_map>
+#include "utility.h"
 class Person;
 class Plant;
 

@@ -1,6 +1,7 @@
 #ifndef Animal_H
 #define Animal_H
 
+#include "utility.h"
 #include "Province.h"
 
 namespace ws_global
