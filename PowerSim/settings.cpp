@@ -6,6 +6,10 @@ int Settings::LoadConfigFile()
 {
 	ifstream myfile ("config.txt");
 
+	int setting_number = 1;
+
+	std::cout<<"Reading the config file."<<endl<<endl;
+
 	if (myfile.is_open())
 	{
 		//Let's read all the lines
@@ -25,10 +29,11 @@ int Settings::LoadConfigFile()
 				std::string value;
 				for (int c = 0; c < line.length(); c++)
 				{
-					if(line[c] = '=')
+					char character= line[c];
+					if(line[c] == '=')
 					{
 						//Here's the value of our setting
-						for (int q = c++; q < line.length(); q++)
+						for (int q = ++c; q < line.length(); q++)
 						{
 							if(line[q]!=';')
 								value+=line[q];
@@ -42,16 +47,20 @@ int Settings::LoadConfigFile()
 					}
 				}
 				settings[index] = value;
-				cout<<"Setting : "<<index<<" : " << value << endl;
+				std::cout<<setting_number<<" : "<<index<<" = " << value << endl;
+				if(setting_number%5==0 && setting_number!=0)
+					std::cout<<endl;
+				setting_number++;
+				
 			}
 		}
 		myfile.close();
-		cout<<"Config file read successfuly!"<<endl;
+		std::cout<<"Config file read successfuly!"<<endl;
 		return 0;
 	}
 	else
 	{ 
-		cout << "Config file read unsucessfully."<<endl;
+		std::cout << "Config file read unsucessfully."<<endl;
 		return -1;//Oh shit wheres the file
 	}
 };

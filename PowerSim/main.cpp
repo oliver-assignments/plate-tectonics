@@ -11,24 +11,26 @@ int main()
 
 	Settings::LoadConfigFile();
 
-	AllegroEngine::InitializeAllegro();
+	//AllegroEngine::InitializeAllegro();
 
-	Game game;
-	
-	//Loading the game
-	if(atoi(Settings::GetSetting("create_new_game").c_str()))
-		game.CreateWorld();
-	else
-		//game.LoadWorld();
+	//Game game;
+	//
+	////Loading the game
+	//if(atoi(Settings::GetSetting("create_new_game").c_str()))
+	//	game.CreateWorld();
+	//else
+	//	//game.LoadWorld();
 
-	AllegroEngine::InitializeScreen(game.context->screen_width,game.context->screen_height);
-	
-	while(true)
-	{
-		game.Update();
-	}
+	//AllegroEngine::InitializeScreen(game.context->screen_width,game.context->screen_height);
+	//
+	//while(true)
+	//{
+	//	game.Update();
+	//}
 
-	AllegroEngine::FreeMemory();
+	//AllegroEngine::FreeMemory();
+
+	std::cin.ignore();
 
 	return 0;
 }
