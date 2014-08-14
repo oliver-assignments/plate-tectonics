@@ -126,7 +126,7 @@ void Game::CreateWorld()
 
 	TectonicHandler::CreateTectonicPlates();
 	TectonicHandler::CreateWater();
-	//TectonicHandler::ResolveAllWater();
+	TectonicHandler::ResolveAllWater();
 	//PlantHandler::InitializeHandler(context);
 	////PlantHandler::CreatePlants();
 
@@ -354,8 +354,73 @@ void Game::CreateContinents()
 
 void Game::Update()
 {	
-	map_mode= PLATE_TECTONICS;
-	//Draw();
+	for (int p = 0; p < 100; p++)
+	{
+		TectonicHandler::AdvanceTectonics();
+		UpdateHighestMountain();
+		TectonicHandler::ResolveAllWater();
+		UpdateDeepestWater();
+
+		//Now that the landscape has changed flush the new terrain!
+		Draw(TERRAIN);
+		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
+		al_flip_display();
+		context->current_year++;
+	}
+
+
+	while(true==false)
+	{
+		int save_interval = atoi(Settings::GetSetting("save_interval_years").c_str());
+		int save_counter=0;
+
+		int tectonic_interval = atoi(Settings::GetSetting("tectonic_interval_years").c_str());
+		int tectonic_counter = 0;
+
+		//The real game loop!
+		for (int d= 1; d <= 365; d++)
+		{
+			for (int h = 1; h <= 24; h++)
+			{
+				//		HOURLY LOGIC		//
+				//Update people
+
+				context->current_hour++;
+			}
+			//		DAILY LOGIC			//
+			//Update plants and animals
+
+			context->current_hour=0;
+			context->current_day++;
+		}
+		//		YEARLY LOGIC		//
+
+		//Is it time to save? We do this before tectonics because plates are taxing
+		save_counter++;
+		if(save_counter>=save_interval)
+		{
+			context->SaveWorld();
+		}
+
+		//Is it time for plates to move?
+		tectonic_counter++;
+		if(tectonic_counter>=tectonic_interval)
+		{
+			TectonicHandler::AdvanceTectonics();
+			UpdateHighestMountain();
+			TectonicHandler::ResolveAllWater();
+			UpdateDeepestWater();
+
+			//Now that the landscape has changed flush the new terrain!
+			Draw(TERRAIN);
+			AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
+			al_flip_display();
+
+			tectonic_counter=0;
+		}
+
+		context->current_year++;
+	}
 
 };
 

@@ -22,7 +22,15 @@ Functions for querying the worldstate are housed here.
 class Context
 {
 public:
+	Context()
+	{
+		current_hour=0;
+		current_day=0;
+		current_year=0;
+	};
 	~Context();
+
+	std::string world_name;
 
 	int screen_width;
 	int screen_height;

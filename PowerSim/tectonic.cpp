@@ -287,11 +287,6 @@ void TectonicHandler::Erode()
 
 void TectonicHandler::AdvanceTectonics()
 {
-	//Advancing time
-
-	//Changing what we are viewing, plate or land
-
-
 	//Clear our tect plate lists of old changes
 	for (int y = 0; y < context->world_height; y++)
 	{
@@ -449,14 +444,13 @@ void TectonicHandler::AdvanceTectonics()
 	}
 
 
-	//Update the plate with its new provinces!
-	//First clear them
+	//Clear out what the tectonic plate was
 	for (int t = 0; t < context->tectonic_plates.size(); t++)
 	{
 		context->tectonic_plates[t]->provinces_in_plate.clear();
 	}
 
-	//Now add the new provinces
+	//Now recreate the plates
 	for (int x = 0; x < context->world_width; x++)
 	{
 		for (int y = 0; y < context->world_height; y++)
@@ -471,23 +465,20 @@ void TectonicHandler::AdvanceTectonics()
 		}
 	}
 
-	//	Now that the altitude has changed we should update the water
-
-	for (int i = 0; i < 10; i++)
+	//RESOLVING WATER
+	for (int x = 0; x < context->world_width; x++)
 	{
-		for (int x = 0; x < context->world_width; x++)
+		for (int y = 0; y < context->world_height; y++)
 		{
-			for (int y = 0; y < context->world_height; y++)
-			{
-				if(context->provinces[y][x]->water_depth>0)
-					TectonicHandler::unresolved_water.push_back(context->provinces[y][x]);
-			}
+			if(context->provinces[y][x]->water_depth>0)
+				TectonicHandler::unresolved_water.push_back(context->provinces[y][x]);
 		}
-		ResolveAllWater();
 	}
+	ResolveAllWater();
 
 
 
+	//Any uncovered land becomes grassland
 	for (int y= 0; y < context->world_height; y++)
 	{
 		for (int x= 0; x < context->world_width; x++)

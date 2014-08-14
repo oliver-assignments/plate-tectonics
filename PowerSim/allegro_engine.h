@@ -2,6 +2,7 @@
 #define __WS_ALLEGRO_ENGINE__
 
 #include "utility.h"
+#include "settings.h"
 
 #include <allegro5\allegro.h>
 #include <allegro5\allegro_image.h>
@@ -23,11 +24,12 @@ public:
 	static void InitializeScreen(int myScreenWidth, int myScreenHeight);
 
 	//Altered version of allegro's screenshot functionality
-	static int FlushScreenshot(const char *destination_path, std::string myWorldName,
-		int myCurrentYear,int myCurrentMonth, int myCurrentDay);
+	static int FlushScreenshot(std::string myWorldName,
+		int myCurrentYear,int myCurrentDay, std::string myTags);
 
 	//This make be better for 
-	static void DrawTextC(std::string myText,int myXDestination, int myYDestination, ALLEGRO_FONT* myFont, std::string myAlignment);
+	static void DrawTextC(std::string myText,int myXDestination, int myYDestination, 
+		ALLEGRO_FONT* myFont, std::string myAlignment);
 
 	static void FreeMemory();
 

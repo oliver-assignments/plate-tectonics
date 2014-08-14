@@ -24,6 +24,9 @@ province_height=10
 picture_output_folder=C:\Users\TheNextGuy\Documents\GitHub\PowerSim\PowerSim\Output
 //.\Output
 
+save_interval_years=5
+tectonic_interval_years=1000
+
 province_jiggle=false
 province_borders_drawn=true
 province_height_drawn=false

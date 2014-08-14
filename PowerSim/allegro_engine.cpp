@@ -71,12 +71,13 @@ void AllegroEngine::DrawTextC(std::string myText,
 
 };
 
-int AllegroEngine::FlushScreenshot(const char *destination_path, std::string myWorldName,int myCurrentYear,int myCurrentMonth, int myCurrentDay)
+int AllegroEngine::FlushScreenshot(std::string myWorldName,int myCurrentYear,int myCurrentDay, std::string myTags)
 {
 	ALLEGRO_PATH *path;
 	char filename[80];
 	const char *path_cstr;
 	int char_index = 0;
+	const char* destination_path = Settings::GetSetting("picture_output_folder").c_str();
 
 	//Testing the destination given
 	if(!destination_path)
@@ -90,7 +91,7 @@ int AllegroEngine::FlushScreenshot(const char *destination_path, std::string myW
 	al_set_standard_file_interface();
 
 	//Creating the file name
-	std::string name = myWorldName + "-"+ std::to_string(myCurrentYear)+"-"+std::to_string(myCurrentMonth)+"-" + std::to_string(myCurrentDay);
+	std::string name = myWorldName + "["+ std::to_string(myCurrentYear)+"-"+ std::to_string(myCurrentDay) + "]" + myTags;
 
 	for (int c = 0; c < name.length(); c++)
 	{
