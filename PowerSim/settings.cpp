@@ -60,7 +60,7 @@ int Settings::LoadConfigFile()
 	}
 	else
 	{ 
-		std::cout << "Config file read unsucessfully."<<endl;
+		std::cout << endl << "Config file read unsucessfully.";
 		return -1;//Oh shit wheres the file
 	}
 };

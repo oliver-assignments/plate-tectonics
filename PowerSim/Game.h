@@ -137,9 +137,9 @@ public:
 	void UpdateHighestMountain();
 
 	//Draw
-	void Draw();
+	void Draw(MapMode myMapMode);
 
-	void DrawProvinces();
+	void DrawProvinces(MapMode myMapMode);
 	//void CalculateVertexColor(int x, int y, ALLEGRO_VERTEX* myVertices);
 	
 	//void DrawRivers();

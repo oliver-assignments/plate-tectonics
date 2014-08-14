@@ -17,11 +17,23 @@ int PeopleHandler::generation_youngest=1;
 int PeopleHandler::hunger_seek_level = 0;
 int PeopleHandler::hunger_death_level = 0;
 
-int PeopleHandler::foreign_max = 100;
+int PeopleHandler::foreign_max = 0;
 
 std::vector<Province*> PeopleHandler::provinces_with_hungry_people;
 
 //Functions
+
+void PeopleHandler::InitializeHandler(Context* myContext)
+{
+	context=myContext;
+
+	PeopleHandler::hunger_seek_level = atoi((Settings::GetSetting("hunger_seek_level")).c_str());
+	PeopleHandler::hunger_death_level = atoi((Settings::GetSetting("hunger_death_level")).c_str());
+
+	foreign_max = 100;
+
+	PeopleHandler::generation_youngest=1;
+};
 
 void PeopleHandler::CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius)
 {

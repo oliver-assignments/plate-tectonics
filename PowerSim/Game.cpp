@@ -9,105 +9,147 @@ class AnimalHandler;
 
 void Game::ProcessSettings()
 {
-	PeopleHandler::hunger_death_level = 100;
-	PeopleHandler::hunger_seek_level = PeopleHandler::hunger_death_level/9;
 
-	province_jiggle_width = (int)(context->province_width*0.8);
-	province_jiggle_height = (int)(context->province_height*0.8);
+	//province_jiggle_width = (int)(context->province_width*0.8);
+	//province_jiggle_height = (int)(context->province_height*0.8);
 
-	province_jiggle = false;
-	province_borders_drawn = false;
-	province_height_drawn = false;
+	province_jiggle = atoi(Settings::GetSetting("province_jiggle").c_str());
+	province_borders_drawn = atoi(Settings::GetSetting("province_border_drawn").c_str());
+	province_height_drawn = atoi(Settings::GetSetting("province_height_drawn").c_str());
 
 	//Loading color settings
 	color_base_value = 0.5;
 
 	color_text[0] = atoi(Settings::GetSetting("color_text_r").c_str());
-	color_text[1] = 255;
-	color_text[2] = 255;
+	color_text[1] = atoi(Settings::GetSetting("color_text_g").c_str());
+	color_text[2] = atoi(Settings::GetSetting("color_text_b").c_str());
 
-	color_resource[0] = 200;color_resource[1] = 200;color_resource[2] = 200;
-	color_house[0] = 150;color_house[1] = 150;color_house[2] = 150;
+	color_house[0] = atoi(Settings::GetSetting("color_house_r").c_str());
+	color_house[1] = atoi(Settings::GetSetting("color_house_g").c_str());
+	color_house[2] = atoi(Settings::GetSetting("color_house_b").c_str());
 
-	color_grassland[0] = 75;color_grassland[1] =150;color_grassland[2] = 60;
-	color_jungle[0] = 130;color_jungle[1] =140;color_jungle[2] = 70;
-	color_desert[0] = 150;color_desert[1] =150;color_desert[2] = 10;
-	color_water[0] = 0;color_water[1] =0;color_water[2] = 100;
-	color_tundra[0] = 235;color_tundra[1] =255;color_tundra[2] = 235;
-	color_alpine[0] = 190;color_alpine[1] =190;color_alpine[2] = 170;
-	color_forest[0] = 140;color_forest[1] =200;color_forest[2] = 130;
+	color_grassland[0] =atoi(Settings::GetSetting("color_grassland_r").c_str());
+	color_grassland[1] =atoi(Settings::GetSetting("color_grassland_g").c_str());
+	color_grassland[2] =atoi(Settings::GetSetting("color_grassland_b").c_str());
 
-	color_occupation_farmer[0] = 5;color_occupation_farmer[1] = 102;color_occupation_farmer[2] = 100;
-	color_occupation_artisan[0] = 252;color_occupation_artisan[1] = 50;color_occupation_artisan[2] = 4;
+	color_jungle[0] =atoi(Settings::GetSetting("color_jungle_r").c_str());
+	color_jungle[1] =atoi(Settings::GetSetting("color_jungle_g").c_str());
+	color_jungle[2] =atoi(Settings::GetSetting("color_jungle_b").c_str());
 
-	color_power[0] = 255; color_power[1] = 0; color_power[2] = 0;
-	color_hunger[0] = 139; color_hunger[1] = 69; color_hunger[2] = 19;
+	color_desert[0] =atoi(Settings::GetSetting("color_desert_r").c_str());
+	color_desert[1] =atoi(Settings::GetSetting("color_desert_g").c_str());
+	color_desert[2] =atoi(Settings::GetSetting("color_desert_b").c_str());
 
-	color_strength[0] = 255; color_strength[1] = 165; color_strength[2] = 0;
-	color_intelligence[0] = 100; color_intelligence[1] = 149; color_intelligence[2] = 237;
+	color_water[0] =atoi(Settings::GetSetting("color_water_r").c_str());
+	color_water[1] =atoi(Settings::GetSetting("color_water_g").c_str());
+	color_water[2] =atoi(Settings::GetSetting("color_water_b").c_str());
 
-	color_foreign_north[0] = 255; color_foreign_north[1] = 255; color_foreign_north[2] = 0;
-	color_foreign_east[0] = 204; color_foreign_east[1] = 0; color_foreign_east[2] = 0;
-	color_foreign_south[0] = 51; color_foreign_south[1] = 51; color_foreign_south[2] = 153;
-	color_foreign_west[0] = 51; color_foreign_west[1] = 153; color_foreign_west[2] = 0;
+	color_tundra[0] =atoi(Settings::GetSetting("color_tundra_r").c_str());
+	color_tundra[1] =atoi(Settings::GetSetting("color_tundra_g").c_str());
+	color_tundra[2] =atoi(Settings::GetSetting("color_tundra_b").c_str());
 
-	color_generation[0] = 192; color_generation[1] = 192; color_generation[2] = 192;
+	color_alpine[0] =atoi(Settings::GetSetting("color_alpine_r").c_str());
+	color_alpine[1] =atoi(Settings::GetSetting("color_alpine_g").c_str());
+	color_alpine[2] =atoi(Settings::GetSetting("color_alpine_b").c_str());
+
+	color_forest[0] =atoi(Settings::GetSetting("color_forest_r").c_str());
+	color_forest[1] =atoi(Settings::GetSetting("color_forest_g").c_str());
+	color_forest[2] =atoi(Settings::GetSetting("color_forest_b").c_str());
+
+	color_occupation_farmer[0] =atoi(Settings::GetSetting("color_occupation_farmer_r").c_str());
+	color_occupation_farmer[1] =atoi(Settings::GetSetting("color_occupation_farmer_g").c_str());
+	color_occupation_farmer[2] =atoi(Settings::GetSetting("color_occupation_farmer_b").c_str());
+
+	color_occupation_artisan[0] = atoi(Settings::GetSetting("color_occupation_farmer_r").c_str());
+	color_occupation_artisan[1] = atoi(Settings::GetSetting("color_occupation_farmer_g").c_str());
+	color_occupation_artisan[2] = atoi(Settings::GetSetting("color_occupation_farmer_b").c_str());
+
+	color_power[0] = atoi(Settings::GetSetting("color_power_r").c_str()); 
+	color_power[1] = atoi(Settings::GetSetting("color_power_g").c_str());
+	color_power[2] = atoi(Settings::GetSetting("color_power_b").c_str());
+
+	color_hunger[0] = atoi(Settings::GetSetting("color_hunger_r").c_str()); 
+	color_hunger[1] = atoi(Settings::GetSetting("color_hunger_g").c_str());
+	color_hunger[2] = atoi(Settings::GetSetting("color_hunger_b").c_str());
+
+	color_strength[0] = atoi(Settings::GetSetting("color_strength_r").c_str()); 
+	color_strength[1] = atoi(Settings::GetSetting("color_strength_g").c_str()); 
+	color_strength[2] = atoi(Settings::GetSetting("color_strength_b").c_str());
+
+	color_intelligence[0] = atoi(Settings::GetSetting("color_intelligence_r").c_str());
+	color_intelligence[1] = atoi(Settings::GetSetting("color_intelligence_g").c_str());
+	color_intelligence[2] = atoi(Settings::GetSetting("color_intelligence_b").c_str());
+
+	color_foreign_north[0] = atoi(Settings::GetSetting("color_foreign_north_r").c_str()); 
+	color_foreign_north[1] = atoi(Settings::GetSetting("color_foreign_north_g").c_str()); 
+	color_foreign_north[2] = atoi(Settings::GetSetting("color_foreign_north_b").c_str());
+
+	color_foreign_east[0] =atoi(Settings::GetSetting("color_foreign_east_r").c_str()); 
+	color_foreign_east[1] =atoi(Settings::GetSetting("color_foreign_east_g").c_str());
+	color_foreign_east[2] =atoi(Settings::GetSetting("color_foreign_east_b").c_str());
+
+	color_foreign_south[0] = atoi(Settings::GetSetting("color_foreign_south_r").c_str());
+	color_foreign_south[1] = atoi(Settings::GetSetting("color_foreign_south_g").c_str());
+	color_foreign_south[2] = atoi(Settings::GetSetting("color_foreign_south_b").c_str());
+
+	color_foreign_west[0] = atoi(Settings::GetSetting("color_foreign_west_r").c_str());
+	color_foreign_west[1] = atoi(Settings::GetSetting("color_foreign_west_g").c_str()); 
+	color_foreign_west[2] = atoi(Settings::GetSetting("color_foreign_west_b").c_str());
+
+	color_generation[0] = atoi(Settings::GetSetting("color_generation_r").c_str());
+	color_generation[1] = atoi(Settings::GetSetting("color_generation_g").c_str());
+	color_generation[2] = atoi(Settings::GetSetting("color_generation_b").c_str());
 
 };
 void Game::InitializeVariables()
 {	
-	census_mode = POWER;
-
 	//These are used to make the map relative and change often
 	province_highest_altitude = 1000;
 	province_deepest_depth = 10;
 
-	//Setuping up our values
-
-
-
-
-
-	PeopleHandler::foreign_max=100;
-
-	PeopleHandler::generation_youngest=1;
-
 	player_id = 0;
 	house_id = 0;
 	province_id=0;
-
-
-
 };
 
 void Game::CreateWorld()
 {
 	context = new Context();
+	context->world_name = std::to_string(RandomNumberBetween(0,101));
 
 	CreateProvinces();
 	CreateContinents();
+
+	UpdateHighestMountain();
 
 	TectonicHandler::InitializeHandler(context);
 
 	TectonicHandler::CreateTectonicPlates();
 	TectonicHandler::CreateWater();
-	TectonicHandler::ResolveAllWater();
+	//TectonicHandler::ResolveAllWater();
+	//PlantHandler::InitializeHandler(context);
+	////PlantHandler::CreatePlants();
 
-	PlantHandler::InitializeHandler(context);
-	//PlantHandler::CreatePlants();
+	//AnimalHandler::InitializeHandler(context);
+	////AnimalHandler::CreateAnimals();
 
-	AnimalHandler::InitializeHandler(context);
-	//AnimalHandler::CreateAnimals();
-
-	PeopleHandler::InitializeHandler(context);
+	//PeopleHandler::InitializeHandler(context);
 	//Note we may not want to do this before we move the plates along
 	//PeopleHandler::CreatePeople();
+
+	std::cout<<"World created"<<endl;
 };
 
 void Game::CreateProvinces()
 {
-	context->world_width = (int)(AllegroEngine::screen_width/context->province_width);
-	context->world_height = (int)(AllegroEngine::screen_height/context->province_height);
+	context->screen_width = atoi((Settings::GetSetting("screen_width")).c_str());  
+	context->screen_height = atoi((Settings::GetSetting("screen_height")).c_str());
+
+	context->province_width = atoi((Settings::GetSetting("province_width")).c_str());
+	context->province_height = atoi((Settings::GetSetting("province_height")).c_str());
+
+	context->world_width = (int)(context->screen_width/context->province_width);
+	context->world_height = (int)(context->screen_height/context->province_height);
 
 	int equator_position = (int)(context->world_height/2);
 
@@ -312,7 +354,8 @@ void Game::CreateContinents()
 
 void Game::Update()
 {	
-
+	map_mode= PLATE_TECTONICS;
+	//Draw();
 
 };
 
@@ -346,21 +389,37 @@ void Game::UpdateHighestMountain()
 	}
 };
 
-void Game::Draw()
+void Game::Draw(MapMode myMapMode)
 {
-	DrawProvinces();
-
-	DrawPeople();
-
-	DrawHouses();
-
-	al_flip_display();
-	al_clear_to_color(al_map_rgb(0,0,0));
+	switch(myMapMode)
+	{
+	case TERRAIN:
+		DrawProvinces(myMapMode);
+		//DrawHouses();
+		//DrawClouds();
+		break;
+	case PLATE_TECTONICS: 
+		DrawProvinces(myMapMode);
+		break;
+	case PLANT: 
+		DrawProvinces(myMapMode);
+		//DrawPlants();
+		break;
+	case ANIMAL: 
+		DrawProvinces(myMapMode);
+		//DrawAnimals();
+		break;
+	case HUMAN: 
+		DrawProvinces(myMapMode);
+		//DrawHouses;
+		//DrawHumans();
+		break; 
+	}
 };
 
-void Game::DrawProvinces()
+void Game::DrawProvinces(MapMode myMapMode)
 {
-	switch (map_mode)
+	switch (myMapMode)
 	{
 	case TERRAIN:
 		for(std::vector<std::vector<Province*>>::size_type y = 0; y <context->world_height; y++) 
@@ -471,6 +530,7 @@ void Game::DrawProvinces()
 						al_map_rgb(0,0,0),1);
 				}
 			}
+
 		}
 		if(province_height_drawn)
 		{

@@ -10,17 +10,56 @@ ALLEGRO_FONT* AllegroEngine::arial8;
 
 ALLEGRO_DISPLAY* AllegroEngine::main_display;
 
+void AllegroEngine::InitializeAllegro()
+{
+	if (!al_init())
+	{
+		std::cout<<"Al init failed."<<endl;
+	}
+	//allegro-5.0.10-monolith-md-debug.lib
+
+	//Anti Aliasing
+	al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
+	al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
+
+	//Initializing Addons
+	al_init_image_addon();
+	al_init_font_addon();
+	al_init_ttf_addon();
+	al_install_keyboard();
+	al_install_audio();
+	al_init_acodec_addon();
+	al_init_primitives_addon();
+
+	al_reserve_samples(10);
+
+	std::cout<<endl<<"Allegro initialized.";
+
+	InitializeFonts();
+};
+
+void AllegroEngine::InitializeFonts()
+{
+	arial24 = al_load_font("arial.ttf",24,0);
+	arial16 = al_load_font("arial.ttf",16,0);
+	arial12 = al_load_font("arial.ttf",12,0);
+	arial8 = al_load_font("arial.ttf",8,0);
+
+	std::cout<<endl<<"Fonts loaded."<<endl;
+};
+
 void AllegroEngine::InitializeScreen(int myScreenWidth, int myScreenHeight)
 {
 	screen_width = myScreenWidth;
 	screen_height = myScreenHeight;
 
-	//Creating screen
-	ALLEGRO_DISPLAY* display = al_create_display(myScreenWidth, myScreenWidth);
-	al_set_window_position(display,0,0);
-	al_set_window_title(display,"World Simulation");//CreateName(7).c_str());
+	al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_OPENGL);
+	main_display = al_create_display(myScreenWidth,myScreenHeight);
 
-	main_display = display;
+	al_set_window_position(main_display,0,0);
+	al_set_window_title(main_display,"World Simulation");
+
+	//al_flip_display();
 };
 
 void AllegroEngine::DrawTextC(std::string myText,
@@ -32,11 +71,12 @@ void AllegroEngine::DrawTextC(std::string myText,
 
 };
 
-int AllegroEngine::FlushScreenshot(const char *destination_path, const char *myWorldName,int myCurrentYear,int myCurrentMonth, int myCurrentDay)
+int AllegroEngine::FlushScreenshot(const char *destination_path, std::string myWorldName,int myCurrentYear,int myCurrentMonth, int myCurrentDay)
 {
 	ALLEGRO_PATH *path;
-	char *filename, *filename_wp;
+	char filename[80];
 	const char *path_cstr;
+	int char_index = 0;
 
 	//Testing the destination given
 	if(!destination_path)
@@ -47,45 +87,44 @@ int AllegroEngine::FlushScreenshot(const char *destination_path, const char *myW
 	if(!path)
 		return -1;//Where we want it is bad
 
-	if(!myWorldName) {
-		if( !(myWorldName = al_get_app_name()) ) {
-			al_destroy_path(path);
-			return -2;//We cant use app name or the given name
-		}
-	}
-
-	//Length of gamename + length of ":YYYY-MM-DD" + NULL terminator
-	if ( !(filename_wp = filename = (char *)malloc(strlen(myWorldName)+ 1 + 8 + 1 + 1 + 1)) ) {
-		al_destroy_path(path);
-		return -4;//We don't have enough space?
-	}
+	al_set_standard_file_interface();
 
 	//Creating the file name
-	std::string date = myCurrentYear+"/"+myCurrentMonth;
-	date += "/" + myCurrentDay;
+	std::string name = myWorldName + "-"+ std::to_string(myCurrentYear)+"-"+std::to_string(myCurrentMonth)+"-" + std::to_string(myCurrentDay);
 
-	//strcpy(filename, myWorldName);
-
-	for(; *filename != '.' && *filename != 0; ++filename);
-	*filename = ':';
-
-	//strcpy(filename++, date.c_str());
-
+	for (int c = 0; c < name.length(); c++)
+	{
+		filename[char_index] = name[c];
+		char_index++;
+	}
+	filename[char_index] = '\0';
 
 	//Setting up file specificiations
 	al_set_path_filename(path, filename);//Where are we writing this
 	al_set_path_extension(path, ".png");//We are creating a png
 	path_cstr = al_path_cstr(path, ALLEGRO_NATIVE_PATH_SEP);
 
-	//We've already printed out this file
-	if (al_filename_exists(path_cstr))
+	if (!al_filename_exists(path_cstr))
 	{
 		//Saving the bitmap
-		al_save_bitmap(path_cstr, al_get_target_bitmap());
-		return 0;//It worked
+		std::cout<<"Screenshot saved at "<<path_cstr<<" named "<<filename<<"."<<endl;
+		al_save_bitmap(path_cstr,al_get_backbuffer(main_display));
+		return 1;
 	}
-	free(filename);
-	al_destroy_path(path);
-
+	else
+	{
+		//We've already printed out this file
+		delete(filename);
+		al_destroy_path(path);
+	}
 	return -6;//We never placed a file
-}
+};
+
+void AllegroEngine::FreeMemory()
+{
+	al_destroy_display(main_display);
+	al_destroy_font(arial24);
+	al_destroy_font(arial16);
+	al_destroy_font(arial12);
+	al_destroy_font(arial8);
+};

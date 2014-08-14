@@ -13,7 +13,7 @@ std::vector<Province*> TectonicHandler::unresolved_water;
 
 void TectonicHandler::CreateTectonicPlates()
 {
-	
+	std::cout<<"Creating tectonic plates."<<endl;
 	int provinces_without_plate = context->world_height * context->world_width;
 	int plate_count = 0;
 
@@ -72,7 +72,7 @@ void TectonicHandler::CreateTectonicPlates()
 		for (int q = 0; q < 60; q++)
 		{
 			//Wrap the x
-			int piece_origin_x = cluster_origin_province_x - (radius) + (rand()%(radius*2));
+			int piece_origin_x = cluster_origin_province_x + RandomNumberBetween(-radius,radius);
 			if(piece_origin_x<0)
 				piece_origin_x+=context->world_width;
 			if(piece_origin_x>=context->world_width)
@@ -165,17 +165,20 @@ void TectonicHandler::CreateTectonicPlates()
 	tectonic_plates[t]->provinces_in_plate.clear();
 	}
 	}*/
+
+	std::cout<<"Tectonic plates created."<<endl;
 };
 void TectonicHandler::CreateWater()
 {
+	std::cout<<"Creating Water."<<endl;
 	int amount_water_needed = context->world_width*context->world_height*100;
 	for (int w = 0; w < 100; w++)
 	{
 		Province* prov = NULL;
 		while(prov == NULL)
 		{
-			int x = (rand()%context->world_width);
-			int y = (rand()%context->world_height);
+			int x = RandomNumberBetween(0,context->world_width);
+			int y = RandomNumberBetween(0,context->world_height);
 			if(context->provinces[y][x]->biome != GRASSLAND)
 			{
 				prov = context->provinces[y][x];
@@ -185,18 +188,21 @@ void TectonicHandler::CreateWater()
 		prov->biome = WATER;
 		TectonicHandler::unresolved_water.push_back(prov);
 	}
-	ResolveAllWater();
+
+	std::cout<<"Water created."<<endl;
 };
 
 void TectonicHandler::ResolveAllWater()
 {
+	std::cout<<"Resolving water."<<endl;
 	ResolveWaterInProvince(TectonicHandler::unresolved_water[0]);
-	while(TectonicHandler::unresolved_water.size()>0)
+	while(TectonicHandler::unresolved_water.size()>1)
 	{
 		ResolveWaterInProvince(TectonicHandler::unresolved_water[TectonicHandler::unresolved_water.size()-1]);
 		auto prov = TectonicHandler::unresolved_water.end()-1;
 		TectonicHandler::unresolved_water.erase(TectonicHandler::unresolved_water.end()-1);
 	}
+	std::cout<<"Water resolved"<<endl;
 };
 void TectonicHandler::ResolveWaterInProvince(Province* prov)
 {

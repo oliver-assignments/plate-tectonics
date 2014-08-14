@@ -12,14 +12,7 @@ class Province;
 class PeopleHandler
 {
 public:
-	static void InitializeHandler(Context* myContext)
-	{
-		context=myContext;
-
-		PeopleHandler::hunger_seek_level = atoi((Settings::GetSetting("hunger_seek_level")).c_str());
-		PeopleHandler::hunger_death_level = atoi((Settings::GetSetting("hunger_death_level")).c_str());
-
-	};
+	static void InitializeHandler(Context* myContext);
 
 	static void CreatePeople(int myNumberClusters,int myPeoplePerCluster, int myForeignRadius);
 

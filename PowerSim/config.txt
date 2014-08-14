@@ -11,9 +11,9 @@
 
 create_new_game=1;
 
-//Max screen size is 1000x800
-screen_width=1000
-screen_height=800
+//Max screen size is 1350 x 690
+screen_width=1350
+screen_height=690
 
 province_width=10
 province_height=10
@@ -22,9 +22,10 @@ province_height=10
 //Output Settings//
 //				 //
 picture_output_folder=C:\Users\TheNextGuy\Documents\GitHub\PowerSim\PowerSim\Output
+//.\Output
 
 province_jiggle=false
-province_borders_drawn=false
+province_borders_drawn=true
 province_height_drawn=false
 
 //								//
@@ -44,57 +45,76 @@ color_text_r=100
 color_text_g=100
 color_text_b=100
 
-color_grassland_r=0
-color_grassland_g=255
-color_grassland_b=0
+color_grassland_r=70
+color_grassland_g=150
+color_grassland_b=60
 
 color_water_r=0
 color_water_g=0
-color_water_b=255
+color_water_b=100
 
-color_forest_r=0
-color_alpine_r=0
-color_desert_r=0
-color_jungle_r=0
-color_tundra_r=0
+color_forest_r=140
+color_forest_g=200
+color_forest_b=130
 
-color_occupation_farmer_r=0
-color_occupation_artisan_r=0
+color_alpine_r=190
+color_alpine_g=190
+color_alpine_b=170
+
+color_desert_r=150
+color_desert_g=150
+color_desert_b=10
+
+color_jungle_r=130
+color_jungle_g=140
+color_jungle_b=70
+
+color_tundra_r=235
+color_tundra_g=255
+color_tundra_b=235
+
+color_occupation_farmer_r=5
+color_occupation_farmer_g=102
+color_occupation_farmer_b=100
+
+color_occupation_artisan_r=252
+color_occupation_artisan_g=50
+color_occupation_artisan_b=40
 
 color_power_r=255
 color_power_g=0
 color_power_b=0
 
-color_hunger_r=0
-color_hunger_g=0
-color_hunger_b=0
+color_hunger_r=139
+color_hunger_g=69
+color_hunger_b=19
 
-color_intelligence_r=0
-color_intelligence_g=0
-color_intelligence_b=0
+color_intelligence_r=100
+color_intelligence_g=149
+color_intelligence_b=237
 
-color_strength_r=0
-color_strength_g=0
+color_strength_r=255
+color_strength_g=165
 color_strength_b=0
 
 //Foreignness
-color_foreign_north_r=0
-color_foreign_north_g=0
+color_foreign_north_r=255
+color_foreign_north_g=255
 color_foreign_north_b=0
 
-color_foreign_east_r=0
+color_foreign_east_r=204
 color_foreign_east_g=0
 color_foreign_east_b=0
 
-color_foreign_south_r=0
-color_foreign_south_g=0
-color_foreign_south_b=0
+color_foreign_south_r=51
+color_foreign_south_g=51
+color_foreign_south_b=153
 
-color_foreign_west_r=0
-color_foreign_west_g=0
+color_foreign_west_r=51
+color_foreign_west_g=153
 color_foreign_west_b=0
 
 //Generation
-color_generation_r=0
-color_generation_g=0
-color_generation_b=0
+color_generation_r=192
+color_generation_g=192
+color_generation_b=192
