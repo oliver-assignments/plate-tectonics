@@ -5,6 +5,11 @@ int RandomNumberBetween(int myLowerInclusive, int myUpperExclusive)
 	return myLowerInclusive + (rand()%myUpperExclusive);
 };
 
+int RandomNumberBelow(int myUpperExclusive)
+{
+	return (rand()%myUpperExclusive);
+};
+
 std::string CreateGibberishName(int myNumberLetters)
 {
 	std::string name ("");

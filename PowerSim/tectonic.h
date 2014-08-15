@@ -17,7 +17,7 @@ public:
 	{
 		context=myContext;
 	};
-
+	static void PlateContiguitySearch(Vector2 myCoordinate,std::vector<Vector2*>* plate_coordinates, std::vector<Vector2>* myConnected);
 	static void CreateTectonicPlates();
 
 	static void Erode();

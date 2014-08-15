@@ -21,8 +21,8 @@ province_height=10
 //				 //
 //Output Settings//
 //				 //
-picture_output_folder=C:\Users\TheNextGuy\Documents\GitHub\PowerSim\PowerSim\Output
-//.\Output
+picture_output_folder=.\\Output\\
+
 
 save_interval_years=5
 tectonic_interval_years=1000

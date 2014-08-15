@@ -48,8 +48,8 @@ public:
 	std::vector<TectonicPlate*> tectonic_plates; 
 	std::vector<std::vector<int>> asthenosphere_heat_map;
 
-	std::vector<std::vector<std::vector<int>>> plates_on_province;
-	std::vector<std::vector<bool>> flipped_plates_on_provinces;
+	std::vector<std::vector<std::vector<int>>> new_plates_on_province;
+	std::vector<std::vector<std::vector<int>>> old_plates_on_province;
 
 	std::vector<Person*> people;
 	std::vector<House*> houses;

@@ -13,9 +13,12 @@ std::vector<Province*> TectonicHandler::unresolved_water;
 
 void TectonicHandler::CreateTectonicPlates()
 {
-	std::cout<<"Creating tectonic plates."<<endl;
+	std::cout<<"Creating tectonic plates."<<endl<<endl;
+
 	int provinces_without_plate = context->world_height * context->world_width;
+
 	int plate_count = 0;
+	int reject_count=0;
 
 	//Initializing the grid for tectonic plates
 	for (int y = 0; y < context->world_height; y++)
@@ -29,84 +32,208 @@ void TectonicHandler::CreateTectonicPlates()
 		std::vector<int> row_of_astehnosphere_heat;
 		context->asthenosphere_heat_map.push_back(row_of_astehnosphere_heat);
 
-		std::vector<std::vector<int>> row_of_list_of_plates_on_province;
-		context->plates_on_province.push_back(row_of_list_of_plates_on_province);
+		std::vector<std::vector<int>> row_of_list_of_new_plates_on_province;
+		context->new_plates_on_province.push_back(row_of_list_of_new_plates_on_province);
+
+		std::vector<std::vector<int>> row_of_list_of_old_plates_on_province;
+		context->old_plates_on_province.push_back(row_of_list_of_old_plates_on_province);
 
 		for (int x = 0; x < context->world_width; x++)
 		{
 			has_plate[y].push_back(false);
 			pending_altitude_changes[y].push_back(0);
 			context->asthenosphere_heat_map[y].push_back(0);
-			context->plates_on_province[y].push_back(*new std::vector<int>);
+			context->new_plates_on_province[y].push_back(*new std::vector<int>);
+			context->old_plates_on_province[y].push_back(*new std::vector<int>);
 		}
 	}
 
-	int radius = ((context->world_width+context->world_height)/2)/4;
-	int provinces_scanned =0;
+	int radius = (context->world_width+context->world_height)/12;
 
-	//Creating every plate
-	while(provinces_without_plate>0)
+	//Creating every plate until 90% is covered
+	while(provinces_without_plate>((context->world_height*context->world_width)/10))
 	{
-		TectonicPlate* tectonic_plate = new TectonicPlate();
-		tectonic_plate->plate_number = plate_count;
-		plate_count++;
-
-		//Finding a good blob origin that isnt already taken
-		int cluster_origin_province_x=rand()%context->world_width;
-		int cluster_origin_province_y=rand()%context->world_height;
-
-		while(cluster_origin_province_x==-1 && cluster_origin_province_y==-1)
+		if(reject_count<1000)
 		{
-			int attempted_x = rand()% context->world_width;
-			int attempted_y = rand() %context->world_height;
+			TectonicPlate* tectonic_plate = new TectonicPlate();
+			tectonic_plate->plate_number = plate_count;
+			plate_count++;
 
-			//This hasnt been taken, go ahead and use it as your center
-			if(has_plate[attempted_y][attempted_x] == false)
+			//Finding a good blob origin that isnt already taken
+			int cluster_origin_province_x=-1;
+			int cluster_origin_province_y=-1;
+
+			while(cluster_origin_province_x==-1 && cluster_origin_province_y==-1)
 			{
-				cluster_origin_province_x = attempted_x;
-				cluster_origin_province_y = attempted_y;
+				int attempted_x = RandomNumberBelow(context->world_width);
+				int attempted_y = RandomNumberBelow(context->world_height);
+
+				//This hasnt been taken, go ahead and use it as your center
+				if(has_plate[attempted_y][attempted_x] == false)
+				{
+					cluster_origin_province_x = attempted_x;
+					cluster_origin_province_y = attempted_y;
+				}
+				tectonic_plate->provinces_in_plate.push_back(new Vector2(cluster_origin_province_x,cluster_origin_province_y = attempted_y));
+			}
+
+			//Creating # of smaller diamonds near our center
+			for (int q = 0; q < 60; q++)
+			{
+				//Wrap the x
+				int piece_origin_x = cluster_origin_province_x + RandomNumberBetween(-radius,radius);
+				if(piece_origin_x<0)
+					piece_origin_x+=context->world_width;
+				if(piece_origin_x>=context->world_width)
+					piece_origin_x-=context->world_width;
+
+				//But not the y
+				int piece_origin_y = cluster_origin_province_y + RandomNumberBetween(-radius,radius);
+				if(piece_origin_y<0)
+					continue;
+				if(piece_origin_y>=context->world_height)
+					continue;
+
+				//A mildy random piece size
+				int piece_radius = (radius/4) + RandomNumberBetween(-radius/15/2, radius/15);
+
+				//The coordinates of the piece
+				std::vector<Province*> piece = context->GetDiamondOfProvinces(piece_origin_x,piece_origin_y,piece_radius,true);
+
+				//Making sure this province is not taken by another plate or itself
+				for (int m = 0; m < piece.size(); m++)
+				{
+					if(has_plate[piece[m]->province_y][piece[m]->province_x] == false)
+					{
+						//Add it to our plate!
+						tectonic_plate->provinces_in_plate.push_back(new Vector2(piece[m]->province_x,piece[m]->province_y));
+					}
+				}
+			}
+
+			//	DUPLICATE CLEANING	//
+			vector<Vector2*> nonduplicated_provinces;
+			for (int w = 0; w < tectonic_plate->provinces_in_plate.size(); w++)
+			{
+				bool duplicate = false;
+				for (int a = 0; a < nonduplicated_provinces.size(); a++)
+				{
+					if(tectonic_plate->provinces_in_plate[w]->x==nonduplicated_provinces[a]->x && tectonic_plate->provinces_in_plate[w]->y==nonduplicated_provinces[a]->y)
+					{
+						duplicate = true;
+						break;
+					}
+				}
+				if(!duplicate)
+				{
+					nonduplicated_provinces.push_back(tectonic_plate->provinces_in_plate[w]);
+				}
+			}
+			tectonic_plate->provinces_in_plate.clear();
+			for (int l = 0; l < nonduplicated_provinces.size(); l++)
+			{
+				tectonic_plate->provinces_in_plate.push_back(nonduplicated_provinces[l]);
+			}
+
+			//If its not a super tiny plate
+			if(tectonic_plate->provinces_in_plate.size()>10)
+			{
+				//Depth first search to see if its contiguous
+				std::vector<Vector2> confirmed_contiguous_provinces;
+
+				Vector2 starting (tectonic_plate->provinces_in_plate[0]->x,tectonic_plate->provinces_in_plate[0]->y);
+
+				TectonicHandler::PlateContiguitySearch(
+					starting,
+					&tectonic_plate->provinces_in_plate,
+					&confirmed_contiguous_provinces);
+
+				//If this tectonic plate checks out
+				if(confirmed_contiguous_provinces.size() == tectonic_plate->provinces_in_plate.size())
+				{
+					//std::cout<<"Plate	CREATED		; it was size "<<tectonic_plate->provinces_in_plate.size()<<"."<<endl;
+					std::cout<<provinces_without_plate<<" provinces left to fill."<<endl;
+
+					context->tectonic_plates.push_back(tectonic_plate);
+					provinces_without_plate -= tectonic_plate->provinces_in_plate.size();
+
+					for (int p = 0; p < tectonic_plate->provinces_in_plate.size(); p++)
+					{
+						context->old_plates_on_province[tectonic_plate->provinces_in_plate[p]->y][tectonic_plate->provinces_in_plate[p]->x].push_back(tectonic_plate->plate_number);
+						has_plate[tectonic_plate->provinces_in_plate[p]->y][tectonic_plate->provinces_in_plate[p]->x] = true;
+					}
+				}
+				else
+				{
+					plate_count--;
+					reject_count++;
+					/*std::cout<<"Plate rejected; lack of contiguity."<<endl;
+					std::cout<<provinces_without_plate<<" provinces left to fill."<<endl;*/
+				}
+			}
+			else
+			{
+				plate_count--;
+				reject_count++;
+				/*std::cout<<"Plate rejected; it was only size "<<tectonic_plate->provinces_in_plate.size()<<"."<<endl;
+				std::cout<<provinces_without_plate<<" provinces left to fill."<<endl;*/
 			}
 		}
-
-		//Creating # of smaller diamonds near our center
-		for (int q = 0; q < 60; q++)
+		else
 		{
-			//Wrap the x
-			int piece_origin_x = cluster_origin_province_x + RandomNumberBetween(-radius,radius);
-			if(piece_origin_x<0)
-				piece_origin_x+=context->world_width;
-			if(piece_origin_x>=context->world_width)
-				piece_origin_x-=context->world_width;
+			std::cout<<"Reject max achieved."<<endl;
+			break;
+		}
+	}
 
-			//But not the y
-			int piece_origin_y = cluster_origin_province_y - (radius/2) + (rand()%radius);
-			if(piece_origin_y<0)
-				continue;
-			if(piece_origin_y>=context->world_height)
-				continue;
-
-			//A mildy random piece size
-			int piece_radius = (radius/4) -(radius/15/2) + (rand()%(radius/15));
-
-			//The coordinates of the piece
-			std::vector<Province*> piece = context->GetDiamondOfProvinces(piece_origin_x,piece_origin_y,piece_radius,true);
-
-			//Making sure this province is not taken by another plate or itself
-			for (int m = 0; m < piece.size(); m++)
+	//Meshing together the remaining spots
+	std::vector<Province*> provinces_without_plate_neighbors;//Any provinces that have no nearby plates are put into this list and handled later
+	for (int y = 0; y < context->world_height; y++)
+	{
+		for (int x = 0; x < context->world_width; x++)
+		{
+			if(context->old_plates_on_province[y][x].size() == 0)
 			{
-				if(has_plate[piece[m]->province_y][piece[m]->province_x] == false)
-				{
-					//Add it to our plate!
-					tectonic_plate->provinces_in_plate.push_back(new Vector2(piece[m]->province_x,piece[m]->province_y));
+				//The number of times a plate is a neighbor
+				std::unordered_map<int,int> neighboring_plate_occurences;
+				bool no_nearby_plates = true;
 
-					//A province has been taken
-					has_plate[piece[m]->province_y][piece[m]->province_x] = true;
+				//Cylcing through neighbors
+				std::vector<Province*> neighbors = context->GetDiamondOfProvinces(x,y,1,false);
+				for (int p = 0; p < neighbors.size(); p++)
+				{
+					Province* prov = neighbors[p];
+					if(context->old_plates_on_province[prov->province_y][prov->province_x].size()!=0)
+					{
+						neighboring_plate_occurences[context->old_plates_on_province[prov->province_y][prov->province_x][0]]++;
+						no_nearby_plates = false;
+					}
+				}
+				if(no_nearby_plates == false)
+				{
+					int highest_occurence = 0;
+					int chosen_plate = 0;
+					//Figuring out which plate occurs the most
+					for (auto it = neighboring_plate_occurences.begin(); it != neighboring_plate_occurences.end(); ++it) 
+					{
+						if(it->second>highest_occurence	)
+						{
+							highest_occurence = it->second;
+							chosen_plate = it->first;
+						}
+					}
+					context->tectonic_plates[chosen_plate]->provinces_in_plate.push_back(new Vector2(x,y));
+					context->old_plates_on_province[y][x].push_back(chosen_plate);
 					provinces_without_plate--;
+				}
+				else
+				{
+					provinces_without_plate_neighbors.push_back(context->provinces[y][x]);
 				}
 			}
 		}
-		context->tectonic_plates.push_back(tectonic_plate);
 	}
+
 
 	/*//If a plate is too small we mesh it with other plates
 	for (int t = 0; t < tectonic_plates.size(); t++)
@@ -125,7 +252,7 @@ void TectonicHandler::CreateTectonicPlates()
 	while(attempted_neighbor_index==NULL)
 	{
 	int attempted_index= rand()%neighboring.size();
-	std::vector<int> plates_on_this_province = plates_on_province[neighboring[attempted_neighbor_index]->province_y]
+	std::vector<int> plates_on_this_province = new_plates_on_province[neighboring[attempted_neighbor_index]->province_y]
 	[neighboring[attempted_neighbor_index]->province_x];
 
 	if(plates_on_this_province.size() >1)
@@ -142,7 +269,7 @@ void TectonicHandler::CreateTectonicPlates()
 	}
 
 	//The plates on the neighboring province
-	std::vector<int> plates_on_this_province = plates_on_province[neighboring[attempted_neighbor_index]->province_y]
+	std::vector<int> plates_on_this_province = new_plates_on_province[neighboring[attempted_neighbor_index]->province_y]
 	[neighboring[attempted_neighbor_index]->province_x];
 
 	//Add this province coordinate to our neighbors list
@@ -168,6 +295,95 @@ void TectonicHandler::CreateTectonicPlates()
 
 	std::cout<<"Tectonic plates created."<<endl;
 };
+
+void TectonicHandler::PlateContiguitySearch(Vector2 myCoordinate, std::vector<Vector2*>* plate_coordinates, std::vector<Vector2>* myConnected)
+{
+	vector<Vector2>& connected_reference = *myConnected;
+	vector<Vector2*>& plate_reference = *plate_coordinates;
+
+	Vector2 north (myCoordinate.x,myCoordinate.y-1);
+
+	Vector2 east (myCoordinate.x+1,myCoordinate.y);
+
+	Vector2 south (myCoordinate.x,  myCoordinate.y+1);
+
+	Vector2 west (myCoordinate.x-1,myCoordinate.y);
+
+	//Go through every province in the plate and see if its a neihgbor of this province
+	for (int i = plate_reference.size()-1; i >= 0; i--)
+	{
+		if(plate_reference[i]->x == north.x && plate_reference[i]->y == north.y)
+		{
+			//Check if we already ahve it
+			bool already_have_it = false;
+			for (int c = 0; c < myConnected->size(); c++)
+			{
+				if(north.x == connected_reference[c].x && north.y == connected_reference[c].y)
+				{
+					already_have_it=true;
+				}
+			}
+			if(!already_have_it)
+			{
+				myConnected->push_back((Vector2)(north));
+				PlateContiguitySearch(north,&plate_reference,myConnected);
+			}
+		}
+		if(plate_reference[i]->x == east.x && plate_reference[i]->y == east.y)
+		{
+			//Check if we already ahve it
+			bool already_have_it = false;
+			for (int c = 0; c < myConnected->size(); c++)
+			{
+				if(east.x == connected_reference[c].x && east.y == connected_reference[c].y)
+				{
+					already_have_it=true;
+				}
+			}
+			if(!already_have_it)
+			{
+				myConnected->push_back((Vector2)(east));
+				PlateContiguitySearch(east,&plate_reference,myConnected);
+			}
+		}
+		if(plate_reference[i]->x == south.x && plate_reference[i]->y == south.y)
+		{
+			//Check if we already ahve it
+			bool already_have_it = false;
+			for (int c = 0; c < myConnected->size(); c++)
+			{
+				if(south.x == connected_reference[c].x && south.y == connected_reference[c].y)
+				{
+					already_have_it=true;
+				}
+			}
+			if(!already_have_it)
+			{
+				myConnected->push_back((Vector2)(south));
+				PlateContiguitySearch(south,&plate_reference,myConnected);
+			}
+		}
+		if(plate_reference[i]->x == west.x && plate_reference[i]->y == west.y)
+		{
+			//Check if we already ahve it
+			bool already_have_it = false;
+			for (int c = 0; c < myConnected->size(); c++)
+			{
+				if(west.x == connected_reference[c].x && west.y == connected_reference[c].y)
+				{
+					already_have_it=true;
+				}
+			}
+			if(!already_have_it)
+			{
+				myConnected->push_back((Vector2)(west));
+				PlateContiguitySearch(west,&plate_reference,myConnected);
+			}
+		}
+	}
+
+};
+
 void TectonicHandler::CreateWater()
 {
 	std::cout<<"Creating Water."<<endl;
@@ -287,21 +503,17 @@ void TectonicHandler::Erode()
 
 void TectonicHandler::AdvanceTectonics()
 {
-	//Clear our tect plate lists of old changes
+	//		CLEAR OLD CHANGES		//
 	for (int y = 0; y < context->world_height; y++)
 	{
 		for (int x = 0; x < context->world_width; x++)
 		{
-			int heat = context->provinces[y][x]->altitude - context->provinces[y][x]->water_depth;
-			if(heat >0)
-				context->asthenosphere_heat_map[y][x] += heat;
-
-			context->plates_on_province[y][x].clear();
+			context->new_plates_on_province[y][x].clear();
 			pending_altitude_changes[y][x] = 0;
 		}
 	}
 
-	//Moving the plates, not we only make a new array of the supposed positons we dont ACTUALYL move them
+	//		MOVE EACH PLATE		//
 	for (int t = 0; t < context->tectonic_plates.size(); t++)
 	{
 		//If it isn't moving get it a new direction
@@ -311,7 +523,7 @@ void TectonicHandler::AdvanceTectonics()
 			context->tectonic_plates[t]->y_velocity = -1 + rand()%3;
 		}
 
-		//Populating array of plates on each province
+		//Populating where the plates move to
 		for (int p = 0; p < context->tectonic_plates[t]->provinces_in_plate.size(); p++)
 		{
 			Province* province = context->provinces[context->tectonic_plates[t]->provinces_in_plate[p]->y][context->tectonic_plates[t]->provinces_in_plate[p]->x];
@@ -321,69 +533,111 @@ void TectonicHandler::AdvanceTectonics()
 
 			context->WrapCoordinates(&wrapped_x,&wrapped_y);
 
-			context->plates_on_province[wrapped_y][wrapped_x].push_back(context->tectonic_plates[t]->plate_number);
+			context->new_plates_on_province[wrapped_y][wrapped_x].push_back(context->tectonic_plates[t]->plate_number);
 		}
 	}
 
-	//Conflict resolve - There was never a peaceful solution
+	//								//
+	//		CONFLICT RESOLUTION		//
+	//								//
 	for (int y = 0; y < context->world_height; y++)
 	{
 		for (int x = 0; x < context->world_width; x++)
 		{
-			//The plates that are on this province
-			std::vector<int> tectonic_plate_conflicts = context->plates_on_province[y][x];
+			//The plates that are conflicting on this province
+			std::vector<int> tectonic_plate_conflicts = context->new_plates_on_province[y][x];
 
 			if(tectonic_plate_conflicts.size() >1)//If there is indeed a conflict
 			{
-				//The provinces that tried ot move onto this province
-				std::vector<Province*> province_conflicts;
+				//Is it just a duplicate?
+				std::vector<int> duplicates;
 
-				//Pulling the old provinces by backtracking so we can compare
-				for (int c = 0; c < tectonic_plate_conflicts.size(); c++)
+				//Removing duplicates -- why would we have duplicates!?
+				for (int i = 0; i < tectonic_plate_conflicts.size(); i++)
 				{
-					int wrapped_x = x-context->tectonic_plates[tectonic_plate_conflicts[c]]->x_velocity;
-					int wrapped_y = y-context->tectonic_plates[tectonic_plate_conflicts[c]]->y_velocity;
-					context->WrapCoordinates(&wrapped_x,&wrapped_y);
-
-					Province* old_plate_province_pos = context->provinces[wrapped_y][wrapped_x];
-					province_conflicts.push_back(old_plate_province_pos);
-				}
-
-				int highest_density = INT_MIN;
-				int highest_value_index= - 9990;
-
-				for (int c = 0; c < province_conflicts.size(); c++)
-				{
-					//Determining which plate will not get subducted and destroyed
-					int plate_density = CalculatePlateDensity(context->tectonic_plates[c]);
-					if(plate_density >= highest_density)
+					bool already_have = false;
+					for (int q = 0; q < duplicates.size(); q++)
 					{
-						highest_density = plate_density;
-						highest_value_index = tectonic_plate_conflicts[c];
+						if(duplicates[q] ==tectonic_plate_conflicts[i])
+						{
+							already_have = true;
+						}
+					}
+					if(!already_have)
+					{
+						duplicates.push_back(tectonic_plate_conflicts[i]);
 					}
 				}
+				tectonic_plate_conflicts = duplicates;
 
-				//Highest one doesnt get deleted
-				context->plates_on_province[y][x].clear();
-				context->plates_on_province[y][x].push_back(highest_value_index);
-			}
-			if(context->plates_on_province[y][x].size() !=0)
-			{
-				//Now move the altitude from the chosen plate
-				Vector2* old_position =new Vector2(
-					x - context->tectonic_plates[context->plates_on_province[y][x][0]]->x_velocity,
-					y - context->tectonic_plates[context->plates_on_province[y][x][0]]->y_velocity);
-				context->WrapCoordinates(old_position);
+				//Do we still have conflict
+				if(tectonic_plate_conflicts.size() >1)
+				{
 
-				Province* previous_province_position = context->provinces[old_position->y][old_position->x];
+					//The provinces that tried ot move onto this province
+					std::vector<Province*> province_conflicts;
 
-				pending_altitude_changes[y][x]+=previous_province_position->altitude;
+					//Pulling the competing provinces
+					for (int c = 0; c < tectonic_plate_conflicts.size(); c++)
+					{
+						int wrapped_x = x-context->tectonic_plates[tectonic_plate_conflicts[c]]->x_velocity;
+						int wrapped_y = y-context->tectonic_plates[tectonic_plate_conflicts[c]]->y_velocity;
 
-				pending_altitude_changes[old_position->y][old_position->x]-= previous_province_position->altitude;
-				delete(old_position);
+						context->WrapCoordinates(&wrapped_x,&wrapped_y);
+
+						//If that old province did not contain our plate then we need to look in the other direction
+						if(!context->old_plates_on_province[wrapped_y][wrapped_x][0] == tectonic_plate_conflicts[c])
+						{
+							wrapped_x = x+context->tectonic_plates[tectonic_plate_conflicts[c]]->x_velocity;
+							wrapped_y = y+context->tectonic_plates[tectonic_plate_conflicts[c]]->y_velocity;
+							context->WrapCoordinates(&wrapped_x,&wrapped_y);
+						}
+
+						Province* old_plate_province_pos = context->provinces[wrapped_y][wrapped_x];
+						province_conflicts.push_back(old_plate_province_pos);
+					}
+
+					//												//
+					//		WHICH PLATE DOES NOT GET SUBDUCTED		//
+					//												//
+
+					int highest_density = INT_MIN;
+					int highest_value_index= - 9990;
+
+					for (int c = 0; c < province_conflicts.size(); c++)
+					{
+						//Determining which plate will not get subducted and destroyed
+						int plate_density = CalculatePlateDensity(context->tectonic_plates[c]);
+						if(plate_density >= highest_density)
+						{
+							highest_density = plate_density;
+							highest_value_index = tectonic_plate_conflicts[c];
+						}
+					}
+
+					//Highest one doesnt get deleted
+					context->new_plates_on_province[y][x].clear();
+					context->new_plates_on_province[y][x].push_back(highest_value_index);
+				}
+				if(context->new_plates_on_province[y][x].size() !=0)
+				{
+					//Now move the altitude from the chosen plate
+					Vector2* old_position =new Vector2(
+						x - context->tectonic_plates[context->new_plates_on_province[y][x][0]]->x_velocity,
+						y - context->tectonic_plates[context->new_plates_on_province[y][x][0]]->y_velocity);
+					context->WrapCoordinates(old_position);
+
+					Province* previous_province_position = context->provinces[old_position->y][old_position->x];
+
+					pending_altitude_changes[y][x]+=previous_province_position->altitude;
+
+					pending_altitude_changes[old_position->y][old_position->x]-= previous_province_position->altitude;
+					delete(old_position);
+				}
 			}
 		}
 	}
+
 	//Apply the height changes
 	for (int y = 0; y < context->world_height; y++)
 	{
@@ -399,10 +653,13 @@ void TectonicHandler::AdvanceTectonics()
 	{
 		for (int x = 0; x < context->world_width; x++)
 		{
-			if(context->plates_on_province[y][x].size() == 0)
+			if(context->new_plates_on_province[y][x].size() == 0)
 			{
 				//Perhaps only add altitude if there is water...
-				context->provinces[y][x]->altitude+= 5+rand()%10;//Magma is melting! add some altitude
+				if(context->provinces[y][x]->altitude==0)
+				{
+					context->provinces[y][x]->altitude+= RandomNumberBetween(5,16);//Magma is melting! add some altitude
+				}
 
 				//The number of times a plate is a neighbor
 				std::unordered_map<int,int> neighboring_plate_occurences;
@@ -413,9 +670,9 @@ void TectonicHandler::AdvanceTectonics()
 				for (int p = 0; p < neighbors.size(); p++)
 				{
 					Province* prov = neighbors[p];
-					if(context->plates_on_province[prov->province_y][prov->province_x].size()!=0)
+					if(context->new_plates_on_province[prov->province_y][prov->province_x].size()!=0)
 					{
-						neighboring_plate_occurences[context->plates_on_province[prov->province_y][prov->province_x][0]]++;
+						neighboring_plate_occurences[context->new_plates_on_province[prov->province_y][prov->province_x][0]]++;
 						no_nearby_plates = false;
 					}
 				}
@@ -433,7 +690,7 @@ void TectonicHandler::AdvanceTectonics()
 						}
 					}
 					context->tectonic_plates[chosen_plate]->provinces_in_plate.push_back(new Vector2(x,y));
-					context->plates_on_province[y][x].push_back(chosen_plate);
+					context->new_plates_on_province[y][x].push_back(chosen_plate);
 				}
 				else
 				{
@@ -455,9 +712,9 @@ void TectonicHandler::AdvanceTectonics()
 	{
 		for (int y = 0; y < context->world_height; y++)
 		{
-			if(context->plates_on_province[y][x].size()>0)
+			if(context->new_plates_on_province[y][x].size()>0)
 			{
-				context->tectonic_plates[context->plates_on_province[y][x][0]]->provinces_in_plate.push_back(new Vector2(x,y));//Where it is now
+				context->tectonic_plates[context->new_plates_on_province[y][x][0]]->provinces_in_plate.push_back(new Vector2(x,y));//Where it is now
 			}
 			if(context->provinces[y][x]->water_depth>0)
 				TectonicHandler::unresolved_water.push_back(context->provinces[y][x]);
@@ -476,8 +733,6 @@ void TectonicHandler::AdvanceTectonics()
 	}
 	ResolveAllWater();
 
-
-
 	//Any uncovered land becomes grassland
 	for (int y= 0; y < context->world_height; y++)
 	{
@@ -490,6 +745,16 @@ void TectonicHandler::AdvanceTectonics()
 		}
 	}
 
+	//Update the new to the old 
+	for (int y = 0; y < context->world_height; y++)
+	{
+		for (int x = 0; x < context->world_width; x++)
+		{
+			context->old_plates_on_province[y][x].clear();
+			context->old_plates_on_province[y][x].push_back(context->new_plates_on_province[y][x][0]);
+		}
+	}
+
 	//Resolve new plates speeds
 };
 int TectonicHandler::CalculatePlateDensity(TectonicPlate* myPlate)
@@ -498,11 +763,20 @@ int TectonicHandler::CalculatePlateDensity(TectonicPlate* myPlate)
 	int total_water = 0;
 	for (int p = 0; p < myPlate->provinces_in_plate.size(); p++)
 	{
-		total_landmass+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->altitude;
-		total_water+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->water_depth;
+		//This method compares the all land to the all water provinces and considers water provinces fully cool
+		if(context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->water_depth==0)
+		{
+			total_landmass++;
+		}
+		else
+		{
+			total_water++;
+		}
+
+		//This method compares teh total amount of land vs the total amount of water for different ranges
+		//total_landmass+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->altitude;
+		//total_water+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->water_depth;
 	}
-
-
 
 	return total_landmass/total_water;
 };

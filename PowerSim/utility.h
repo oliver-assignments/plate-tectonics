@@ -29,6 +29,8 @@ using namespace std;
 
 int RandomNumberBetween(int myLowerIncusive, int myUpperExclusive);
 
+int RandomNumberBelow(int myUpperExclusive);
+
 std::string CreateGibberishName(int myNumberLetters);
 
 class Vector2

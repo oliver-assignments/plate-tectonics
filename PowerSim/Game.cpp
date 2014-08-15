@@ -125,6 +125,7 @@ void Game::CreateWorld()
 	TectonicHandler::InitializeHandler(context);
 
 	TectonicHandler::CreateTectonicPlates();
+
 	TectonicHandler::CreateWater();
 	TectonicHandler::ResolveAllWater();
 	//PlantHandler::InitializeHandler(context);
@@ -354,17 +355,21 @@ void Game::CreateContinents()
 
 void Game::Update()
 {	
-	for (int p = 0; p < 100; p++)
+	for (int p = 0; p < 10; p++)
 	{
-		TectonicHandler::AdvanceTectonics();
 		UpdateHighestMountain();
-		TectonicHandler::ResolveAllWater();
 		UpdateDeepestWater();
 
-		//Now that the landscape has changed flush the new terrain!
 		Draw(TERRAIN);
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
 		al_flip_display();
+
+		Draw(PLATE_TECTONICS);
+		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Plates");
+		al_flip_display();
+
+		TectonicHandler::AdvanceTectonics();
+		
 		context->current_year++;
 	}
 
@@ -406,15 +411,19 @@ void Game::Update()
 		tectonic_counter++;
 		if(tectonic_counter>=tectonic_interval)
 		{
-			TectonicHandler::AdvanceTectonics();
-			UpdateHighestMountain();
-			TectonicHandler::ResolveAllWater();
-			UpdateDeepestWater();
-
 			//Now that the landscape has changed flush the new terrain!
 			Draw(TERRAIN);
 			AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
 			al_flip_display();
+
+			Draw(PLATE_TECTONICS);
+			AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Plates");
+			al_flip_display();
+
+			TectonicHandler::AdvanceTectonics();
+			UpdateHighestMountain();
+			TectonicHandler::ResolveAllWater();
+			UpdateDeepestWater();
 
 			tectonic_counter=0;
 		}
@@ -497,7 +506,6 @@ void Game::DrawProvinces(MapMode myMapMode)
 				color[0] = 0;
 				color[1] = 0;
 				color[2] = 0;
-
 
 				switch (province->biome)
 				{
