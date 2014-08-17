@@ -48,13 +48,13 @@ void TectonicHandler::CreateTectonicPlates()
 		}
 	}
 
-	int radius = (context->world_width+context->world_height)/12;
-
 	//Creating every plate until 90% is covered
 	while(provinces_without_plate>((context->world_height*context->world_width)/10))
 	{
 		if(reject_count<1000)
 		{
+			int radius = (context->world_width+context->world_height)/RandomNumberBetween(10,15);
+
 			TectonicPlate* tectonic_plate = new TectonicPlate();
 			tectonic_plate->plate_number = plate_count;
 			plate_count++;
@@ -95,7 +95,8 @@ void TectonicHandler::CreateTectonicPlates()
 					continue;
 
 				//A mildy random piece size
-				int piece_radius = (radius/4) + RandomNumberBetween(-radius/15/2, radius/15);
+				//radius =(context->world_width+context->world_height)/RandomNumberBetween(6,15);
+				int piece_radius = 10;//(radius/4) + RandomNumberBetween(-radius/15/2, radius/15);
 
 				//The coordinates of the piece
 				std::vector<Province*> piece = context->GetDiamondOfProvinces(piece_origin_x,piece_origin_y,piece_radius,true);
@@ -302,12 +303,16 @@ void TectonicHandler::PlateContiguitySearch(Vector2 myCoordinate, std::vector<Ve
 	vector<Vector2*>& plate_reference = *plate_coordinates;
 
 	Vector2 north (myCoordinate.x,myCoordinate.y-1);
+	TectonicHandler::context->WrapCoordinates(&north);
 
 	Vector2 east (myCoordinate.x+1,myCoordinate.y);
+	TectonicHandler::context->WrapCoordinates(&east);
 
 	Vector2 south (myCoordinate.x,  myCoordinate.y+1);
+	TectonicHandler::context->WrapCoordinates(&south);
 
 	Vector2 west (myCoordinate.x-1,myCoordinate.y);
+	TectonicHandler::context->WrapCoordinates(&west);
 
 	//Go through every province in the plate and see if its a neihgbor of this province
 	for (int i = plate_reference.size()-1; i >= 0; i--)

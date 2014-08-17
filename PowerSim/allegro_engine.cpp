@@ -58,8 +58,6 @@ void AllegroEngine::InitializeScreen(int myScreenWidth, int myScreenHeight)
 
 	al_set_window_position(main_display,0,0);
 	al_set_window_title(main_display,"World Simulation");
-
-	//al_flip_display();
 };
 
 void AllegroEngine::DrawTextC(std::string myText,
@@ -77,7 +75,8 @@ int AllegroEngine::FlushScreenshot(std::string myWorldName,int myCurrentYear,int
 	char filename[80];
 	const char *path_cstr;
 	int char_index = 0;
-	const char* destination_path = Settings::GetSetting("picture_output_folder").c_str();
+	std::string output = Settings::GetSetting("picture_output_folder");
+	const char* destination_path = output.c_str();
 
 	//Testing the destination given
 	if(!destination_path)
@@ -108,9 +107,14 @@ int AllegroEngine::FlushScreenshot(std::string myWorldName,int myCurrentYear,int
 	if (!al_filename_exists(path_cstr))
 	{
 		//Saving the bitmap
-		std::cout<<"Screenshot saved at "<<path_cstr<<" named "<<filename<<"."<<endl;
-		al_save_bitmap(path_cstr,al_get_backbuffer(main_display));
-		return 1;
+		//std::cout<<"Screenshot saved at "<<path_cstr<<" named "<<filename<<"."<<endl;
+
+		std::cout<<"Screenshot saved at "<<al_get_path_basename(path)<<" with extension "<<al_get_path_extension(path)<<endl;
+
+		if(al_save_bitmap(path_cstr,al_get_backbuffer(main_display)))
+			return 1;
+		else
+			return -1;
 	}
 	else
 	{

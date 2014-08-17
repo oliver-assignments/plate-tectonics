@@ -126,8 +126,8 @@ void Game::CreateWorld()
 
 	TectonicHandler::CreateTectonicPlates();
 
-	TectonicHandler::CreateWater();
-	TectonicHandler::ResolveAllWater();
+	/*TectonicHandler::CreateWater();
+	TectonicHandler::ResolveAllWater();*/
 	//PlantHandler::InitializeHandler(context);
 	////PlantHandler::CreatePlants();
 
@@ -360,15 +360,19 @@ void Game::Update()
 		UpdateHighestMountain();
 		UpdateDeepestWater();
 
-		Draw(TERRAIN);
-		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
-		al_flip_display();
-
 		Draw(PLATE_TECTONICS);
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Plates");
 		al_flip_display();
 
-		TectonicHandler::AdvanceTectonics();
+		al_rest(1);
+
+		Draw(TERRAIN);
+		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
+		al_flip_display();
+
+		
+
+		//TectonicHandler::AdvanceTectonics();
 		
 		context->current_year++;
 	}
