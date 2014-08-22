@@ -267,7 +267,7 @@ void Game::CreateContinents()
 			}
 		}
 		//How far we venture from the continent to place a blob
-		int radius = ((context->world_width+context->world_height)/2)/8;
+		int radius = ((context->world_width+context->world_height)/2)/6;
 
 		for (int i = 0; i < 15; i++)
 		{

@@ -121,8 +121,11 @@ DocProject/Help/*.hhp
 DocProject/Help/Html2
 DocProject/Help/html
 
+dir_to_ignore/./PowerSim/Output
+
 # Click-Once directory
 publish/
+
 
 # Publish Web Output
 *.Publish.xml

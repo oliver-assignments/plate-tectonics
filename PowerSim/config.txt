@@ -29,7 +29,7 @@ save_interval_years=5
 tectonic_interval_years=1000
 
 province_jiggle=0
-province_borders_drawn=1
+province_borders_drawn=0
 province_height_drawn=0
 
 //								//
