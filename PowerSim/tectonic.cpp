@@ -539,7 +539,7 @@ void TectonicHandler::AdvanceTectonics()
 
 			int wrapped_x;
 			int wrapped_y;
-			if(context->new_flipped_provinces[context->tectonic_plates[t]->provinces_in_plate[p]->y][context->tectonic_plates[t]->provinces_in_plate[p]->x] == false)
+			if(context->old_flipped_provinces[context->tectonic_plates[t]->provinces_in_plate[p]->y][context->tectonic_plates[t]->provinces_in_plate[p]->x] == false)
 			{
 				wrapped_x = where_it_was_x + context->tectonic_plates[t]->x_velocity;
 				wrapped_y = where_it_was_y + context->tectonic_plates[t]->y_velocity;
@@ -552,24 +552,6 @@ void TectonicHandler::AdvanceTectonics()
 			}
 
 			context->WrapCoordinates(&wrapped_x,&wrapped_y);
-
-			//Did we just flip over the north or south border?
-			if( (where_it_was_y == 0 && where_it_was_y + context->tectonic_plates[t]->y_velocity<0) 
-				||
-				(where_it_was_y == (context->world_height-1) && where_it_was_y + context->tectonic_plates[t]->y_velocity>0))
-			{
-				//We did so denote it
-
-				//Changing the flippedness of the where we were
-				if(context->old_flipped_provinces[where_it_was_y][where_it_was_x] ==true)
-				{
-					context->old_flipped_provinces[where_it_was_y][where_it_was_x] =false;
-				}
-				else
-				{
-					context->old_flipped_provinces[where_it_was_y][where_it_was_x] =true;
-				}
-			}
 
 			//Don't add it if we already have it
 			bool already_have_this_plate = false;
@@ -622,9 +604,12 @@ void TectonicHandler::AdvanceTectonics()
 
 					context->WrapCoordinates(&old_position);
 
+					bool flipped = false;
+
 					//If that aint our plate go the other way
 					if(tectonic_plate_conflicts[i] != context->tectonic_plates[context->old_plates_on_province[old_position.y][old_position.x][0]]->plate_number)
 					{
+						flipped = true;
 						old_position.x= x + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->x_velocity;
 						old_position.y= y + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->y_velocity;
 
@@ -638,13 +623,12 @@ void TectonicHandler::AdvanceTectonics()
 					{
 						pending_altitude_changes[y][x] += altitude_move;
 
-						if(context->old_flipped_provinces[old_position.y][old_position.x])
+						if(flipped)
 						{
-							context->new_flipped_provinces[old_position.y][old_position.x] =true;
-						}
-						else
-						{
-							context->new_flipped_provinces[old_position.y][old_position.x] =false;
+							if(context->new_flipped_provinces[y][x] == true)
+								context->new_flipped_provinces[y][x] =false;
+							else
+								context->new_flipped_provinces[y][x] = true;
 						}
 					}
 					else
