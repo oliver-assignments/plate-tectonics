@@ -48,12 +48,12 @@ void TectonicHandler::CreateTectonicPlates()
 		}
 	}
 
-	//Creating every plate until 90% is covered
-	while(provinces_without_plate>((context->world_height*context->world_width)/10))
+	//CREATING ALL THE PLATES
+	while(provinces_without_plate>0)
 	{
 		if(reject_count<1000)
 		{
-			int radius = (context->world_width+context->world_height)/RandomNumberBetween(10,15);
+			int radius = (context->world_width+context->world_height)/20;
 
 			TectonicPlate* tectonic_plate = new TectonicPlate();
 			tectonic_plate->plate_number = plate_count;
@@ -63,6 +63,7 @@ void TectonicHandler::CreateTectonicPlates()
 			int cluster_origin_province_x=-1;
 			int cluster_origin_province_y=-1;
 
+			//Finding a starting location
 			while(cluster_origin_province_x==-1 && cluster_origin_province_y==-1)
 			{
 				int attempted_x = RandomNumberBelow(context->world_width);
@@ -96,7 +97,7 @@ void TectonicHandler::CreateTectonicPlates()
 
 				//A mildy random piece size
 				//radius =(context->world_width+context->world_height)/RandomNumberBetween(6,15);
-				int piece_radius = 10;//(radius/4) + RandomNumberBetween(-radius/15/2, radius/15);
+				int piece_radius = radius/2;
 
 				//The coordinates of the piece
 				std::vector<Province*> piece = context->GetDiamondOfProvinces(piece_origin_x,piece_origin_y,piece_radius,true);
@@ -113,6 +114,7 @@ void TectonicHandler::CreateTectonicPlates()
 			}
 
 			//	DUPLICATE CLEANING	//
+			int duplicate_count = 0;
 			vector<Vector2*> nonduplicated_provinces;
 			for (int w = 0; w < tectonic_plate->provinces_in_plate.size(); w++)
 			{
@@ -122,6 +124,7 @@ void TectonicHandler::CreateTectonicPlates()
 					if(tectonic_plate->provinces_in_plate[w]->x==nonduplicated_provinces[a]->x && tectonic_plate->provinces_in_plate[w]->y==nonduplicated_provinces[a]->y)
 					{
 						duplicate = true;
+						duplicate_count++;
 						break;
 					}
 				}
@@ -130,6 +133,7 @@ void TectonicHandler::CreateTectonicPlates()
 					nonduplicated_provinces.push_back(tectonic_plate->provinces_in_plate[w]);
 				}
 			}
+			//Replacing tectonic plate province list with nonduplicate version
 			tectonic_plate->provinces_in_plate.clear();
 			for (int l = 0; l < nonduplicated_provinces.size(); l++)
 			{
@@ -137,7 +141,7 @@ void TectonicHandler::CreateTectonicPlates()
 			}
 
 			//If its not a super tiny plate
-			if(tectonic_plate->provinces_in_plate.size()>10)
+			if(tectonic_plate->provinces_in_plate.size()>5)
 			{
 				//Depth first search to see if its contiguous
 				std::vector<Vector2> confirmed_contiguous_provinces;
@@ -166,18 +170,16 @@ void TectonicHandler::CreateTectonicPlates()
 				}
 				else
 				{
+					//Not contiguous
 					plate_count--;
 					reject_count++;
-					/*std::cout<<"Plate rejected; lack of contiguity."<<endl;
-					std::cout<<provinces_without_plate<<" provinces left to fill."<<endl;*/
 				}
 			}
 			else
 			{
+				//To small
 				plate_count--;
 				reject_count++;
-				/*std::cout<<"Plate rejected; it was only size "<<tectonic_plate->provinces_in_plate.size()<<"."<<endl;
-				std::cout<<provinces_without_plate<<" provinces left to fill."<<endl;*/
 			}
 		}
 		else
@@ -234,66 +236,6 @@ void TectonicHandler::CreateTectonicPlates()
 			}
 		}
 	}
-
-
-	/*//If a plate is too small we mesh it with other plates
-	for (int t = 0; t < tectonic_plates.size(); t++)
-	{
-	if(tectonic_plates[t]->provinces_in_plate.size() < 10 && tectonic_plates[t]->provinces_in_plate.size() != 0)
-	{
-	for (int p = 0; p < tectonic_plates[t]->provinces_in_plate.size(); p++)
-	{
-	//All the neighboring provinces we could give this peice to
-	std::vector<Province*> neighboring = GetSquareOfProvinces(tectonic_plates[t]->provinces_in_plate[p]->x,
-	tectonic_plates[t]->provinces_in_plate[p]->y,
-	1, false,true,false);
-
-	//We try this neighbor
-	int attempted_neighbor_index= NULL;
-	while(attempted_neighbor_index==NULL)
-	{
-	int attempted_index= rand()%neighboring.size();
-	std::vector<int> plates_on_this_province = new_plates_on_province[neighboring[attempted_neighbor_index]->province_y]
-	[neighboring[attempted_neighbor_index]->province_x];
-
-	if(plates_on_this_province.size() >1)
-	{
-	attempted_neighbor_index = attempted_index;
-	}
-	else if(plates_on_this_province.size() ==1)
-	{
-	if(plates_on_this_province[0] != t)
-	{
-	attempted_neighbor_index = attempted_index;
-	}
-	}
-	}
-
-	//The plates on the neighboring province
-	std::vector<int> plates_on_this_province = new_plates_on_province[neighboring[attempted_neighbor_index]->province_y]
-	[neighboring[attempted_neighbor_index]->province_x];
-
-	//Add this province coordinate to our neighbors list
-	int recipient_plate = -9999;
-	while(recipient_plate == -9999)
-	{
-	int attempted_index = rand()%plates_on_this_province.size();
-	if(attempted_index!=t)
-	{
-	recipient_plate = attempted_index;
-	}
-	}
-
-	tectonic_plates[recipient_plate]->provinces_in_plate.push_back(
-	new Vector2(tectonic_plates[t]->provinces_in_plate[p]->x,
-	tectonic_plates[t]->provinces_in_plate[p]->y));
-	Draw();
-	}
-	//Effectively delte this plate
-	tectonic_plates[t]->provinces_in_plate.clear();
-	}
-	}*/
-
 	std::cout<<"Tectonic plates created."<<endl;
 };
 
@@ -415,7 +357,6 @@ void TectonicHandler::CreateWater()
 
 void TectonicHandler::ResolveAllWater()
 {
-	std::cout<<"Resolving water."<<endl;
 	ResolveWaterInProvince(TectonicHandler::unresolved_water[0]);
 	while(TectonicHandler::unresolved_water.size()>1)
 	{
@@ -423,12 +364,11 @@ void TectonicHandler::ResolveAllWater()
 		auto prov = TectonicHandler::unresolved_water.end()-1;
 		TectonicHandler::unresolved_water.erase(TectonicHandler::unresolved_water.end()-1);
 	}
-	std::cout<<"Water resolved"<<endl;
 };
 void TectonicHandler::ResolveWaterInProvince(Province* prov)
 {
 	//The province above, to the right, down, and left of our prov BUT NOT the prov itself
-	std::vector<Province*> neighboring_provinces = context->GetSquareOfProvinces(prov->province_x,prov->province_y,2,false);
+	std::vector<Province*> neighboring_provinces = context->GetDiamondOfProvinces(prov->province_x,prov->province_y,2,false);
 
 	bool done = false;
 	int provinces_checked = 0;
@@ -508,151 +448,115 @@ void TectonicHandler::Erode()
 
 void TectonicHandler::AdvanceTectonics()
 {
-	//		CLEAR OLD CHANGES		//
-	for (int y = 0; y < context->world_height; y++)
-	{
-		for (int x = 0; x < context->world_width; x++)
-		{
-			context->new_plates_on_province[y][x].clear();
-			pending_altitude_changes[y][x] = 0;
-		}
-	}
-
 	//		MOVE EACH PLATE		//
 	for (int t = 0; t < context->tectonic_plates.size(); t++)
 	{
 		//If it isn't moving get it a new direction
 		if(context->tectonic_plates[t]->x_velocity == -9999)
 		{
-			context->tectonic_plates[t]->x_velocity = -1 + rand()%3;
-			context->tectonic_plates[t]->y_velocity = -1 + rand()%3;
+			context->tectonic_plates[t]->x_velocity = RandomNumberBetween(-1,2);
+			context->tectonic_plates[t]->y_velocity = RandomNumberBetween(-1,2);
+
 		}
+
+		//Logic behind plate movement here
+
+		//Heat convection?
 
 		//Populating where the plates move to
 		for (int p = 0; p < context->tectonic_plates[t]->provinces_in_plate.size(); p++)
 		{
-			Province* province = context->provinces[context->tectonic_plates[t]->provinces_in_plate[p]->y][context->tectonic_plates[t]->provinces_in_plate[p]->x];
-
-			int wrapped_x = context->tectonic_plates[t]->provinces_in_plate[p]->x+context->tectonic_plates[t]->x_velocity;
-			int wrapped_y = context->tectonic_plates[t]->provinces_in_plate[p]->y+context->tectonic_plates[t]->y_velocity;
+			int wrapped_x = context->tectonic_plates[t]->provinces_in_plate[p]->x + context->tectonic_plates[t]->x_velocity;
+			int wrapped_y = context->tectonic_plates[t]->provinces_in_plate[p]->y + context->tectonic_plates[t]->y_velocity;
 
 			context->WrapCoordinates(&wrapped_x,&wrapped_y);
 
-			context->new_plates_on_province[wrapped_y][wrapped_x].push_back(context->tectonic_plates[t]->plate_number);
+			//Don't add it if we already have it
+			bool already_have_this_plate = false;
+			for (int q = 0; q < context->new_plates_on_province[wrapped_y][wrapped_x].size(); q++)
+				if(context->new_plates_on_province[wrapped_y][wrapped_x][q] == t)
+					already_have_this_plate = true;
+
+			if(!already_have_this_plate)
+				context->new_plates_on_province[wrapped_y][wrapped_x].push_back(t);
+
 		}
 	}
 
-	//								//
 	//		CONFLICT RESOLUTION		//
-	//								//
 	for (int y = 0; y < context->world_height; y++)
 	{
 		for (int x = 0; x < context->world_width; x++)
 		{
-			//The plates that are conflicting on this province
-			std::vector<int> tectonic_plate_conflicts = context->new_plates_on_province[y][x];
-
-			if(tectonic_plate_conflicts.size() >1)//If there is indeed a conflict
+			if(context->new_plates_on_province[y][x].size()>0)
 			{
-				//Is it just a duplicate?
-				std::vector<int> duplicates;
+				//The plates that are conflicting on this province
+				std::vector<int> tectonic_plate_conflicts = context->new_plates_on_province[y][x];
 
-				//Removing duplicates -- why would we have duplicates!?
-				for (int i = 0; i < tectonic_plate_conflicts.size(); i++)
-				{
-					bool already_have = false;
-					for (int q = 0; q < duplicates.size(); q++)
-					{
-						if(duplicates[q] ==tectonic_plate_conflicts[i])
-						{
-							already_have = true;
-						}
-					}
-					if(!already_have)
-					{
-						duplicates.push_back(tectonic_plate_conflicts[i]);
-					}
-				}
-				tectonic_plate_conflicts = duplicates;
+				int non_subducting_plate = tectonic_plate_conflicts[0];
 
 				//Do we still have conflict
-				if(tectonic_plate_conflicts.size() >1)
+				if(tectonic_plate_conflicts.size() > 1)
 				{
-
-					//The provinces that tried ot move onto this province
-					std::vector<Province*> province_conflicts;
-
-					//Pulling the competing provinces
-					for (int c = 0; c < tectonic_plate_conflicts.size(); c++)
-					{
-						int wrapped_x = x-context->tectonic_plates[tectonic_plate_conflicts[c]]->x_velocity;
-						int wrapped_y = y-context->tectonic_plates[tectonic_plate_conflicts[c]]->y_velocity;
-
-						context->WrapCoordinates(&wrapped_x,&wrapped_y);
-
-						//If that old province did not contain our plate then we need to look in the other direction
-						if(!context->old_plates_on_province[wrapped_y][wrapped_x][0] == tectonic_plate_conflicts[c])
-						{
-							wrapped_x = x+context->tectonic_plates[tectonic_plate_conflicts[c]]->x_velocity;
-							wrapped_y = y+context->tectonic_plates[tectonic_plate_conflicts[c]]->y_velocity;
-							context->WrapCoordinates(&wrapped_x,&wrapped_y);
-						}
-
-						Province* old_plate_province_pos = context->provinces[wrapped_y][wrapped_x];
-						province_conflicts.push_back(old_plate_province_pos);
-					}
-
-					//												//
-					//		WHICH PLATE DOES NOT GET SUBDUCTED		//
-					//												//
-
 					int highest_density = INT_MIN;
-					int highest_value_index= - 9990;
 
-					for (int c = 0; c < province_conflicts.size(); c++)
+					for (int c = 0; c < tectonic_plate_conflicts.size(); c++)
 					{
 						//Determining which plate will not get subducted and destroyed
 						int plate_density = CalculatePlateDensity(context->tectonic_plates[c]);
 						if(plate_density >= highest_density)
 						{
 							highest_density = plate_density;
-							highest_value_index = tectonic_plate_conflicts[c];
+							non_subducting_plate = tectonic_plate_conflicts[c];
 						}
 					}
-
-					//Highest one doesnt get deleted
-					context->new_plates_on_province[y][x].clear();
-					context->new_plates_on_province[y][x].push_back(highest_value_index);
 				}
-				if(context->new_plates_on_province[y][x].size() !=0)
+
+				//Subtract from all moved plates but only add if its the winning plate
+				for (int i = 0; i < tectonic_plate_conflicts.size(); i++)
 				{
+					Vector2 old_position(
+						x - context->tectonic_plates[tectonic_plate_conflicts[i]]->x_velocity,
+						y - context->tectonic_plates[tectonic_plate_conflicts[i]]->y_velocity);
+
+					context->WrapCoordinates(&old_position);
+
+					////If that aint our plate go the other way
+					//if(context->tectonic_plates[context->new_plates_on_province[y][x][0]]->plate_number
+					//	!=context->tectonic_plates[context->new_plates_on_province[old_position.y][old_position.x][0]]->plate_number)
+					//{
+					//	old_position.x= x + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->x_velocity;
+					//	old_position.y= y + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->y_velocity;
+
+					//	context->WrapCoordinates(&old_position);
+					//}
+
+					int altitude_move = context->provinces[old_position.y][old_position.x]->altitude;
+
 					//Now move the altitude from the chosen plate
-					Vector2* old_position =new Vector2(
-						x - context->tectonic_plates[context->new_plates_on_province[y][x][0]]->x_velocity,
-						y - context->tectonic_plates[context->new_plates_on_province[y][x][0]]->y_velocity);
-					context->WrapCoordinates(old_position);
-
-					Province* previous_province_position = context->provinces[old_position->y][old_position->x];
-
-					pending_altitude_changes[y][x]+=previous_province_position->altitude;
-
-					pending_altitude_changes[old_position->y][old_position->x]-= previous_province_position->altitude;
-					delete(old_position);
+					if(tectonic_plate_conflicts[i] == non_subducting_plate)
+					{
+						pending_altitude_changes[y][x] += altitude_move;
+					}
+					pending_altitude_changes[old_position.y][old_position.x] -=  altitude_move;
 				}
 			}
 		}
 	}
-
 	//Apply the height changes
 	for (int y = 0; y < context->world_height; y++)
 	{
 		for (int x = 0; x < context->world_width; x++)
 		{
-			context->provinces[y][x]->altitude += pending_altitude_changes[y][x];
+			if(pending_altitude_changes[y][x]!=0)
+			{
+				context->provinces[y][x]->altitude += pending_altitude_changes[y][x];
+				pending_altitude_changes[y][x] =0;
+			}
 		}
 	}
 
-	//Fill in teh gaps!
+	//		Fill in the gaps!		//
 	std::vector<Province*> provinces_without_plate_neighbors;//Any provinces that have no nearby plates are put into this list and handled later
 	for (int y = 0; y < context->world_height; y++)
 	{
@@ -705,7 +609,6 @@ void TectonicHandler::AdvanceTectonics()
 		}
 	}
 
-
 	//Clear out what the tectonic plate was
 	for (int t = 0; t < context->tectonic_plates.size(); t++)
 	{
@@ -727,16 +630,31 @@ void TectonicHandler::AdvanceTectonics()
 		}
 	}
 
-	//RESOLVING WATER
-	for (int x = 0; x < context->world_width; x++)
+	//Update the new to the old 
+	for (int y = 0; y < context->world_height; y++)
 	{
-		for (int y = 0; y < context->world_height; y++)
+		for (int x = 0; x < context->world_width; x++)
 		{
-			if(context->provinces[y][x]->water_depth>0)
-				TectonicHandler::unresolved_water.push_back(context->provinces[y][x]);
+			context->old_plates_on_province[y][x].clear();
+			context->old_plates_on_province[y][x].push_back(context->new_plates_on_province[y][x][0]);
+			context->new_plates_on_province[y][x].clear();
 		}
 	}
-	ResolveAllWater();
+
+	//RESOLVING WATER
+	for (int i = 0; i < 10; i++)
+	{
+		for (int x = 0; x < context->world_width; x++)
+		{
+			for (int y = 0; y < context->world_height; y++)
+			{
+				if(context->provinces[y][x]->water_depth>0)
+					TectonicHandler::unresolved_water.push_back(context->provinces[y][x]);
+			}
+		}
+		ResolveAllWater();
+	}
+
 
 	//Any uncovered land becomes grassland
 	for (int y= 0; y < context->world_height; y++)
@@ -750,17 +668,9 @@ void TectonicHandler::AdvanceTectonics()
 		}
 	}
 
-	//Update the new to the old 
-	for (int y = 0; y < context->world_height; y++)
-	{
-		for (int x = 0; x < context->world_width; x++)
-		{
-			context->old_plates_on_province[y][x].clear();
-			context->old_plates_on_province[y][x].push_back(context->new_plates_on_province[y][x][0]);
-		}
-	}
-
 	//Resolve new plates speeds
+
+
 };
 int TectonicHandler::CalculatePlateDensity(TectonicPlate* myPlate)
 {
@@ -782,8 +692,12 @@ int TectonicHandler::CalculatePlateDensity(TectonicPlate* myPlate)
 		//total_landmass+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->altitude;
 		//total_water+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->water_depth;
 	}
-
-	return total_landmass/total_water;
+	if(total_water!=0)
+		return total_landmass/total_water;
+	else
+	{
+		return total_landmass;
+	}
 };
 
 

@@ -8,6 +8,8 @@ ALLEGRO_FONT* AllegroEngine::arial16;
 ALLEGRO_FONT* AllegroEngine::arial12;
 ALLEGRO_FONT* AllegroEngine::arial8;
 
+ALLEGRO_COLOR AllegroEngine::text_color;
+
 ALLEGRO_DISPLAY* AllegroEngine::main_display;
 
 void AllegroEngine::InitializeAllegro()
@@ -58,14 +60,23 @@ void AllegroEngine::InitializeScreen(int myScreenWidth, int myScreenHeight)
 
 	al_set_window_position(main_display,0,0);
 	al_set_window_title(main_display,"World Simulation");
+	text_color = al_map_rgb(
+		atoi(Settings::GetSetting("color_text_r").c_str()),
+		atoi(Settings::GetSetting("color_text_g").c_str()),
+		atoi(Settings::GetSetting("color_text_b").c_str()));
 };
 
-void AllegroEngine::DrawTextC(std::string myText,
+void AllegroEngine::RenameSceen(std::string myName)
+{
+	al_set_window_title(main_display,myName.c_str());
+};
+
+void AllegroEngine::WriteText(std::string myText,
 							  int myXDestination, int myYDestination, 
 							  ALLEGRO_FONT* myFont, std::string myAlignment)
 {
 	const char * converted_text = myText.c_str();
-	al_draw_text(myFont,al_map_rgb(100,100,100), myXDestination, myYDestination,0, converted_text);
+	al_draw_text(myFont,text_color, myXDestination, myYDestination,0, converted_text);
 
 };
 
@@ -75,7 +86,7 @@ int AllegroEngine::FlushScreenshot(std::string myWorldName,int myCurrentYear,int
 	char filename[80];
 	const char *path_cstr;
 	int char_index = 0;
-	std::string output = Settings::GetSetting("picture_output_folder");
+	std::string output = Settings::GetSetting("picture_output_folder")+"/"+myWorldName+"/"+myTags+"/";
 	const char* destination_path = output.c_str();
 
 	//Testing the destination given

@@ -2,7 +2,8 @@
 
 int RandomNumberBetween(int myLowerInclusive, int myUpperExclusive)
 {
-	return myLowerInclusive + (rand()%myUpperExclusive);
+	return myLowerInclusive + rand()%(myUpperExclusive-myLowerInclusive);
+
 };
 
 int RandomNumberBelow(int myUpperExclusive)

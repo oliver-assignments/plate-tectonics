@@ -23,12 +23,14 @@ public:
 	//Creates the screen
 	static void InitializeScreen(int myScreenWidth, int myScreenHeight);
 
+	static void RenameSceen(std::string myName);
+
 	//Altered version of allegro's screenshot functionality
 	static int FlushScreenshot(std::string myWorldName,
 		int myCurrentYear,int myCurrentDay, std::string myTags);
 
 	//This make be better for 
-	static void DrawTextC(std::string myText,int myXDestination, int myYDestination, 
+	static void WriteText(std::string myText,int myXDestination, int myYDestination, 
 		ALLEGRO_FONT* myFont, std::string myAlignment);
 
 	static void FreeMemory();
@@ -38,9 +40,8 @@ public:
 	static ALLEGRO_FONT* arial12;
 	static ALLEGRO_FONT* arial8;
 
-	
-
 private:
+	static ALLEGRO_COLOR text_color;
 	static ALLEGRO_DISPLAY* main_display;
 	static int screen_width;
 	static int screen_height;

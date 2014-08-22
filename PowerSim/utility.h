@@ -4,6 +4,8 @@
 
 using namespace std;
 
+#include <Windows.h>
+#include <direct.h>
 #include <unordered_map>
 #include <fstream>
 #include <iostream>

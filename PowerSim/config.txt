@@ -15,21 +15,20 @@ create_new_game=1;
 screen_width=1350
 screen_height=690
 
-province_width=10
-province_height=10
+province_width=20
+province_height=20
 
 //				 //
 //Output Settings//
 //				 //
-picture_output_folder=C:\Users\TheNextGuy\Documents\GitHub\PowerSim\PowerSim\Output\
-
+picture_output_folder=.\Output\
 
 save_interval_years=5
 tectonic_interval_years=1000
 
-province_jiggle=false
-province_borders_drawn=true
-province_height_drawn=false
+province_jiggle=0
+province_borders_drawn=0
+province_height_drawn=0
 
 //								//
 //Things that change the outcome//
@@ -44,9 +43,9 @@ hunger_seek_level=50
 //		//
 //Colors//
 //		//
-color_text_r=100
-color_text_g=100
-color_text_b=100
+color_text_r=255
+color_text_g=255
+color_text_b=255
 
 color_grassland_r=70
 color_grassland_g=150

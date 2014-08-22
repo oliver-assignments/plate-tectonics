@@ -115,7 +115,11 @@ void Game::InitializeVariables()
 void Game::CreateWorld()
 {
 	context = new Context();
-	context->world_name = std::to_string(RandomNumberBetween(0,101));
+	context->world_name = std::to_string(RandomNumberBelow(1001));
+
+	_mkdir(("./Output/"+context->world_name).c_str());
+	_mkdir((("./Output/"+context->world_name)+"/Plates").c_str());
+	_mkdir((("./Output/"+context->world_name)+"/Terrain").c_str());
 
 	CreateProvinces();
 	CreateContinents();
@@ -123,11 +127,10 @@ void Game::CreateWorld()
 	UpdateHighestMountain();
 
 	TectonicHandler::InitializeHandler(context);
-
 	TectonicHandler::CreateTectonicPlates();
 
-	/*TectonicHandler::CreateWater();
-	TectonicHandler::ResolveAllWater();*/
+	TectonicHandler::CreateWater();
+	TectonicHandler::ResolveAllWater();
 	//PlantHandler::InitializeHandler(context);
 	////PlantHandler::CreatePlants();
 
@@ -370,9 +373,7 @@ void Game::Update()
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
 		al_flip_display();
 
-		
-
-		//TectonicHandler::AdvanceTectonics();
+		TectonicHandler::AdvanceTectonics();
 		
 		context->current_year++;
 	}
@@ -616,7 +617,7 @@ void Game::DrawProvinces(MapMode myMapMode)
 				for(std::vector<Province*>::size_type x = 0; x <context->world_width; x++) 
 				{
 					Province* province = context->provinces[y][x];
-					//AllegroEngine::DrawTextC(AllegroEngine::arial8,province->p0->x, province->p0->y,std::to_string(province->getLandAndWaterHeight()));
+					AllegroEngine::WriteText(std::to_string(province->getLandAndWaterHeight()),province->p0->x, province->p0->y,AllegroEngine::arial8,"center");
 				}
 			}
 		}

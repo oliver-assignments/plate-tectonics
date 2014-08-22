@@ -30,9 +30,11 @@ int main()
 
 	AllegroEngine::InitializeScreen(game.context->screen_width,game.context->screen_height);
 
+	AllegroEngine::RenameSceen(game.context->world_name);
+
 	game.Update();
 
-	al_rest(3.0);
+	al_rest(2.0);
 
 	AllegroEngine::FreeMemory();
 
