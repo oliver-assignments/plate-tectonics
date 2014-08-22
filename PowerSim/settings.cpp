@@ -8,7 +8,7 @@ int Settings::LoadConfigFile()
 
 	int setting_number = 1;
 
-	std::cout<<"Reading the config file."<<endl<<endl;
+	std::cout<<"Reading the config file."<<endl;
 
 	if (myfile.is_open())
 	{
@@ -47,10 +47,10 @@ int Settings::LoadConfigFile()
 					}
 				}
 				settings[index] = value;
-				std::cout<<setting_number<<" : "<<index<<" = " << value << endl;
+				/*std::cout<<setting_number<<" : "<<index<<" = " << value << endl;
 				if(setting_number%5==0 && setting_number!=0)
 					std::cout<<endl;
-				setting_number++;
+				setting_number++;*/
 				
 			}
 		}

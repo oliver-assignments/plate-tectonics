@@ -117,20 +117,19 @@ void Game::CreateWorld()
 	context = new Context();
 	context->world_name = std::to_string(RandomNumberBelow(1001));
 
+	std::cout<<endl<<"The world is named "<<context->world_name<<"."<<endl;
+
 	_mkdir(("./Output/"+context->world_name).c_str());
 	_mkdir((("./Output/"+context->world_name)+"/Plates").c_str());
 	_mkdir((("./Output/"+context->world_name)+"/Terrain").c_str());
 	_mkdir((("./Output/"+context->world_name)+"/Asthenosphere").c_str());
-
-	CreateProvinces();
+		CreateProvinces();
 	CreateContinents();
 
 	UpdateHighestMountain();
 
 	TectonicHandler::InitializeHandler(context);
 	TectonicHandler::CreateTectonicPlates();
-
-	std::cout<<endl<<"The world is named "<<context->world_name<<"."<<endl<<endl;
 
 	TectonicHandler::CreateWater();
 	TectonicHandler::ResolveAllWater();
@@ -144,7 +143,7 @@ void Game::CreateWorld()
 	//Note we may not want to do this before we move the plates along
 	//PeopleHandler::CreatePeople();
 
-	std::cout<<"World created"<<endl;
+	std::cout<<endl<<"Done creating the world."<<endl;
 };
 
 void Game::CreateProvinces()
@@ -250,7 +249,7 @@ void Game::CreateProvinces()
 
 void Game::CreateContinents()
 {
-	std::cout<<"Creating continents."<<endl;
+	std::cout<<endl<<"Creating continents."<<endl;
 	for (int f = 0; f <5; f++)
 	{
 		//Center_of_continent
@@ -373,13 +372,15 @@ void Game::Update()
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Asthenosphere");
 		al_flip_display();
 
-		al_rest(1);
+		if(atoi(Settings::GetSetting("create_screen").c_str()))
+			al_rest(1);
 
 		Draw(PLATE_TECTONICS);
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Plates");
 		al_flip_display();
 
-		al_rest(1);
+		if(atoi(Settings::GetSetting("create_screen").c_str()))
+			al_rest(1);
 
 		Draw(TERRAIN);
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");

@@ -8,6 +8,8 @@ class AllegroEngine;
 
 int main()
 {
+	std::cout<<"		Welcome to the Plate Tectonic Simulator 2014!"<<endl<<endl;
+
 	srand(time(NULL));
 
 	Settings::LoadConfigFile();

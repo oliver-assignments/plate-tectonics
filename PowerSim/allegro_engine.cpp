@@ -134,7 +134,7 @@ int AllegroEngine::FlushScreenshot(std::string myWorldName,int myCurrentYear,int
 		//Saving the bitmap
 		//std::cout<<"Screenshot saved at "<<path_cstr<<" named "<<filename<<"."<<endl;
 
-		std::cout<<"Screenshot saved at "<<al_get_path_basename(path)<<" with extension "<<al_get_path_extension(path)<<endl;
+		std::cout<<"Screenshot saved: "<<al_get_path_basename(path)<<endl;
 
 		if(main_display)
 		{
@@ -154,6 +154,7 @@ int AllegroEngine::FlushScreenshot(std::string myWorldName,int myCurrentYear,int
 		{
 			//No screen was initialized
 			return -9;
+
 		}
 	}
 	else

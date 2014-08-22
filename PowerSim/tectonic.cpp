@@ -13,7 +13,7 @@ std::vector<Province*> TectonicHandler::unresolved_water;
 
 void TectonicHandler::CreateTectonicPlates()
 {
-	std::cout<<"Creating tectonic plates."<<endl<<endl;
+	std::cout<<endl<<"Creating tectonic plates."<<endl;
 
 	int provinces_without_plate = context->world_height * context->world_width;
 
@@ -165,7 +165,7 @@ void TectonicHandler::CreateTectonicPlates()
 				if(confirmed_contiguous_provinces.size() == tectonic_plate->provinces_in_plate.size())
 				{
 					//std::cout<<"Plate	CREATED		; it was size "<<tectonic_plate->provinces_in_plate.size()<<"."<<endl;
-					std::cout<<provinces_without_plate<<" provinces left to fill."<<endl;
+					//std::cout<<provinces_without_plate<<" provinces left to fill."<<endl;
 
 					context->tectonic_plates.push_back(tectonic_plate);
 					provinces_without_plate -= tectonic_plate->provinces_in_plate.size();
@@ -348,7 +348,7 @@ void TectonicHandler::PlateContiguitySearch(Vector2 myCoordinate, std::vector<Ve
 
 void TectonicHandler::CreateWater()
 {
-	std::cout<<"Creating Water."<<endl;
+	std::cout<<endl<<"Creating Water."<<endl;
 	int amount_water_needed = context->world_width*context->world_height*100;
 	for (int w = 0; w < 100; w++)
 	{
