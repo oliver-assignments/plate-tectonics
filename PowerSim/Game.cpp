@@ -14,7 +14,7 @@ void Game::ProcessSettings()
 	//province_jiggle_height = (int)(context->province_height*0.8);
 
 	province_jiggle = atoi(Settings::GetSetting("province_jiggle").c_str());
-	province_borders_drawn = atoi(Settings::GetSetting("province_border_drawn").c_str());
+	province_borders_drawn = atoi(Settings::GetSetting("province_borders_drawn").c_str());
 	province_height_drawn = atoi(Settings::GetSetting("province_height_drawn").c_str());
 
 	//Loading color settings
@@ -699,13 +699,13 @@ void Game::DrawProvinces(MapMode myMapMode)
 				if(province_borders_drawn)
 				{
 					al_draw_line(province->p0->x,province->p0->y,province->p1->x,province->p1->y,
-						al_map_rgb(0,0,0),1);
+						al_map_rgb(150,150,150),1);
 					al_draw_line(province->p1->x,province->p1->y,province->p2->x,province->p2->y,
-						al_map_rgb(0,0,0),1);
+						al_map_rgb(150,150,150),1);
 					al_draw_line(province->p2->x,province->p2->y,province->p3->x,province->p3->y,
-						al_map_rgb(0,0,0),1);
+						al_map_rgb(150,150,150),1);
 					al_draw_line(province->p3->x,province->p3->y,province->p0->x,province->p0->y,
-						al_map_rgb(0,0,0),1);
+						al_map_rgb(150,150,150),1);
 				}
 			}
 
