@@ -30,6 +30,8 @@ public:
 	 
 	static void AdvanceTectonics();
 	static int CalculatePlateDensity(TectonicPlate* myPlate);
+	static Vector2 CalculatePlateCenter(TectonicPlate* myPlate);
+	static int CalculateAverageAsthenosphereTemperature(TectonicPlate* myPlate);
 
 	static Context* context;
 

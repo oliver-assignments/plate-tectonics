@@ -38,6 +38,12 @@ void TectonicHandler::CreateTectonicPlates()
 		std::vector<std::vector<int>> row_of_list_of_old_plates_on_province;
 		context->old_plates_on_province.push_back(row_of_list_of_old_plates_on_province);
 
+		std::vector<bool> old_row_of_flipped_provinces;
+		context->old_flipped_provinces.push_back(old_row_of_flipped_provinces);
+
+		std::vector<bool> row_of_flipped_provinces;
+		context->new_flipped_provinces.push_back(row_of_flipped_provinces);
+
 		for (int x = 0; x < context->world_width; x++)
 		{
 			has_plate[y].push_back(false);
@@ -45,6 +51,8 @@ void TectonicHandler::CreateTectonicPlates()
 			context->asthenosphere_heat_map[y].push_back(0);
 			context->new_plates_on_province[y].push_back(*new std::vector<int>);
 			context->old_plates_on_province[y].push_back(*new std::vector<int>);
+			context->new_flipped_provinces[y].push_back(false);
+			context->old_flipped_provinces[y].push_back(false);
 		}
 	}
 
@@ -53,7 +61,7 @@ void TectonicHandler::CreateTectonicPlates()
 	{
 		if(reject_count<1000)
 		{
-			int radius = (context->world_width+context->world_height)/20;
+			int radius = (context->world_width+context->world_height)/15;
 
 			TectonicPlate* tectonic_plate = new TectonicPlate();
 			tectonic_plate->plate_number = plate_count;
@@ -236,6 +244,15 @@ void TectonicHandler::CreateTectonicPlates()
 			}
 		}
 	}
+	for (int y = 0; y < context->world_height; y++)
+	{
+		for (int x = 0; x < context->world_width; x++)
+		{
+			context->asthenosphere_heat_map[y][x] += context->provinces[y][x]->altitude;
+			context->asthenosphere_heat_map[y][x] += context->provinces[y][x]->water_depth;
+		}
+	}
+
 	std::cout<<"Tectonic plates created."<<endl;
 };
 
@@ -245,13 +262,11 @@ void TectonicHandler::PlateContiguitySearch(Vector2 myCoordinate, std::vector<Ve
 	vector<Vector2*>& plate_reference = *plate_coordinates;
 
 	Vector2 north (myCoordinate.x,myCoordinate.y-1);
-	TectonicHandler::context->WrapCoordinates(&north);
 
 	Vector2 east (myCoordinate.x+1,myCoordinate.y);
 	TectonicHandler::context->WrapCoordinates(&east);
 
 	Vector2 south (myCoordinate.x,  myCoordinate.y+1);
-	TectonicHandler::context->WrapCoordinates(&south);
 
 	Vector2 west (myCoordinate.x-1,myCoordinate.y);
 	TectonicHandler::context->WrapCoordinates(&west);
@@ -448,16 +463,69 @@ void TectonicHandler::Erode()
 
 void TectonicHandler::AdvanceTectonics()
 {
+	int hottest_asthenosphere = 0;
+	Vector2 hottest_asthenosphere_location (0,0);
+	for (int y = 0; y < context->world_height; y++)
+	{
+		for (int x = 0; x < context->world_width; x++)
+		{
+			//context->asthenosphere_heat_map[y][x] = 0;
+			context->asthenosphere_heat_map[y][x] += context->provinces[y][x]->altitude;
+			context->asthenosphere_heat_map[y][x] -= context->provinces[y][x]->water_depth;
+
+			if(context->asthenosphere_heat_map[y][x]>hottest_asthenosphere)
+			{
+				if( y !=0 && y != (context->world_height-1))
+				{
+					hottest_asthenosphere = context->asthenosphere_heat_map[y][x];
+					hottest_asthenosphere_location.x = x;
+					hottest_asthenosphere_location.y = y;
+				}
+			}
+		}
+	}
+
 	//		MOVE EACH PLATE		//
 	for (int t = 0; t < context->tectonic_plates.size(); t++)
 	{
-		//If it isn't moving get it a new direction
-		if(context->tectonic_plates[t]->x_velocity == -9999)
+		/*if(context->tectonic_plates[t]->x_velocity == -9999)
 		{
-			context->tectonic_plates[t]->x_velocity = RandomNumberBetween(-1,2);
-			context->tectonic_plates[t]->y_velocity = RandomNumberBetween(-1,2);
+		context->tectonic_plates[t]->x_velocity = RandomNumberBetween(-1,2);
+		context->tectonic_plates[t]->y_velocity = RandomNumberBetween(-1,2);
 
+		while(context->tectonic_plates[t]->x_velocity==0 && context->tectonic_plates[t]->y_velocity==0)
+		{
+		context->tectonic_plates[t]->x_velocity = RandomNumberBetween(-1,2);
+		context->tectonic_plates[t]->y_velocity = RandomNumberBetween(-1,2);
 		}
+		}*/
+
+		//Setting direction of plate
+		if((hottest_asthenosphere - CalculateAverageAsthenosphereTemperature(context->tectonic_plates[t])) > (hottest_asthenosphere/2))
+		{
+			Vector2 plate_center = CalculatePlateCenter(context->tectonic_plates[t]);
+			Vector2 difference_in_centers (hottest_asthenosphere_location.x - plate_center.x, hottest_asthenosphere_location.y - plate_center.y);
+
+			if(difference_in_centers.x >0)
+				context->tectonic_plates[t]->x_velocity = -1;
+			else if(difference_in_centers.x ==0)
+				context->tectonic_plates[t]->x_velocity = 0;
+			else
+				context->tectonic_plates[t]->x_velocity = 1;
+
+			if(difference_in_centers.y >0)
+				context->tectonic_plates[t]->y_velocity = -1;
+			else if(difference_in_centers.y ==0)
+				context->tectonic_plates[t]->y_velocity = 0;
+			else
+				context->tectonic_plates[t]->y_velocity = 1;
+		}
+		else
+		{
+			context->tectonic_plates[t]->x_velocity = 0;
+			context->tectonic_plates[t]->y_velocity = 0;
+		}
+
 
 		//Logic behind plate movement here
 
@@ -466,10 +534,42 @@ void TectonicHandler::AdvanceTectonics()
 		//Populating where the plates move to
 		for (int p = 0; p < context->tectonic_plates[t]->provinces_in_plate.size(); p++)
 		{
-			int wrapped_x = context->tectonic_plates[t]->provinces_in_plate[p]->x + context->tectonic_plates[t]->x_velocity;
-			int wrapped_y = context->tectonic_plates[t]->provinces_in_plate[p]->y + context->tectonic_plates[t]->y_velocity;
+			int where_it_was_x = context->tectonic_plates[t]->provinces_in_plate[p]->x;
+			int where_it_was_y = context->tectonic_plates[t]->provinces_in_plate[p]->y;
+
+			int wrapped_x;
+			int wrapped_y;
+			if(context->new_flipped_provinces[context->tectonic_plates[t]->provinces_in_plate[p]->y][context->tectonic_plates[t]->provinces_in_plate[p]->x] == false)
+			{
+				wrapped_x = where_it_was_x + context->tectonic_plates[t]->x_velocity;
+				wrapped_y = where_it_was_y + context->tectonic_plates[t]->y_velocity;
+			}
+			else
+			{
+				//This is a flipped version of the plate aroudn the north or south go in the other direction
+				wrapped_x = where_it_was_x - context->tectonic_plates[t]->x_velocity;
+				wrapped_y = where_it_was_y - context->tectonic_plates[t]->y_velocity;
+			}
 
 			context->WrapCoordinates(&wrapped_x,&wrapped_y);
+
+			//Did we just flip over the north or south border?
+			if( (where_it_was_y == 0 && where_it_was_y + context->tectonic_plates[t]->y_velocity<0) 
+				||
+				(where_it_was_y == (context->world_height-1) && where_it_was_y + context->tectonic_plates[t]->y_velocity>0))
+			{
+				//We did so denote it
+
+				//Changing the flippedness of the where we were
+				if(context->old_flipped_provinces[where_it_was_y][where_it_was_x] ==true)
+				{
+					context->old_flipped_provinces[where_it_was_y][where_it_was_x] =false;
+				}
+				else
+				{
+					context->old_flipped_provinces[where_it_was_y][where_it_was_x] =true;
+				}
+			}
 
 			//Don't add it if we already have it
 			bool already_have_this_plate = false;
@@ -478,8 +578,9 @@ void TectonicHandler::AdvanceTectonics()
 					already_have_this_plate = true;
 
 			if(!already_have_this_plate)
+			{
 				context->new_plates_on_province[wrapped_y][wrapped_x].push_back(t);
-
+			}
 		}
 	}
 
@@ -521,15 +622,14 @@ void TectonicHandler::AdvanceTectonics()
 
 					context->WrapCoordinates(&old_position);
 
-					////If that aint our plate go the other way
-					//if(context->tectonic_plates[context->new_plates_on_province[y][x][0]]->plate_number
-					//	!=context->tectonic_plates[context->new_plates_on_province[old_position.y][old_position.x][0]]->plate_number)
-					//{
-					//	old_position.x= x + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->x_velocity;
-					//	old_position.y= y + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->y_velocity;
+					//If that aint our plate go the other way
+					if(tectonic_plate_conflicts[i] != context->tectonic_plates[context->old_plates_on_province[old_position.y][old_position.x][0]]->plate_number)
+					{
+						old_position.x= x + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->x_velocity;
+						old_position.y= y + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->y_velocity;
 
-					//	context->WrapCoordinates(&old_position);
-					//}
+						context->WrapCoordinates(&old_position);
+					}
 
 					int altitude_move = context->provinces[old_position.y][old_position.x]->altitude;
 
@@ -537,6 +637,19 @@ void TectonicHandler::AdvanceTectonics()
 					if(tectonic_plate_conflicts[i] == non_subducting_plate)
 					{
 						pending_altitude_changes[y][x] += altitude_move;
+
+						if(context->old_flipped_provinces[old_position.y][old_position.x])
+						{
+							context->new_flipped_provinces[old_position.y][old_position.x] =true;
+						}
+						else
+						{
+							context->new_flipped_provinces[old_position.y][old_position.x] =false;
+						}
+					}
+					else
+					{
+						pending_altitude_changes[y][x] += altitude_move/3;
 					}
 					pending_altitude_changes[old_position.y][old_position.x] -=  altitude_move;
 				}
@@ -572,6 +685,10 @@ void TectonicHandler::AdvanceTectonics()
 
 				//The number of times a plate is a neighbor
 				std::unordered_map<int,int> neighboring_plate_occurences;
+
+				//Make it more likely for the old plate to take over the space
+				neighboring_plate_occurences[context->old_plates_on_province[y][x][0]]++;
+
 				bool no_nearby_plates = true;
 
 				//Cylcing through neighbors
@@ -612,6 +729,10 @@ void TectonicHandler::AdvanceTectonics()
 	//Clear out what the tectonic plate was
 	for (int t = 0; t < context->tectonic_plates.size(); t++)
 	{
+		for (int i = 0; i < context->tectonic_plates[t]->provinces_in_plate.size(); i++)
+		{
+			delete(context->tectonic_plates[t]->provinces_in_plate[i]);
+		}
 		context->tectonic_plates[t]->provinces_in_plate.clear();
 	}
 
@@ -638,6 +759,10 @@ void TectonicHandler::AdvanceTectonics()
 			context->old_plates_on_province[y][x].clear();
 			context->old_plates_on_province[y][x].push_back(context->new_plates_on_province[y][x][0]);
 			context->new_plates_on_province[y][x].clear();
+
+			context->old_flipped_provinces[y][x] = context->new_flipped_provinces[y][x];
+			context->new_flipped_provinces[y][x] = false;
+
 		}
 	}
 
@@ -672,6 +797,7 @@ void TectonicHandler::AdvanceTectonics()
 
 
 };
+
 int TectonicHandler::CalculatePlateDensity(TectonicPlate* myPlate)
 {
 	int total_landmass = 0;
@@ -692,11 +818,45 @@ int TectonicHandler::CalculatePlateDensity(TectonicPlate* myPlate)
 		//total_landmass+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->altitude;
 		//total_water+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->water_depth;
 	}
+	if(total_landmass == 0){return 0 ;}
+
 	if(total_water!=0)
 		return total_landmass/total_water;
 	else
 	{
 		return total_landmass;
+	}
+};
+Vector2 TectonicHandler::CalculatePlateCenter(TectonicPlate* myPlate)
+{
+	Vector2 total (0,0);
+
+	for (int i = 0; i < myPlate->provinces_in_plate.size(); i++)
+	{
+		total.x += myPlate->provinces_in_plate[i]->x;
+		total.y += myPlate->provinces_in_plate[i]->y;
+	}
+	total.x/=myPlate->provinces_in_plate.size();
+	total.y/=myPlate->provinces_in_plate.size();
+
+	return total;
+};
+int TectonicHandler::CalculateAverageAsthenosphereTemperature(TectonicPlate* myPlate)
+{
+	if(myPlate->provinces_in_plate.size()>0){
+		int total_temperature = 0;
+
+		for (int i = 0; i < myPlate->provinces_in_plate.size(); i++)
+		{
+			total_temperature += context->provinces[myPlate->provinces_in_plate[i]->y][myPlate->provinces_in_plate[i]->x]->altitude;
+			total_temperature -= context->provinces[myPlate->provinces_in_plate[i]->y][myPlate->provinces_in_plate[i]->x]->water_depth;
+		}
+
+		return total_temperature/ myPlate->provinces_in_plate.size();
+	}
+	else
+	{
+		return 0;
 	}
 };
 

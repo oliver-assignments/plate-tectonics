@@ -50,6 +50,8 @@ public:
 
 	std::vector<std::vector<std::vector<int>>> new_plates_on_province;
 	std::vector<std::vector<std::vector<int>>> old_plates_on_province;
+	std::vector<std::vector<bool>> new_flipped_provinces;
+	std::vector<std::vector<bool>> old_flipped_provinces;
 
 	std::vector<Person*> people;
 	std::vector<House*> houses;

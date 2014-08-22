@@ -120,6 +120,7 @@ void Game::CreateWorld()
 	_mkdir(("./Output/"+context->world_name).c_str());
 	_mkdir((("./Output/"+context->world_name)+"/Plates").c_str());
 	_mkdir((("./Output/"+context->world_name)+"/Terrain").c_str());
+	_mkdir((("./Output/"+context->world_name)+"/Asthenosphere").c_str());
 
 	CreateProvinces();
 	CreateContinents();
@@ -128,6 +129,8 @@ void Game::CreateWorld()
 
 	TectonicHandler::InitializeHandler(context);
 	TectonicHandler::CreateTectonicPlates();
+
+	std::cout<<endl<<"The world is named "<<context->world_name<<"."<<endl<<endl;
 
 	TectonicHandler::CreateWater();
 	TectonicHandler::ResolveAllWater();
@@ -247,6 +250,7 @@ void Game::CreateProvinces()
 
 void Game::CreateContinents()
 {
+	std::cout<<"Creating continents."<<endl;
 	for (int f = 0; f <5; f++)
 	{
 		//Center_of_continent
@@ -281,6 +285,7 @@ void Game::CreateContinents()
 			}
 		}
 	}
+	std::cout<<"Continents created."<<endl;
 };
 
 //void Game::CreateRivers()
@@ -358,83 +363,90 @@ void Game::CreateContinents()
 
 void Game::Update()
 {	
-	for (int p = 0; p < 10; p++)
+	for (int p = 0; p < 30; p++)
 	{
 		UpdateHighestMountain();
 		UpdateDeepestWater();
+		UpdateHottestAsthenosphere();
+
+		Draw(ASTHENOSPHERE);
+		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Asthenosphere");
+		al_flip_display();
+
+		//al_rest(1);
 
 		Draw(PLATE_TECTONICS);
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Plates");
 		al_flip_display();
 
-		al_rest(1);
+		//al_rest(1);
 
 		Draw(TERRAIN);
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
 		al_flip_display();
 
 		TectonicHandler::AdvanceTectonics();
-		
-		context->current_year++;
-	}
-
-
-	while(true==false)
-	{
-		int save_interval = atoi(Settings::GetSetting("save_interval_years").c_str());
-		int save_counter=0;
-
-		int tectonic_interval = atoi(Settings::GetSetting("tectonic_interval_years").c_str());
-		int tectonic_counter = 0;
-
-		//The real game loop!
-		for (int d= 1; d <= 365; d++)
-		{
-			for (int h = 1; h <= 24; h++)
-			{
-				//		HOURLY LOGIC		//
-				//Update people
-
-				context->current_hour++;
-			}
-			//		DAILY LOGIC			//
-			//Update plants and animals
-
-			context->current_hour=0;
-			context->current_day++;
-		}
-		//		YEARLY LOGIC		//
-
-		//Is it time to save? We do this before tectonics because plates are taxing
-		save_counter++;
-		if(save_counter>=save_interval)
-		{
-			context->SaveWorld();
-		}
-
-		//Is it time for plates to move?
-		tectonic_counter++;
-		if(tectonic_counter>=tectonic_interval)
-		{
-			//Now that the landscape has changed flush the new terrain!
-			Draw(TERRAIN);
-			AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
-			al_flip_display();
-
-			Draw(PLATE_TECTONICS);
-			AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Plates");
-			al_flip_display();
-
-			TectonicHandler::AdvanceTectonics();
-			UpdateHighestMountain();
-			TectonicHandler::ResolveAllWater();
-			UpdateDeepestWater();
-
-			tectonic_counter=0;
-		}
 
 		context->current_year++;
 	}
+
+
+	//while(true==false)
+	//{
+	//	int save_interval = atoi(Settings::GetSetting("save_interval_years").c_str());
+	//	int save_counter=0;
+
+	//	int tectonic_interval = atoi(Settings::GetSetting("tectonic_interval_years").c_str());
+	//	int tectonic_counter = 0;
+
+	//	//The real game loop!
+	//	for (int d= 1; d <= 365; d++)
+	//	{
+	//		for (int h = 1; h <= 24; h++)
+	//		{
+	//			//		HOURLY LOGIC		//
+	//			//Update people
+
+	//			context->current_hour++;
+	//		}
+	//		//		DAILY LOGIC			//
+	//		//Update plants and animals
+
+	//		context->current_hour=0;
+	//		context->current_day++;
+	//	}
+	//	//		YEARLY LOGIC		//
+
+	//	//Is it time to save? We do this before tectonics because plates are taxing
+	//	save_counter++;
+	//	if(save_counter>=save_interval)
+	//	{
+	//		context->SaveWorld();
+	//	}
+
+	//	//Is it time for plates to move?
+	//	tectonic_counter++;
+	//	if(tectonic_counter>=tectonic_interval)
+	//	{
+	//		//Now that the landscape has changed flush the new terrain!
+	//		Draw(TERRAIN);
+	//		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
+	//		al_flip_display();
+
+	//		Draw(PLATE_TECTONICS);
+	//		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Plates");
+	//		al_flip_display();
+
+	//		TectonicHandler::AdvanceTectonics();
+	//		UpdateHighestMountain();
+	//		TectonicHandler::ResolveAllWater();
+	//		UpdateDeepestWater();
+
+	//		tectonic_counter=0;
+	//	}
+
+	//	context->current_year++;
+	//}
 
 };
 
@@ -467,39 +479,126 @@ void Game::UpdateHighestMountain()
 		}
 	}
 };
+void Game::UpdateHottestAsthenosphere()
+{
+	province_hottest_asthenosphere = 0;
+	for (int y = 0; y < context->world_height; y++)
+	{
+		for (int x = 0; x < context->world_width; x++)
+		{
+			if(province_hottest_asthenosphere<context->asthenosphere_heat_map[y][x])
+			{
+				province_hottest_asthenosphere = context->asthenosphere_heat_map[y][x];
+			}
+		}
+	}
+
+};
 
 void Game::Draw(MapMode myMapMode)
 {
-	switch(myMapMode)
-	{
-	case TERRAIN:
-		DrawProvinces(myMapMode);
-		//DrawHouses();
-		//DrawClouds();
-		break;
-	case PLATE_TECTONICS: 
-		DrawProvinces(myMapMode);
-		break;
-	case PLANT: 
-		DrawProvinces(myMapMode);
-		//DrawPlants();
-		break;
-	case ANIMAL: 
-		DrawProvinces(myMapMode);
-		//DrawAnimals();
-		break;
-	case HUMAN: 
-		DrawProvinces(myMapMode);
-		//DrawHouses;
-		//DrawHumans();
-		break; 
-	}
+	DrawProvinces(myMapMode);
+	//switch(myMapMode)
+	//{
+	//case TERRAIN:
+	//	DrawProvinces(myMapMode);
+	//	//DrawHouses();
+	//	//DrawClouds();
+	//	break;
+	//case PLATE_TECTONICS: 
+	//	
+	//	break;
+	//case PLANT: 
+	//	DrawProvinces(myMapMode);
+	//	//DrawPlants();
+	//	break;
+	//case ANIMAL: 
+	//	DrawProvinces(myMapMode);
+	//	//DrawAnimals();
+	//	break;
+	//case HUMAN: 
+	//	DrawProvinces(myMapMode);
+	//	//DrawHouses;
+	//	//DrawHumans();
+	//	break; 
+	//}
 };
 
 void Game::DrawProvinces(MapMode myMapMode)
 {
 	switch (myMapMode)
 	{
+	case FLIPPED:
+		for(std::vector<std::vector<Province*>>::size_type y = 0; y <context->world_height; y++) 
+		{
+			for(std::vector<Province*>::size_type x = 0; x <context->world_width; x++) 
+			{
+				Province* province = (context->provinces[y][x]);
+
+				int color[3];
+				color[0] = 0;
+				color[1] = 0;
+				color[2] = 0;
+
+				if(context->new_flipped_provinces[y][x])
+				{
+					color[0] = 255;
+				}
+				else
+				{
+					color[1] = 255;
+				}
+
+				ALLEGRO_VERTEX vertices[] = 
+				{
+					{province->p0->x,province->p0->y, 0},
+					{province->p1->x,province->p1->y, 0},
+					{province->p2->x,province->p2->y,0},
+					{province->p3->x,province->p3->y,0},
+				};
+
+				for (int i = 0; i < 4; i++)
+				{
+					vertices[i].color = al_map_rgb(color[0],color[1],color[2]);
+				}
+
+				al_draw_prim(vertices, NULL, 0, 0, 4, ALLEGRO_PRIM_TRIANGLE_FAN );
+			}
+		}
+		break;
+		break;
+	case ASTHENOSPHERE:
+		for(std::vector<std::vector<Province*>>::size_type y = 0; y <context->world_height; y++) 
+		{
+			for(std::vector<Province*>::size_type x = 0; x <context->world_width; x++) 
+			{
+				Province* province = (context->provinces[y][x]);
+
+				int color[3];
+				color[0] = 255;
+				color[1] = 0;
+				color[2] = 0;
+
+				float percentage = ((float)color[0]/2) * ((float)context->asthenosphere_heat_map[y][x]/(float)province_hottest_asthenosphere);
+				color[0] = (color[0]*0.5) + percentage;
+
+				ALLEGRO_VERTEX vertices[] = 
+				{
+					{province->p0->x,province->p0->y, 0},
+					{province->p1->x,province->p1->y, 0},
+					{province->p2->x,province->p2->y,0},
+					{province->p3->x,province->p3->y,0},
+				};
+
+				for (int i = 0; i < 4; i++)
+				{
+					vertices[i].color = al_map_rgb(color[0],color[1],color[2]);
+				}
+
+				al_draw_prim(vertices, NULL, 0, 0, 4, ALLEGRO_PRIM_TRIANGLE_FAN );
+			}
+		}
+		break;
 	case TERRAIN:
 		for(std::vector<std::vector<Province*>>::size_type y = 0; y <context->world_height; y++) 
 		{

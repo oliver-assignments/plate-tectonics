@@ -94,6 +94,8 @@ So food can spread west and east easy, so can tech
 enum MapMode
 {
 	TERRAIN, 
+	FLIPPED,
+	ASTHENOSPHERE,
 	PLATE_TECTONICS, 
 	PLANT,
 	ANIMAL,
@@ -135,6 +137,7 @@ public:
 	
 	void UpdateDeepestWater();
 	void UpdateHighestMountain();
+	void UpdateHottestAsthenosphere();
 
 	//Draw
 	void Draw(MapMode myMapMode);
@@ -174,6 +177,7 @@ private:
 
 	int province_highest_altitude;
 	int province_deepest_depth;
+	int province_hottest_asthenosphere;
 
 	int province_id;
 	int player_id;
