@@ -28,13 +28,17 @@ int main()
 		//game.LoadWorld();
 	}
 
-	AllegroEngine::InitializeScreen(game.context->screen_width,game.context->screen_height);
-
-	AllegroEngine::RenameSceen(game.context->world_name);
+	if(atoi(Settings::GetSetting("create_screen").c_str()))
+	{
+		AllegroEngine::InitializeScreen(game.context->screen_width,game.context->screen_height);
+		AllegroEngine::RenameSceen(game.context->world_name);
+	}
+	else
+	{
+		AllegroEngine::InitializeBitmap(game.context->screen_width,game.context->screen_height);
+	}
 
 	game.Update();
-
-	al_rest(2.0);
 
 	AllegroEngine::FreeMemory();
 

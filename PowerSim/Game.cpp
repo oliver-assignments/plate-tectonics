@@ -373,13 +373,13 @@ void Game::Update()
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Asthenosphere");
 		al_flip_display();
 
-		//al_rest(1);
+		al_rest(1);
 
 		Draw(PLATE_TECTONICS);
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Plates");
 		al_flip_display();
 
-		//al_rest(1);
+		al_rest(1);
 
 		Draw(TERRAIN);
 		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");

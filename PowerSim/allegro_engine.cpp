@@ -11,6 +11,7 @@ ALLEGRO_FONT* AllegroEngine::arial8;
 ALLEGRO_COLOR AllegroEngine::text_color;
 
 ALLEGRO_DISPLAY* AllegroEngine::main_display;
+ALLEGRO_BITMAP* AllegroEngine::main_bitmap;
 
 void AllegroEngine::InitializeAllegro()
 {
@@ -60,6 +61,19 @@ void AllegroEngine::InitializeScreen(int myScreenWidth, int myScreenHeight)
 
 	al_set_window_position(main_display,0,0);
 	al_set_window_title(main_display,"World Simulation");
+	text_color = al_map_rgb(
+		atoi(Settings::GetSetting("color_text_r").c_str()),
+		atoi(Settings::GetSetting("color_text_g").c_str()),
+		atoi(Settings::GetSetting("color_text_b").c_str()));
+};
+void AllegroEngine::InitializeBitmap(int myScreenWidth, int myScreenHeight)
+{
+	screen_width = myScreenWidth;
+	screen_height = myScreenHeight;
+
+	main_bitmap = al_create_bitmap(screen_width,screen_height);
+	al_set_target_bitmap(main_bitmap);
+
 	text_color = al_map_rgb(
 		atoi(Settings::GetSetting("color_text_r").c_str()),
 		atoi(Settings::GetSetting("color_text_g").c_str()),
@@ -122,10 +136,25 @@ int AllegroEngine::FlushScreenshot(std::string myWorldName,int myCurrentYear,int
 
 		std::cout<<"Screenshot saved at "<<al_get_path_basename(path)<<" with extension "<<al_get_path_extension(path)<<endl;
 
-		if(al_save_bitmap(path_cstr,al_get_backbuffer(main_display)))
-			return 1;
+		if(main_display)
+		{
+			if(al_save_bitmap(path_cstr,al_get_backbuffer(main_display)))
+				return 1;
+			else
+				return -1;
+		}
+		else if (main_bitmap)
+		{
+			if(al_save_bitmap(path_cstr,main_bitmap))
+				return 1;
+			else
+				return -1;
+		}
 		else
-			return -1;
+		{
+			//No screen was initialized
+			return -9;
+		}
 	}
 	else
 	{

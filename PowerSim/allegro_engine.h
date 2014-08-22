@@ -22,6 +22,7 @@ public:
 
 	//Creates the screen
 	static void InitializeScreen(int myScreenWidth, int myScreenHeight);
+	static void InitializeBitmap(int myScreenWidth, int myScreenHeight);
 
 	static void RenameSceen(std::string myName);
 
@@ -42,6 +43,7 @@ public:
 
 private:
 	static ALLEGRO_COLOR text_color;
+	static ALLEGRO_BITMAP* main_bitmap;
 	static ALLEGRO_DISPLAY* main_display;
 	static int screen_width;
 	static int screen_height;
