@@ -121,7 +121,7 @@ DocProject/Help/*.hhp
 DocProject/Help/Html2
 DocProject/Help/html
 
-dir_to_ignore/.\PowerSim\Output
+PowerSim/Ouput
 
 # Click-Once directory
 publish/

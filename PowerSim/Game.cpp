@@ -250,15 +250,15 @@ void Game::CreateProvinces()
 void Game::CreateContinents()
 {
 	std::cout<<endl<<"Creating continents."<<endl;
-	for (int f = 0; f <5; f++)
+	for (int f = 0; f <7; f++)
 	{
 		//Center_of_continent
 		int cluster_origin_province_x=0;
 		int cluster_origin_province_y=0;
 		while(cluster_origin_province_x ==0 ||cluster_origin_province_y ==0)
 		{
-			int attempted_x = (context->world_width/2)+(rand()%(context->world_width/3))-(context->world_width/6);
-			int attempted_y = (context->world_height/2)+(rand()%(context->world_height/2))-(context->world_height/4);
+			int attempted_x = (context->world_width/2)+RandomNumberBetween(-context->world_width/4,context->world_width/4);
+			int attempted_y = (context->world_height/2)+RandomNumberBetween(-context->world_height/3,context->world_height/3);
 
 			if(context->provinces[attempted_y][attempted_x]->biome!=GRASSLAND)
 			{

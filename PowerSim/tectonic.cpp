@@ -463,6 +463,7 @@ void TectonicHandler::Erode()
 
 void TectonicHandler::AdvanceTectonics()
 {
+	//		ASTHENOSPHERE HEATMAP		//
 	int hottest_asthenosphere = 0;
 	Vector2 hottest_asthenosphere_location (0,0);
 	for (int y = 0; y < context->world_height; y++)
@@ -488,19 +489,7 @@ void TectonicHandler::AdvanceTectonics()
 	//		MOVE EACH PLATE		//
 	for (int t = 0; t < context->tectonic_plates.size(); t++)
 	{
-		/*if(context->tectonic_plates[t]->x_velocity == -9999)
-		{
-		context->tectonic_plates[t]->x_velocity = RandomNumberBetween(-1,2);
-		context->tectonic_plates[t]->y_velocity = RandomNumberBetween(-1,2);
-
-		while(context->tectonic_plates[t]->x_velocity==0 && context->tectonic_plates[t]->y_velocity==0)
-		{
-		context->tectonic_plates[t]->x_velocity = RandomNumberBetween(-1,2);
-		context->tectonic_plates[t]->y_velocity = RandomNumberBetween(-1,2);
-		}
-		}*/
-
-		//Setting direction of plate
+		//Setting direction of plate depending on the asthenosphere heat map
 		if((hottest_asthenosphere - CalculateAverageAsthenosphereTemperature(context->tectonic_plates[t])) > (hottest_asthenosphere/2))
 		{
 			Vector2 plate_center = CalculatePlateCenter(context->tectonic_plates[t]);
@@ -526,12 +515,7 @@ void TectonicHandler::AdvanceTectonics()
 			context->tectonic_plates[t]->y_velocity = 0;
 		}
 
-
-		//Logic behind plate movement here
-
-		//Heat convection?
-
-		//Populating where the plates move to
+		//		PLATE MOVEMENT		//
 		for (int p = 0; p < context->tectonic_plates[t]->provinces_in_plate.size(); p++)
 		{
 			int where_it_was_x = context->tectonic_plates[t]->provinces_in_plate[p]->x;
@@ -553,16 +537,14 @@ void TectonicHandler::AdvanceTectonics()
 
 			context->WrapCoordinates(&wrapped_x,&wrapped_y);
 
-			//Don't add it if we already have it
+			//Checking for redundancies
 			bool already_have_this_plate = false;
 			for (int q = 0; q < context->new_plates_on_province[wrapped_y][wrapped_x].size(); q++)
 				if(context->new_plates_on_province[wrapped_y][wrapped_x][q] == t)
 					already_have_this_plate = true;
 
-			if(!already_have_this_plate)
-			{
+			if(!already_have_this_plate)//Don't add it if we already have it
 				context->new_plates_on_province[wrapped_y][wrapped_x].push_back(t);
-			}
 		}
 	}
 
@@ -786,6 +768,7 @@ int TectonicHandler::CalculatePlateDensity(TectonicPlate* myPlate)
 {
 	int total_landmass = 0;
 	int total_water = 0;
+	int total_distance_from_equator= 0;
 	for (int p = 0; p < myPlate->provinces_in_plate.size(); p++)
 	{
 		//This method compares the all land to the all water provinces and considers water provinces fully cool
@@ -797,15 +780,17 @@ int TectonicHandler::CalculatePlateDensity(TectonicPlate* myPlate)
 		{
 			total_water++;
 		}
+		total_distance_from_equator += abs( context->world_height/2 - myPlate->provinces_in_plate[p]->y);
 
 		//This method compares teh total amount of land vs the total amount of water for different ranges
 		//total_landmass+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->altitude;
 		//total_water+=context->provinces[myPlate->provinces_in_plate[p]->y][myPlate->provinces_in_plate[p]->x]->water_depth;
 	}
+	total_distance_from_equator/=myPlate->provinces_in_plate.size();
 	if(total_landmass == 0){return 0 ;}
 
 	if(total_water!=0)
-		return total_landmass/total_water;
+		return total_landmass/total_water/total_distance_from_equator;
 	else
 	{
 		return total_landmass;

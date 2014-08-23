@@ -15,15 +15,15 @@ create_new_game=1;
 screen_width=1350
 screen_height=690
 
-province_width=20
-province_height=20
+province_width=25
+province_height=25
 
 //				 //
 //Output Settings//
 //				 //
 picture_output_folder=.\Output\
 
-create_screen=0
+create_screen=1
 
 save_interval_years=5
 tectonic_interval_years=1000
