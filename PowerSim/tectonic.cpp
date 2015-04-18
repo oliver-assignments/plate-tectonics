@@ -38,11 +38,6 @@ void TectonicHandler::CreateTectonicPlates()
 		std::vector<std::vector<int>> row_of_list_of_old_plates_on_province;
 		context->old_plates_on_province.push_back(row_of_list_of_old_plates_on_province);
 
-		std::vector<bool> old_row_of_flipped_provinces;
-		context->old_flipped_provinces.push_back(old_row_of_flipped_provinces);
-
-		std::vector<bool> row_of_flipped_provinces;
-		context->new_flipped_provinces.push_back(row_of_flipped_provinces);
 
 		for (int x = 0; x < context->world_width; x++)
 		{
@@ -51,8 +46,6 @@ void TectonicHandler::CreateTectonicPlates()
 			context->asthenosphere_heat_map[y].push_back(0);
 			context->new_plates_on_province[y].push_back(*new std::vector<int>);
 			context->old_plates_on_province[y].push_back(*new std::vector<int>);
-			context->new_flipped_provinces[y].push_back(false);
-			context->old_flipped_provinces[y].push_back(false);
 		}
 	}
 
@@ -457,8 +450,10 @@ void TectonicHandler::FlushWater(int number_times)
 	}
 };
 
+
 void TectonicHandler::Erode()
 {
+
 };
 
 void TectonicHandler::AdvanceTectonics()
@@ -476,12 +471,10 @@ void TectonicHandler::AdvanceTectonics()
 
 			if(context->asthenosphere_heat_map[y][x]>hottest_asthenosphere)
 			{
-				if( y !=0 && y != (context->world_height-1))
-				{
-					hottest_asthenosphere = context->asthenosphere_heat_map[y][x];
-					hottest_asthenosphere_location.x = x;
-					hottest_asthenosphere_location.y = y;
-				}
+				hottest_asthenosphere = context->asthenosphere_heat_map[y][x];
+				hottest_asthenosphere_location.x = x;
+				hottest_asthenosphere_location.y = y;
+
 			}
 		}
 	}
@@ -521,19 +514,8 @@ void TectonicHandler::AdvanceTectonics()
 			int where_it_was_x = context->tectonic_plates[t]->provinces_in_plate[p]->x;
 			int where_it_was_y = context->tectonic_plates[t]->provinces_in_plate[p]->y;
 
-			int wrapped_x;
-			int wrapped_y;
-			if(context->old_flipped_provinces[context->tectonic_plates[t]->provinces_in_plate[p]->y][context->tectonic_plates[t]->provinces_in_plate[p]->x] == false)
-			{
-				wrapped_x = where_it_was_x + context->tectonic_plates[t]->x_velocity;
-				wrapped_y = where_it_was_y + context->tectonic_plates[t]->y_velocity;
-			}
-			else
-			{
-				//This is a flipped version of the plate aroudn the north or south go in the other direction
-				wrapped_x = where_it_was_x - context->tectonic_plates[t]->x_velocity;
-				wrapped_y = where_it_was_y - context->tectonic_plates[t]->y_velocity;
-			}
+			int wrapped_x = where_it_was_x + context->tectonic_plates[t]->x_velocity;
+			int wrapped_y = where_it_was_y + context->tectonic_plates[t]->y_velocity;
 
 			context->WrapCoordinates(&wrapped_x,&wrapped_y);
 
@@ -586,32 +568,12 @@ void TectonicHandler::AdvanceTectonics()
 
 					context->WrapCoordinates(&old_position);
 
-					bool flipped = false;
-
-					//If that aint our plate go the other way
-					if(tectonic_plate_conflicts[i] != context->tectonic_plates[context->old_plates_on_province[old_position.y][old_position.x][0]]->plate_number)
-					{
-						flipped = true;
-						old_position.x= x + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->x_velocity;
-						old_position.y= y + context->tectonic_plates[context->new_plates_on_province[y][x][0]]->y_velocity;
-
-						context->WrapCoordinates(&old_position);
-					}
-
 					int altitude_move = context->provinces[old_position.y][old_position.x]->altitude;
 
 					//Now move the altitude from the chosen plate
 					if(tectonic_plate_conflicts[i] == non_subducting_plate)
 					{
 						pending_altitude_changes[y][x] += altitude_move;
-
-						if(flipped)
-						{
-							if(context->new_flipped_provinces[y][x] == true)
-								context->new_flipped_provinces[y][x] =false;
-							else
-								context->new_flipped_provinces[y][x] = true;
-						}
 					}
 					else
 					{
@@ -725,9 +687,6 @@ void TectonicHandler::AdvanceTectonics()
 			context->old_plates_on_province[y][x].clear();
 			context->old_plates_on_province[y][x].push_back(context->new_plates_on_province[y][x][0]);
 			context->new_plates_on_province[y][x].clear();
-
-			context->old_flipped_provinces[y][x] = context->new_flipped_provinces[y][x];
-			context->new_flipped_provinces[y][x] = false;
 
 		}
 	}

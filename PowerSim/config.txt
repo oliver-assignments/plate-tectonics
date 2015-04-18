@@ -12,11 +12,11 @@
 create_new_game=1;
 
 //Max screen size is 1350 x 690
-screen_width=1350
-screen_height=690
+screen_width=400
+screen_height=300
 
-province_width=12
-province_height=15
+province_width=16
+province_height=12
 
 //				 //
 //Output Settings//

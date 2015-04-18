@@ -12,25 +12,10 @@ std::vector<Province*> Context::GetSquareOfProvinces(int province_x, int provinc
 {
 	std::vector<Province*> square;
 
-	for (int x = province_x-radius; x <= province_x+radius; x++)
+	std::vector<Vector2*> coordinates = GetSquareOfCoordinates(province_x,province_y,radius,doGetCenter);
+	for (int i = 0; i < coordinates.size(); i++)
 	{
-		for (int y = province_y-radius; y <= province_y+radius; y++)
-		{
-			if(x == province_x && y == province_y )
-			{
-				if(doGetCenter)
-					square.push_back(provinces[y][x]);
-			}
-			else
-			{
-				int wrapped_x = x;
-				int wrapped_y = y;
-
-				WrapCoordinates(&wrapped_x,&wrapped_y);
-
-				square.push_back(provinces[wrapped_y][wrapped_x]);
-			}
-		}
+		square.push_back(provinces[coordinates[i]->y][coordinates[i]->x]);
 	}
 
 	return square;
@@ -39,128 +24,77 @@ std::vector<Province*> Context::GetDiamondOfProvinces(int province_x, int provin
 {
 	std::vector<Province*> blob;
 
+	std::vector<Vector2*> coordinates = GetDiamondOfCoordinates(province_x,province_y,radius,doGetCenter);
+	for (int i = 0; i < coordinates.size(); i++)
+	{
+		blob.push_back(provinces[coordinates[i]->y][coordinates[i]->x]);
+	}
+
+	return blob;
+};
+
+std::vector<Vector2*> Context::GetAxisOfCoordinates(int province_x, int province_y, int radius,bool doGetCenter)
+{
+	WrapCoordinates(&province_x,&province_y);
+
+	std::vector<Vector2*> blob;
+
+	if(doGetCenter)
+	{
+		blob.push_back(new Vector2(province_x,province_y));
+	}
+
+	//Axis
+	for (int r = 1; r <= radius; r++)
+	{
+		{
+			int wrapped_x = province_x;
+			int wrapped_y = province_y-r;
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
+		}
+		{ 
+			int wrapped_x = province_x+r;
+			int wrapped_y = province_y;
+
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
+		}
+		{
+			int wrapped_x = province_x;
+			int wrapped_y = province_y+r;
+
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
+		}
+		{ 
+			int wrapped_x = province_x-r;
+			int wrapped_y = province_y;
+
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
+		}
+	}
+
+	return blob;
+};
+std::vector<Vector2*> Context::GetDiamondOfCoordinates(int province_x, int province_y, int radius,bool doGetCenter)
+{
+	std::vector<Vector2*> blob;
+
+	WrapCoordinates(&province_x,&province_y);
+
 	//Center
 	if(doGetCenter)
 	{
-		if(province_y >=0 && province_y <world_height && province_x >=0 && province_x <world_width)
-		{ 
-			blob.push_back(provinces[province_y][province_x]);
-		}
-	}
-
-	//Making circles
-	int location_x = 0;
-	int location_y = 0;
-	for (int r = radius; r > 0; r--)
-	{
-		location_x = province_x;
-		location_y = province_y-r;
-
-		while(location_x != province_x+r)
-		{
-			location_x++;
-			location_y++;
-
-			int wrapped_location_x = location_x;
-			int wrapped_location_y = location_y;
-
-			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
-
-			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
-
-
-		}
-
-		while(location_x != province_x)
-		{
-			location_x--;
-			location_y++;
-
-			int wrapped_location_x = location_x;
-			int wrapped_location_y = location_y;
-
-			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
-
-			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
-
-		}
-
-		while(location_x != province_x-r)
-		{
-			location_x--;
-			location_y--;
-
-			int wrapped_location_x = location_x;
-			int wrapped_location_y = location_y;
-
-			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
-
-			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
-
-
-		}
-
-		while(location_y != province_y-r)
-		{
-			location_x++;
-			location_y--;
-
-			int wrapped_location_x = location_x;
-			int wrapped_location_y = location_y;
-
-			WrapCoordinates(&wrapped_location_x,&wrapped_location_y);
-
-			blob.push_back(provinces[wrapped_location_y][wrapped_location_x]);
-		}
-	}
-
-	return blob;
-};
-std::vector<Vector2*> Context::GetDiamondOfCoordinates(int province_x, int province_y, int radius)
-{
-	std::vector<Vector2*> blob;
-
-	//Center
-	if(province_y >=0 && province_y <world_height && province_x >=0 && province_x <world_width)
-	{ 
 		blob.push_back(new Vector2(province_x,province_y));
 	}
 
-	//Axis
-	for (int r = 1; r <= radius; r++)
+	// ADD AXIS
+	std::vector<Vector2*> axis = GetAxisOfCoordinates( province_x,  province_y,  radius,false);
+	for (int i = 0; i < axis.size(); i++)
 	{
-		if(province_y-r >=0 && province_y-r <world_height)
-		{
-			int wrapped_x = province_x;
-			if(province_x <0){wrapped_x+=world_width;}
-			if(province_x >=world_width){wrapped_x-=world_width;}
-
-			blob.push_back(new Vector2(wrapped_x,province_y-r));
-		}
-		if(province_y >=0 && province_y <world_height)
-		{ 
-			int wrapped_x = province_x+r;
-			if(province_x+r <0){wrapped_x+=world_width;}
-			if(province_x+r >=world_width){wrapped_x-=world_width;}
-
-			blob.push_back(new Vector2(wrapped_x,province_y));
-		}
-		if(province_y+r >=0 && province_y+r <world_height)
-		{
-			int wrapped_x = province_x;
-			if(province_x <0){wrapped_x+=world_width;}
-			if(province_x >=world_width){wrapped_x-=world_width;}
-
-			blob.push_back(new Vector2(wrapped_x,province_y+r));
-		}
-		if(province_y >=0 && province_y <world_height)
-		{ 
-			int wrapped_x = province_x-r;
-			if(province_x-r <0){wrapped_x+=world_width;}
-			if(province_x-r >=world_width){wrapped_x-=world_width;}
-
-			blob.push_back(new Vector2(wrapped_x,province_y));
-		}
+		blob.push_back(axis[i]);
 	}
 
 	//Making circles
@@ -175,103 +109,64 @@ std::vector<Vector2*> Context::GetDiamondOfCoordinates(int province_x, int provi
 		{
 			location_x++;
 			location_y++;
-			if(location_y >=0 && location_y <world_height)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=world_width;}
-				if(location_x >=world_width){wrapped_location-=world_width;}
 
-				blob.push_back(new Vector2(wrapped_location,location_y));
-			}
+			int wrapped_x= location_x;
+			int wrapped_y = location_y;
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
+
 		}
 		while(location_x != province_x)
 		{
 			location_x--;
 			location_y++;
-			if(location_y >=0 && location_y <world_height)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=world_width;}
-				if(location_x >=world_width){wrapped_location-=world_width;}
 
-				blob.push_back(new Vector2(wrapped_location,location_y));
-			}
+			int wrapped_x= location_x;
+			int wrapped_y = location_y;
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
 		}
 		while(location_x != province_x-r)
 		{
 			location_x--;
 			location_y--;
-			if(location_y >=0 && location_y <world_height)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=world_width;}
-				if(location_x >=world_width){wrapped_location-=world_width;}
-
-				blob.push_back(new Vector2(wrapped_location,location_y));
-			}
+			
+			int wrapped_x= location_x;
+			int wrapped_y = location_y;
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
 		}
 		while(location_y != province_y-r)
 		{
 			location_x++;
 			location_y--;
-			if(location_y >=0 && location_y <world_height)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=world_width;}
-				if(location_x >=world_width){wrapped_location-=world_width;}
-				blob.push_back(new Vector2(wrapped_location,location_y));
-			}
+			
+			int wrapped_x= location_x;
+			int wrapped_y = location_y;
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
 		}
 	}
 
 	return blob;
 };
-
-std::vector<Vector2*> Context::GetSquareOfCoordinates(int province_x, int province_y, int radius)
+std::vector<Vector2*> Context::GetSquareOfCoordinates(int province_x, int province_y, int radius,bool doGetCenter)
 {
 	std::vector<Vector2*> blob;
 
+	WrapCoordinates(&province_x,&province_y);
+
 	//Center
-	if(province_y >=0 && province_y < world_height && province_x >=0 && province_x <world_width)
-	{ 
+	if(doGetCenter)
+	{
 		blob.push_back(new Vector2(province_x,province_y));
 	}
 
-	//Axis
-	for (int r = 1; r <= radius; r++)
+	// ADD AXIS
+	std::vector<Vector2*> axis = GetAxisOfCoordinates( province_x,  province_y,  radius,false);
+	for (int i = 0; i < axis.size(); i++)
 	{
-		if(province_y-r >=0 && province_y-r <world_height)
-		{
-			int wrapped_x = province_x;
-			if(province_x <0){wrapped_x+=world_width;}
-			if(province_x >=world_width){wrapped_x-=world_width;}
-
-			blob.push_back(new Vector2(wrapped_x,province_y-r));
-		}
-		if(province_y >=0 && province_y < world_height)
-		{ 
-			int wrapped_x = province_x+r;
-			if(province_x+r <0){wrapped_x+=world_width;}
-			if(province_x+r >=world_width){wrapped_x-=world_width;}
-
-			blob.push_back(new Vector2(wrapped_x,province_y));
-		}
-		if(province_y+r >=0 && province_y+r <world_height)
-		{
-			int wrapped_x = province_x;
-			if(province_x <0){wrapped_x+=world_width;}
-			if(province_x >=world_width){wrapped_x-=world_width;}
-
-			blob.push_back(new Vector2(wrapped_x,province_y+r));
-		}
-		if(province_y >=0 && province_y <world_height)
-		{ 
-			int wrapped_x = province_x-r;
-			if(province_x-r <0){wrapped_x+=world_width;}
-			if(province_x-r >=world_width){wrapped_x-=world_width;}
-
-			blob.push_back(new Vector2(wrapped_x,province_y));
-		}
+		blob.push_back(axis[i]);
 	}
 
 	//Making circles
@@ -286,52 +181,43 @@ std::vector<Vector2*> Context::GetSquareOfCoordinates(int province_x, int provin
 		{
 			location_x++;
 			location_y++;
-			if(location_y >=0 && location_y <world_height)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=world_width;}
-				if(location_x >=world_width){wrapped_location-=world_width;}
 
-				blob.push_back(new Vector2(wrapped_location,location_y));
-			}
+			int wrapped_x = location_x;
+			int wrapped_y = location_y;
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
 		}
 		while(location_x != province_x)
 		{
 			location_x--;
 			location_y++;
-			if(location_y >=0 && location_y <world_height)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=world_width;}
-				if(location_x >=world_width){wrapped_location-=world_width;}
 
-				blob.push_back(new Vector2(wrapped_location,location_y));
-			}
+			int wrapped_x = location_x;
+			int wrapped_y = location_y;
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
 		}
 		while(location_x != province_x-r)
 		{
 			location_x--;
 			location_y--;
-			if(location_y >=0 && location_y <world_height)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=world_width;}
-				if(location_x >=world_width){wrapped_location-=world_width;}
+			int wrapped_x = location_x;
+			int wrapped_y = location_y;
+			WrapCoordinates(&wrapped_x,&wrapped_y);
 
-				blob.push_back(new Vector2(wrapped_location,location_y));
-			}
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
 		}
 		while(location_y != province_y-r)
 		{
 			location_x++;
 			location_y--;
-			if(location_y >=0 && location_y <world_height)
-			{
-				int wrapped_location = location_x;
-				if(location_x <0){wrapped_location+=world_width;}
-				if(location_x >=world_width){wrapped_location-=world_width;}
-				blob.push_back(new Vector2(wrapped_location,location_y));
-			}
+			int wrapped_x = location_x;
+			int wrapped_y = location_y;
+			WrapCoordinates(&wrapped_x,&wrapped_y);
+
+			blob.push_back(new Vector2(wrapped_x,wrapped_y));
 		}
 	}
 
@@ -340,20 +226,30 @@ std::vector<Vector2*> Context::GetSquareOfCoordinates(int province_x, int provin
 
 void Context::WrapCoordinates(int* myX,int* myY)
 {
-	if(*myY <0)
+	/*if(*myY <0)
 	{
-		*myX -= (*myX-(world_width/2))*2;
-		if(*myY < 0)
-		{
-			*myY = abs(*myY) - 1;
-		}
+	*myX -= (*myX-(world_width/2))*2;
+	if(*myY < 0)
+	{
+	*myY = abs(*myY) - 1;
+	}
 	}
 	if(*myY >=world_height)
 	{
-		*myX -= (*myX-(world_width/2))*2;
-		if(*myY >=world_height)
-			*myY -= *myY -world_height + *myY -world_height+1;
+	*myX -= (*myX-(world_width/2))*2;
+	if(*myY >=world_height)
+	*myY -= *myY -world_height + *myY -world_height+1;
+	}*/
+	while(*myY <0)
+	{
+		*myY =world_height + *myY;
 	}
+	while(*myY >=world_height)
+	{
+		*myY -=world_height;
+	}
+
+
 	while(*myX <0)
 	{
 		*myX =world_width + *myX;
@@ -365,27 +261,36 @@ void Context::WrapCoordinates(int* myX,int* myY)
 };
 
 void Context::WrapCoordinates(Vector2* myCoordinate)
+{
+	/*if(myCoordinate->y <0)
 	{
-		if(myCoordinate->y <0)
-		{
-			myCoordinate->x -= (myCoordinate->x-(world_width/2))*2;
-			myCoordinate->y =abs(myCoordinate->y);
-		}
+	myCoordinate->x -= (myCoordinate->x-(world_width/2))*2;
+	myCoordinate->y =abs(myCoordinate->y);
+	}
 
-		if(myCoordinate->y >=world_height)
-		{
-			myCoordinate->x -= (myCoordinate->x-(world_width/2))*2;
+	if(myCoordinate->y >=world_height)
+	{
+	myCoordinate->x -= (myCoordinate->x-(world_width/2))*2;
 
-			if(myCoordinate->y >=world_height)
-				myCoordinate->y -= myCoordinate->y -world_height + myCoordinate->y -world_height +1;
-		}
-		while(myCoordinate->x <0)
-		{
-			myCoordinate->x +=world_width + myCoordinate->x;
-		}
-		while(myCoordinate->x >=world_width)
-		{
-			myCoordinate->x -=world_width;
-		}
+	if(myCoordinate->y >=world_height)
+	myCoordinate->y -= myCoordinate->y -world_height + myCoordinate->y -world_height +1;
+	}*/
+	while(myCoordinate->y <0)
+	{
+		myCoordinate->y +=world_height + myCoordinate->y;
+	}
+	while(myCoordinate->y >=world_width)
+	{
+		myCoordinate->y -=world_height;
+	}
 
-	};
+	while(myCoordinate->x <0)
+	{
+		myCoordinate->x +=world_width + myCoordinate->x;
+	}
+	while(myCoordinate->x >=world_width)
+	{
+		myCoordinate->x -=world_width;
+	}
+
+};

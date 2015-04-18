@@ -67,7 +67,8 @@ void Game::CreateWorld()
 	_mkdir((("./Output/"+context->world_name)+"/Plates").c_str());
 	_mkdir((("./Output/"+context->world_name)+"/Terrain").c_str());
 	_mkdir((("./Output/"+context->world_name)+"/Asthenosphere").c_str());
-		CreateProvinces();
+	
+	CreateProvinces();
 	CreateContinents();
 
 	UpdateHighestMountain();
@@ -77,15 +78,6 @@ void Game::CreateWorld()
 
 	TectonicHandler::CreateWater();
 	TectonicHandler::ResolveAllWater();
-	//PlantHandler::InitializeHandler(context);
-	////PlantHandler::CreatePlants();
-
-	//AnimalHandler::InitializeHandler(context);
-	////AnimalHandler::CreateAnimals();
-
-	//PeopleHandler::InitializeHandler(context);
-	//Note we may not want to do this before we move the plates along
-	//PeopleHandler::CreatePeople();
 
 	std::cout<<endl<<"Done creating the world."<<endl;
 };
@@ -194,6 +186,7 @@ void Game::CreateProvinces()
 void Game::CreateContinents()
 {
 	std::cout<<endl<<"Creating continents."<<endl;
+
 	for (int f = 0; f <7; f++)
 	{
 		//Center_of_continent
@@ -201,8 +194,8 @@ void Game::CreateContinents()
 		int cluster_origin_province_y=0;
 		while(cluster_origin_province_x ==0 ||cluster_origin_province_y ==0)
 		{
-			int attempted_x = (context->world_width/2)+RandomNumberBetween(-context->world_width/4,context->world_width/4);
-			int attempted_y = (context->world_height/2)+RandomNumberBetween(-context->world_height/3,context->world_height/3);
+			int attempted_x = (context->world_width/2)  + RandomNumberBetween(-context->world_width  / 4, context->world_width  / 4);
+			int attempted_y = (context->world_height/2) + RandomNumberBetween(-context->world_height / 3, context->world_height / 3);
 
 			if(context->provinces[attempted_y][attempted_x]->biome!=GRASSLAND)
 			{
@@ -215,10 +208,13 @@ void Game::CreateContinents()
 
 		for (int i = 0; i < 15; i++)
 		{
+			int blob_x = cluster_origin_province_x - (radius/2) + (rand()%(radius));
+			int blob_y = cluster_origin_province_y - (radius/2) + (rand()%(radius));
+			int blob_radius = radius/((rand()%3)+1);
+
 			std::vector<Province*> grassland_blob = context->GetDiamondOfProvinces(
-				cluster_origin_province_x - (radius/2) + (rand()%(radius)),
-				cluster_origin_province_y - (radius/2) + (rand()%(radius)), 
-				radius/((rand()%3)+1),
+				blob_x,blob_y, 
+				blob_radius,
 				true);
 
 			for (int p = 0; p < grassland_blob.size(); p++)
@@ -261,65 +257,6 @@ void Game::Update()
 
 		context->current_year++;
 	}
-
-
-	//while(true==false)
-	//{
-	//	int save_interval = atoi(Settings::GetSetting("save_interval_years").c_str());
-	//	int save_counter=0;
-
-	//	int tectonic_interval = atoi(Settings::GetSetting("tectonic_interval_years").c_str());
-	//	int tectonic_counter = 0;
-
-	//	//The real game loop!
-	//	for (int d= 1; d <= 365; d++)
-	//	{
-	//		for (int h = 1; h <= 24; h++)
-	//		{
-	//			//		HOURLY LOGIC		//
-	//			//Update people
-
-	//			context->current_hour++;
-	//		}
-	//		//		DAILY LOGIC			//
-	//		//Update plants and animals
-
-	//		context->current_hour=0;
-	//		context->current_day++;
-	//	}
-	//	//		YEARLY LOGIC		//
-
-	//	//Is it time to save? We do this before tectonics because plates are taxing
-	//	save_counter++;
-	//	if(save_counter>=save_interval)
-	//	{
-	//		context->SaveWorld();
-	//	}
-
-	//	//Is it time for plates to move?
-	//	tectonic_counter++;
-	//	if(tectonic_counter>=tectonic_interval)
-	//	{
-	//		//Now that the landscape has changed flush the new terrain!
-	//		Draw(TERRAIN);
-	//		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Terrain");
-	//		al_flip_display();
-
-	//		Draw(PLATE_TECTONICS);
-	//		AllegroEngine::FlushScreenshot(context->world_name,context->current_year,context->current_day,"Plates");
-	//		al_flip_display();
-
-	//		TectonicHandler::AdvanceTectonics();
-	//		UpdateHighestMountain();
-	//		TectonicHandler::ResolveAllWater();
-	//		UpdateDeepestWater();
-
-	//		tectonic_counter=0;
-	//	}
-
-	//	context->current_year++;
-	//}
-
 };
 
 void Game::UpdateDeepestWater()
@@ -376,45 +313,6 @@ void Game::DrawProvinces(MapMode myMapMode)
 {
 	switch (myMapMode)
 	{
-	case FLIPPED:
-		for(std::vector<std::vector<Province*>>::size_type y = 0; y <context->world_height; y++) 
-		{
-			for(std::vector<Province*>::size_type x = 0; x <context->world_width; x++) 
-			{
-				Province* province = (context->provinces[y][x]);
-
-				int color[3];
-				color[0] = 0;
-				color[1] = 0;
-				color[2] = 0;
-
-				if(context->new_flipped_provinces[y][x])
-				{
-					color[0] = 255;
-				}
-				else
-				{
-					color[1] = 255;
-				}
-
-				ALLEGRO_VERTEX vertices[] = 
-				{
-					{province->p0->x,province->p0->y, 0},
-					{province->p1->x,province->p1->y, 0},
-					{province->p2->x,province->p2->y,0},
-					{province->p3->x,province->p3->y,0},
-				};
-
-				for (int i = 0; i < 4; i++)
-				{
-					vertices[i].color = al_map_rgb(color[0],color[1],color[2]);
-				}
-
-				al_draw_prim(vertices, NULL, 0, 0, 4, ALLEGRO_PRIM_TRIANGLE_FAN );
-			}
-		}
-		break;
-		break;
 	case ASTHENOSPHERE:
 		for(std::vector<std::vector<Province*>>::size_type y = 0; y <context->world_height; y++) 
 		{
@@ -613,17 +511,4 @@ void Game::DrawProvinces(MapMode myMapMode)
 		break;
 	}
 
-};
-
-void Game::DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b)
-{
-	al_draw_line(x-2,y+2,x+2,y+2,al_map_rgb(0,0,0),1);
-
-	al_draw_line(x-2,y,x+2,y,al_map_rgb(r,g,b),1);
-	al_draw_pixel(x,y-1,al_map_rgb(r,g,b));
-};
-void Game::DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b)
-{
-	al_draw_line(x,y+1,x,y-4,al_map_rgb(0,0,0),1);//Shadow
-	al_draw_line(x,y-1,x,y-5,al_map_rgb(r,g,b),3);//Actual
 };

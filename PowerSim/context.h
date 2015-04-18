@@ -46,14 +46,12 @@ public:
 
 	std::vector<std::vector<std::vector<int>>> new_plates_on_province;
 	std::vector<std::vector<std::vector<int>>> old_plates_on_province;
-	std::vector<std::vector<bool>> new_flipped_provinces;
-	std::vector<std::vector<bool>> old_flipped_provinces;
 	
 	std::vector<Province*> GetDiamondOfProvinces(int province_x, int province_y, int radius, bool doGetCenter);
 	std::vector<Province*> GetSquareOfProvinces(int province_x, int province_y, int radius, bool doGetCenter);
-	
-	std::vector<Vector2*> GetDiamondOfCoordinates(int province_x, int province_y, int radius);
-	std::vector<Vector2*> GetSquareOfCoordinates(int province_x, int province_y, int radius);
+	std::vector<Vector2*> GetAxisOfCoordinates(int province_x, int province_y, int radius,bool doGetCenter);
+	std::vector<Vector2*> GetDiamondOfCoordinates(int province_x, int province_y, int radius,bool doGetCenter);
+	std::vector<Vector2*> GetSquareOfCoordinates(int province_x, int province_y, int radius,bool doGetCenter);
 
 	void WrapCoordinates(Vector2* myCoordinate);
 	void WrapCoordinates(int* myX,int* myY);

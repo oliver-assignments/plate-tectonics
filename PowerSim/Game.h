@@ -15,7 +15,6 @@
 enum MapMode
 {
 	TERRAIN, 
-	FLIPPED,
 	ASTHENOSPHERE,
 	PLATE_TECTONICS, 
 	PLANT,
@@ -52,9 +51,6 @@ public:
 	void Draw(MapMode myMapMode);
 
 	void DrawProvinces(MapMode myMapMode);
-
-	void DrawCluster(int x, int y, unsigned char r,unsigned char g,unsigned char b);
-	void DrawBlade(int x, int y, unsigned char r,unsigned char g,unsigned char b);
 
 	Context* context;
 
