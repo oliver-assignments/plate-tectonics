@@ -16,7 +16,7 @@ screen_width=1350
 screen_height=690
 
 province_width=25
-province_height=25
+province_height=30
 
 //				 //
 //Output Settings//
@@ -25,22 +25,9 @@ picture_output_folder=.\Output\
 
 create_screen=1
 
-save_interval_years=5
-tectonic_interval_years=1000
-
 province_jiggle=0
 province_borders_drawn=0
 province_height_drawn=0
-
-//								//
-//Things that change the outcome//
-//								//
-hours_in_day=24
-days_in_year=365
-
-//Human Variables
-hunger_death_level=100
-hunger_seek_level=50
 
 //		//
 //Colors//
@@ -76,49 +63,3 @@ color_jungle_b=70
 color_tundra_r=235
 color_tundra_g=255
 color_tundra_b=235
-
-color_occupation_farmer_r=5
-color_occupation_farmer_g=102
-color_occupation_farmer_b=100
-
-color_occupation_artisan_r=252
-color_occupation_artisan_g=50
-color_occupation_artisan_b=40
-
-color_power_r=255
-color_power_g=0
-color_power_b=0
-
-color_hunger_r=139
-color_hunger_g=69
-color_hunger_b=19
-
-color_intelligence_r=100
-color_intelligence_g=149
-color_intelligence_b=237
-
-color_strength_r=255
-color_strength_g=165
-color_strength_b=0
-
-//Foreignness
-color_foreign_north_r=255
-color_foreign_north_g=255
-color_foreign_north_b=0
-
-color_foreign_east_r=204
-color_foreign_east_g=0
-color_foreign_east_b=0
-
-color_foreign_south_r=51
-color_foreign_south_g=51
-color_foreign_south_b=153
-
-color_foreign_west_r=51
-color_foreign_west_g=153
-color_foreign_west_b=0
-
-//Generation
-color_generation_r=192
-color_generation_g=192
-color_generation_b=192

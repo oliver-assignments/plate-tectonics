@@ -4,17 +4,12 @@
 #include "settings.h"
 #include "allegro_engine.h"
 
-//Declaration Handlers
-#include "people.h"
-#include "plants.h"
-#include "animals.h"
+
 #include "tectonic.h"
 
 //Global Code
 #include "context.h"
-#include "Person.h"
 #include "Province.h"
-#include "Plant.h"
 #include "TectonicPlate.h"
 
 /*
