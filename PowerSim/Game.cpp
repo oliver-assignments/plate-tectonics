@@ -20,10 +20,6 @@ void Game::ProcessSettings()
 	color_text[1] = atoi(Settings::GetSetting("color_text_g").c_str());
 	color_text[2] = atoi(Settings::GetSetting("color_text_b").c_str());
 
-	color_house[0] = atoi(Settings::GetSetting("color_house_r").c_str());
-	color_house[1] = atoi(Settings::GetSetting("color_house_g").c_str());
-	color_house[2] = atoi(Settings::GetSetting("color_house_b").c_str());
-
 	color_grassland[0] =atoi(Settings::GetSetting("color_grassland_r").c_str());
 	color_grassland[1] =atoi(Settings::GetSetting("color_grassland_g").c_str());
 	color_grassland[2] =atoi(Settings::GetSetting("color_grassland_b").c_str());
@@ -51,51 +47,6 @@ void Game::ProcessSettings()
 	color_forest[0] =atoi(Settings::GetSetting("color_forest_r").c_str());
 	color_forest[1] =atoi(Settings::GetSetting("color_forest_g").c_str());
 	color_forest[2] =atoi(Settings::GetSetting("color_forest_b").c_str());
-
-	color_occupation_farmer[0] =atoi(Settings::GetSetting("color_occupation_farmer_r").c_str());
-	color_occupation_farmer[1] =atoi(Settings::GetSetting("color_occupation_farmer_g").c_str());
-	color_occupation_farmer[2] =atoi(Settings::GetSetting("color_occupation_farmer_b").c_str());
-
-	color_occupation_artisan[0] = atoi(Settings::GetSetting("color_occupation_farmer_r").c_str());
-	color_occupation_artisan[1] = atoi(Settings::GetSetting("color_occupation_farmer_g").c_str());
-	color_occupation_artisan[2] = atoi(Settings::GetSetting("color_occupation_farmer_b").c_str());
-
-	color_power[0] = atoi(Settings::GetSetting("color_power_r").c_str()); 
-	color_power[1] = atoi(Settings::GetSetting("color_power_g").c_str());
-	color_power[2] = atoi(Settings::GetSetting("color_power_b").c_str());
-
-	color_hunger[0] = atoi(Settings::GetSetting("color_hunger_r").c_str()); 
-	color_hunger[1] = atoi(Settings::GetSetting("color_hunger_g").c_str());
-	color_hunger[2] = atoi(Settings::GetSetting("color_hunger_b").c_str());
-
-	color_strength[0] = atoi(Settings::GetSetting("color_strength_r").c_str()); 
-	color_strength[1] = atoi(Settings::GetSetting("color_strength_g").c_str()); 
-	color_strength[2] = atoi(Settings::GetSetting("color_strength_b").c_str());
-
-	color_intelligence[0] = atoi(Settings::GetSetting("color_intelligence_r").c_str());
-	color_intelligence[1] = atoi(Settings::GetSetting("color_intelligence_g").c_str());
-	color_intelligence[2] = atoi(Settings::GetSetting("color_intelligence_b").c_str());
-
-	color_foreign_north[0] = atoi(Settings::GetSetting("color_foreign_north_r").c_str()); 
-	color_foreign_north[1] = atoi(Settings::GetSetting("color_foreign_north_g").c_str()); 
-	color_foreign_north[2] = atoi(Settings::GetSetting("color_foreign_north_b").c_str());
-
-	color_foreign_east[0] =atoi(Settings::GetSetting("color_foreign_east_r").c_str()); 
-	color_foreign_east[1] =atoi(Settings::GetSetting("color_foreign_east_g").c_str());
-	color_foreign_east[2] =atoi(Settings::GetSetting("color_foreign_east_b").c_str());
-
-	color_foreign_south[0] = atoi(Settings::GetSetting("color_foreign_south_r").c_str());
-	color_foreign_south[1] = atoi(Settings::GetSetting("color_foreign_south_g").c_str());
-	color_foreign_south[2] = atoi(Settings::GetSetting("color_foreign_south_b").c_str());
-
-	color_foreign_west[0] = atoi(Settings::GetSetting("color_foreign_west_r").c_str());
-	color_foreign_west[1] = atoi(Settings::GetSetting("color_foreign_west_g").c_str()); 
-	color_foreign_west[2] = atoi(Settings::GetSetting("color_foreign_west_b").c_str());
-
-	color_generation[0] = atoi(Settings::GetSetting("color_generation_r").c_str());
-	color_generation[1] = atoi(Settings::GetSetting("color_generation_g").c_str());
-	color_generation[2] = atoi(Settings::GetSetting("color_generation_b").c_str());
-
 };
 void Game::InitializeVariables()
 {	
