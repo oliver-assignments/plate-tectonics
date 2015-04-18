@@ -5,10 +5,6 @@
 
 class Province;
 class TectonicPlate;
-class Plant;
-class Person;
-class Animal;
-class House;
 
 /*
 This code is a snapshot of a world.
@@ -52,13 +48,6 @@ public:
 	std::vector<std::vector<std::vector<int>>> old_plates_on_province;
 	std::vector<std::vector<bool>> new_flipped_provinces;
 	std::vector<std::vector<bool>> old_flipped_provinces;
-
-	std::vector<Person*> people;
-	std::vector<House*> houses;
-
-	std::vector<Plant*> plants;
-
-	std::vector<Animal*> animals;
 	
 	std::vector<Province*> GetDiamondOfProvinces(int province_x, int province_y, int radius, bool doGetCenter);
 	std::vector<Province*> GetSquareOfProvinces(int province_x, int province_y, int radius, bool doGetCenter);

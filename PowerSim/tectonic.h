@@ -4,10 +4,6 @@
 #include "TectonicPlate.h"
 #include "context.h"
 #include "Province.h"
-class Plant;
-class Person;
-class Home;
-class Animal;
 
 class TectonicHandler
 {
