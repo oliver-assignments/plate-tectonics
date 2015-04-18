@@ -57,9 +57,6 @@ public:
 
 	void WrapCoordinates(Vector2* myCoordinate);
 	void WrapCoordinates(int* myX,int* myY);
-
-	int SaveWorld();
-	Context* LoadWorld();
 };
 
 

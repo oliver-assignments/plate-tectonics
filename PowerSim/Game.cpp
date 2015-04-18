@@ -53,9 +53,6 @@ void Game::InitializeVariables()
 	//These are used to make the map relative and change often
 	province_highest_altitude = 1000;
 	province_deepest_depth = 10;
-
-	player_id = 0;
-	house_id = 0;
 	province_id=0;
 };
 

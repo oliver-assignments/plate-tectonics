@@ -6,23 +6,6 @@ Context::~Context()
 	{
 		delete(tectonic_plates[i]);
 	}
-
-	for (int i = 0; i < people.size(); i++)
-	{
-		delete(people[i]);
-	}
-	for (int i = 0; i < houses.size(); i++)
-	{
-		delete(houses[i]);
-	}
-	for (int i = 0; i < plants.size(); i++)
-	{
-		delete(plants[i]);
-	}
-	for (int i = 0; i < animals.size(); i++)
-	{
-		delete(animals[i]);
-	}
 };
 
 std::vector<Province*> Context::GetSquareOfProvinces(int province_x, int province_y, int radius,bool doGetCenter)
@@ -405,34 +388,4 @@ void Context::WrapCoordinates(Vector2* myCoordinate)
 			myCoordinate->x -=world_width;
 		}
 
-	};
-
-	int Context::SaveWorld()
-	{
-		std::vector<std::string> lines_of_output;
-		//Process current things into strings
-
-		//Provinces
-		//Write the dimensions of the world x by y
-		//Write the number of provinces
-		//Make a for loop that creates a province
-		//Altitude
-		//WaterDepth
-		//X,Y position
-
-		//Tectonics
-
-		return 0;
-	};
-
-	Context* Context::LoadWorld()
-	{
-		//Read settings,
-		//if it says NEW then make a new one
-		//if it says a file folder then look for that folder
-		//in that folder look for a save file
-
-		//Parse save file into a context
-		//Return it
-		return new Context();
 	};

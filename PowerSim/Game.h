@@ -74,8 +74,6 @@ private:
 	int province_hottest_asthenosphere;
 
 	int province_id;
-	int player_id;
-	int house_id;
 
 	//Definiting Colors
 	MapMode map_mode;

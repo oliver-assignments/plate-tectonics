@@ -15,8 +15,8 @@ create_new_game=1;
 screen_width=1350
 screen_height=690
 
-province_width=25
-province_height=30
+province_width=12
+province_height=15
 
 //				 //
 //Output Settings//
